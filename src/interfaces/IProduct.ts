@@ -8,4 +8,6 @@ export interface IProduct {
     unitOfMeasurement?: string  //Единицы измерения
     price: number               //Цена
     isArchived: boolean         //Рахивация позиции в справочнике (вместо удаления)
+    createdBy: Types.ObjectId      //Создатель
+    lastUpdateBy: Types.ObjectId      //Обновил
 }

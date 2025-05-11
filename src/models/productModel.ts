@@ -10,6 +10,8 @@ const productSchema = new Schema<IProductModel>({
     unitOfMeasurement: {type: String},
     price: {type: Number, required: true, min: 0},
     isArchived: { type: Boolean, default: false }, // Поле для архивации
+    createdBy: { type: Schema.Types.ObjectId, ref: 'User', immutable: true },
+    lastUpdateBy: { type: Schema.Types.ObjectId, ref: 'User' }
 });
 
 productSchema.index({ name: 'text' }); // Полнотекстовый поиск по названию

@@ -8,4 +8,5 @@ export interface IOrder {
     customerId: Types.ObjectId
     orderDate: Date
     status: 'В ожидании' | 'Завершен' | 'Отменен'
+    userId: Types.ObjectId                          //Создатель
 }

@@ -42,5 +42,6 @@ const customerSchema = new mongoose_1.Schema({
     phone: String,
     email: String,
     address: String,
+    accountManager: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User', required: true }, // Добавлено поле userId
 });
 exports.CustomerModel = mongoose_1.default.model('Customer', customerSchema, 'Customer');

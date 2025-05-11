@@ -18,5 +18,6 @@ const transactionSchema = new Schema<ITransactionModel>({
 transactionSchema.index({ productId: 1 }); // История движений товара
 transactionSchema.index({ batchId: 1 }); // Все операции с партией
 transactionSchema.index({ transactionDate: -1 }); // Свежие транзакции первыми
+transactionSchema.index({ userId: 1, transactionDate: -1 }); // Создатель транзакции
 
 export const TransactionModel = mongoose.model('Transaction', transactionSchema, 'Transaction');

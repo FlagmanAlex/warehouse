@@ -5,6 +5,7 @@ import bodyParser from 'body-parser'
 import cors from 'cors'
 import { categoryRouter } from './src/routes/categoryRouter';
 import { productRouter } from './src/routes/productRouter';
+import { userRouter } from './src/routes/userRouter'
 
 dotenv.config()
 
@@ -23,6 +24,7 @@ app.use(bodyParser.json())
 
 app.use('/api/categories', categoryRouter);
 app.use('/api/products', productRouter);
+app.use('/api/auth', userRouter)
 
 app.listen(port, () => {
     console.log(`Сервер запущен на порту ${port}`);

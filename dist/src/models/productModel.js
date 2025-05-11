@@ -41,8 +41,9 @@ const productSchema = new mongoose_1.Schema({
     category: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Category' }, // Ссылка на категорию
     unitOfMeasurement: { type: String },
     price: { type: Number, required: true, min: 0 },
-    supplier: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Supplier' }, // Ссылка на поставщика
     isArchived: { type: Boolean, default: false }, // Поле для архивации
+    createdBy: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User', immutable: true },
+    lastUpdateBy: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User' }
 });
 productSchema.index({ name: 'text' }); // Полнотекстовый поиск по названию
 productSchema.index({ category: 1 }); // Фильтрация по категории

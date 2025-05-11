@@ -35,11 +35,13 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SupplierModel = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
+// Схема для поставщиков
 const supplierSchema = new mongoose_1.Schema({
     name: { type: String, required: true },
     contactPerson: String,
     phone: String,
     email: String,
     address: String,
+    userId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User', required: true }, // Добавлено поле userId
 });
 exports.SupplierModel = mongoose_1.default.model('Supplier', supplierSchema, 'Supplier');

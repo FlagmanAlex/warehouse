@@ -50,9 +50,11 @@ const orderSchema = new mongoose_1.Schema({
     }, // Ссылка на поставщика
     warehouseId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Warehouse', required: true }, // Ссылка на склад
     orderDate: { type: Date, default: Date.now }, // Дата заказа
-    status: { type: String, enum: ['В ожидании', 'Завершен', 'Отменен'], default: 'В ожидании' } // Статус заказа
+    status: { type: String, enum: ['В ожидании', 'Завершен', 'Отменен'], default: 'В ожидании' }, // Статус заказа
+    userId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User', required: true }
 });
 orderSchema.index({ orderDate: -1 }); // Сортировка заказов по дате
 orderSchema.index({ status: 1 }); // Фильтрация по статусу
 orderSchema.index({ customerId: 1, orderDate: -1 }); // История заказов клиента
+orderSchema.index({ createdBy: 1, orderDate: -1 }); // Создатель заказа
 exports.OrderModel = mongoose_1.default.model('Order', orderSchema, 'Order');

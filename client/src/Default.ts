@@ -5,11 +5,13 @@ const color = {
     red: '#ad0000',
     green: '#007c00',
     blue: '#0000aa',
+    myBlue: '#007BFF',
     grey: '#aaa',
     lightGrey: '#eee',
     lightBlue: '#ADD8E6',
     skyBlue: '#87CEEB',
     steelBlue: '#4682B4',
+    
     yellow: '#ff0',
     amberYellow: '#ebb000',
     nightBlue: '#08004d',
@@ -29,6 +31,7 @@ export const THEME = {
     },
     button: {
         apply: color.green,
+        add: color.myBlue,
         delete: color.red,
         cancel: color.amberYellow,
         statusEnabled: color.green,

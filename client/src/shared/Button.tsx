@@ -7,36 +7,39 @@ interface ButtonProps {
     onPress: () => void
     textColor?: string
     bgColor?: string
+    style?: StyleSheet
 }
 
-export const Button = ({ children, textColor = THEME.color.black, bgColor = THEME.color.main, onPress }: ButtonProps) => {
+export const Button = ({ style, children, textColor = THEME.color.black, bgColor = THEME.color.main, onPress }: ButtonProps) => {
     return (
-        <TouchableNativeFeedback onPress={onPress} background={TouchableNativeFeedback.Ripple(THEME.color.white, false)} >
-            <View style={
+        <TouchableNativeFeedback  onPress={onPress} background={TouchableNativeFeedback.Ripple(THEME.color.white, false)} >
+            <View style={[
+                    styles.button,
                 {
-                    ...style.button,
                     backgroundColor: bgColor,
                     borderStyle: 'solid',
                     borderColor: 'grey'
                 }
+            ]
             }>
-                <Text style={{ ...style.text, color: textColor }}>{children}</Text>
+                <Text style={{ ...styles.text, color: textColor }}>{children}</Text>
             </View>
         </TouchableNativeFeedback>
     )
 }
 
-const style = StyleSheet.create({
+const styles = StyleSheet.create({
     button: {
         // flex: 1,
         paddingHorizontal: 20,
         paddingVertical: 10,
         justifyContent: 'center',
         borderRadius: 10,
-
+        
     },
     text: {
         textTransform: 'uppercase',
-        fontWeight: 800
+        fontWeight: 800,
+        textAlign: 'center'
     }
 })

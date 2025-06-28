@@ -98,7 +98,7 @@ const ClientList = () => {
             {/* Кнопка создания нового клиента */}
             <IconButton
                 icon="plus"
-                size={36}
+                size={30}
                 iconColor="#fff"
                 style={styles.floatingButton}
                 onPress={() => navigation.navigate('ClientForm', { clientId: '' })}

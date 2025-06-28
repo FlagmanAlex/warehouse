@@ -1,0 +1,22 @@
+{
+  "name": "warehouse",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "server": "cd server && npm run server",
+    "client": "cd client && npm run client"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FlagmanAlex/warehouse.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/FlagmanAlex/warehouse/issues"
+  },
+  "homepage": "https://github.com/FlagmanAlex/warehouse#readme"
+}

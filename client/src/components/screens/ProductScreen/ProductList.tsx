@@ -1,21 +1,30 @@
-// ProductList.tsx
 import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
     FlatList,
     TouchableOpacity,
-    Button,
     StyleSheet,
+    TextInput,
 } from 'react-native';
-import { Product, ProductStackParamList } from '../../../types/types';
+
+import { Button } from '../../../shared/Button'
+import {
+    Product,
+    ProductStackParamList,
+} from '../../../types/types';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { fetchApi } from '../../../utils';
-
+import { TextField } from '../../../shared/TextField';
+import { ButtonApply } from '../../../shared/Buttons/ButtonApply';
+import { THEME } from '../../../Default';
+import { IconButton } from 'react-native-paper';
 
 const ProductList = () => {
     const [products, setProducts] = useState<Product[]>([]);
+    const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+    const [searchQuery, setSearchQuery] = useState<string>('');
     const navigation = useNavigation<NativeStackNavigationProp<ProductStackParamList>>();
 
     useEffect(() => {
@@ -32,9 +41,24 @@ const ProductList = () => {
         try {
             const data = await fetchApi(`product`, 'GET', {});
             setProducts(data);
+            setFilteredProducts(data); // инициализируем отфильтрованный список
         } catch (error) {
             console.error('Error loading products:', error);
         }
+    };
+
+    const handleSearch = (text: string) => {
+        setSearchQuery(text);
+        if (!text) {
+            setFilteredProducts(products);
+            return;
+        }
+
+        const filtered = products.filter((item) =>
+            item.name.toLowerCase().includes(text.toLowerCase()) ||
+            item.article.toLowerCase().includes(text.toLowerCase())
+        );
+        setFilteredProducts(filtered);
     };
 
     const handleEdit = (productId: string) => {
@@ -47,21 +71,34 @@ const ProductList = () => {
 
     return (
         <View style={styles.container}>
-            <Button title="Добавить товар" onPress={handleCreate} />
+
+            <IconButton
+                style={styles.addButton}
+                iconColor='#fff'
+                icon="plus"
+                containerColor={THEME.button.add}
+                size={30}
+                onPress={handleCreate}
+            />
+
+            <TextField
+                // style={styles.searchInput}
+                placeholder="Поиск по названию или артикулу"
+                value={searchQuery}
+                onChangeText={handleSearch}
+            />
 
             <FlatList
-                data={products}
+                data={filteredProducts}
                 keyExtractor={item => item._id}
                 renderItem={({ item }) => (
                     <View style={styles.productItem}>
                         <TouchableOpacity
-                            // style={[styles.actionButton, styles.editButton]}
                             onPress={() => handleEdit(item._id)}
                         >
-                            <Text style={styles.productName}>{`${item.categoryId.name}, ${item.name}`}</Text>
+                            <Text style={styles.productName}>{`${item.categoryId?.name}, ${item.name}`}</Text>
                             <Text>Артикул: {item.article}</Text>
                             <Text>Цена: {item.price} руб.</Text>
-
                         </TouchableOpacity>
                     </View>
                 )}
@@ -71,6 +108,7 @@ const ProductList = () => {
 };
 
 const styles = StyleSheet.create({
+
     container: {
         flex: 1,
         padding: 16,
@@ -87,25 +125,20 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
     },
-    buttonContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 10,
+    searchInput: {
+        height: 40,
+        borderColor: '#ccc',
+        borderWidth: 1,
+        borderRadius: 8,
+        paddingHorizontal: 10,
+        marginBottom: 16,
+        backgroundColor: '#fff',
     },
-    actionButton: {
-        paddingVertical: 6,
-        paddingHorizontal: 12,
-        borderRadius: 5,
-    },
-    editButton: {
-        backgroundColor: '#4CAF50',
-    },
-    deleteButton: {
-        backgroundColor: '#f44336',
-    },
-    buttonText: {
-        color: '#fff',
-        textAlign: 'center',
+    addButton: {
+        position: 'absolute',
+        right: 16,
+        bottom: 16,
+        zIndex: 1,
     },
 });
 

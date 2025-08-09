@@ -1,7 +1,9 @@
 import mongoose, { Schema } from "mongoose";
-import { ICustomer } from "../../../interfaces/ICustomer";
+import { ICustomer } from "@interfaces/ICustomer";
 
-interface ICustomerModel extends Omit<ICustomer, '_id'>, mongoose.Document { }
+interface ICustomerModel extends Omit<ICustomer, '_id'| 'accountManager'>, mongoose.Document {
+    accountManager: mongoose.Types.ObjectId
+ }
 
 // Схема для клиентов
 const customerSchema = new Schema<ICustomerModel>({
@@ -15,4 +17,4 @@ const customerSchema = new Schema<ICustomerModel>({
     accountManager: { type: Schema.Types.ObjectId, ref: 'User', required: true }, // Добавлено поле userId
 });
 
-export const CustomerModel = mongoose.model('Customer', customerSchema, 'Customer');
+export const CustomerModel = mongoose.model<ICustomerModel>('Customer', customerSchema, 'Customer');

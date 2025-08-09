@@ -1,7 +1,9 @@
 import mongoose, { Schema } from "mongoose";
-import { IWarehouse } from "../../../interfaces/IWarehouse";
+import { IWarehouse } from "@interfaces/IWarehouse";
 
-interface IWarehouseModel extends Omit<IWarehouse, '_id'>, mongoose.Document { }
+interface IWarehouseModel extends Omit<IWarehouse, '_id' | 'userId'>, mongoose.Document {
+    userId: Schema.Types.ObjectId
+ }
 // Схема для складов
 const warehouseSchema = new Schema<IWarehouseModel>({
     name: { type: String, required: true },
@@ -10,4 +12,4 @@ const warehouseSchema = new Schema<IWarehouseModel>({
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true }
 });
 
-export const WarehouseModel = mongoose.model('Warehouse', warehouseSchema, 'Warehouse');
+export const WarehouseModel = mongoose.model<IWarehouseModel>('Warehouse', warehouseSchema, 'Warehouse');

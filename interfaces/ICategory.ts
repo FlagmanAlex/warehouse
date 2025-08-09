@@ -1,7 +1,6 @@
-import { Types } from "mongoose";
 
 export interface ICategory {
-    _id?: Types.ObjectId;
-    name: string; // Название категории
-    parentCategory?: Types.ObjectId; // Ссылка на родительскую категорию (если есть)
+    _id?: string;                       // _id категории
+    name: string;                       // Название категории
+    parentCategory?: string;            // Ссылка на родительскую категорию (если есть)
 }

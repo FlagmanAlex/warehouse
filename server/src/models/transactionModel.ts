@@ -1,7 +1,12 @@
-import mongoose, { Schema, Types } from "mongoose";
-import { ITransaction } from "../../../interfaces/ITransaction";
+import mongoose, { Schema } from "mongoose";
+import { ITransaction } from "@interfaces/ITransaction";
 
-interface ITransactionModel extends Omit<ITransaction, '_id'>, mongoose.Document { }
+interface ITransactionModel extends Omit<ITransaction, '_id' | 'productId' | 'warehouseId' | 'batchId' | 'userId'>, mongoose.Document { 
+    productId: mongoose.Types.ObjectId
+    warehouseId: mongoose.Types.ObjectId
+    batchId: mongoose.Types.ObjectId
+    userId: mongoose.Types.ObjectId
+ }
 
 // Схема для транзакций
 const transactionSchema = new Schema<ITransactionModel>({
@@ -21,4 +26,4 @@ transactionSchema.index({ batchId: 1 }); // Все операции с парт�
 transactionSchema.index({ transactionDate: -1 }); // Свежие транзакции первыми
 transactionSchema.index({ userId: 1, transactionDate: -1 }); // Создатель транзакции
 
-export const TransactionModel = mongoose.model('Transaction', transactionSchema, 'Transaction');
+export const TransactionModel = mongoose.model<ITransactionModel>('Transaction', transactionSchema, 'Transaction');

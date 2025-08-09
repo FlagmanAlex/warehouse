@@ -1,13 +1,13 @@
 import { Types } from "mongoose";
 
 export interface ICustomer {
-    _id?: Types.ObjectId;
-    name: string;
-    contactPerson?: string;
-    phone?: string;
-    email?: string;
-    address?: string;
-    gps?: string
-    percent?: Number
-    accountManager: Types.ObjectId; // Добавлено поле userId
+    _id?: string;               // _id - клиента
+    name: string;               // Имя
+    contactPerson?: string;     // Контактное лицо
+    phone?: string;             // Телефон
+    email?: string;             // Электронная почта
+    address?: string;           // Адрес
+    gps?: string                // GPS
+    percent?: Number            // Процент
+    accountManager: string;     // userId
 }

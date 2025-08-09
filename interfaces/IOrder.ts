@@ -3,17 +3,19 @@ import { Types } from "mongoose"
  * @interface интерфейс IOrder
  */
 export interface IOrder {
-    _id?: Types.ObjectId
-    orderNum: string
-    docNum: string
-    orderDate: Date
-    vendorCode: string
-    orderType: 'Приход' | 'Расход'
-    exchangeRate: number
+    _id?: string                                    //ID заказа
+    orderNum: string                                //Номер заказа
+    docNum: string                                  //Номер документа
+    orderDate: Date                                 //Дата заказа
+    vendorCode: string                              //Код поставщика
+    orderType: 'Приход' | 'Расход' | 'Перемещение'  //Тип заказа
+    exchangeRate: number                            //Курс
     bonusRef: number
-    warehouseId: Types.ObjectId
-    supplierId: Types.ObjectId
-    customerId: Types.ObjectId
+    expenses: number
+    payment: number
+    warehouseId: string
+    supplierId: string
+    customerId: string
     status: 'Активен' | 'В резерве' | 'Завершен' | 'Отменен'
-    userId: Types.ObjectId                          //Создатель
+    userId: string                                  //Создатель
 }

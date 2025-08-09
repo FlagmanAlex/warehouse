@@ -1,7 +1,9 @@
 import mongoose, { Schema } from "mongoose";
-import { IPriceHistory } from "../../../interfaces/IPriceHistory";
+import { IPriceHistory } from "@interfaces/IPriceHistory";
 
-interface IPriceHistoryModel extends Omit<IPriceHistory, '_id'>, mongoose.Document { }
+interface IPriceHistoryModel extends Omit<IPriceHistory, '_id' | 'productId'>, mongoose.Document { 
+    productId: mongoose.Types.ObjectId
+ }
 
 const priceHistorySchema = new Schema<IPriceHistoryModel>({
     productId: { type: Schema.Types.ObjectId, ref: "Product", required: true }, // Ссылка на товар

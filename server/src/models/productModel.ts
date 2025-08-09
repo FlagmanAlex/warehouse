@@ -1,7 +1,12 @@
-import mongoose, { Schema, Types } from "mongoose";
-import { IProduct } from "../../../interfaces/IProduct";
+import mongoose, { Schema } from "mongoose";
+import { IProduct } from "@interfaces/IProduct";
 
-export interface IProductModel extends Omit<IProduct, "_id">, mongoose.Document { }
+export interface IProductModel extends Omit<IProduct, "_id" | "supplierId" | "createdBy" | "lastUpdateBy" | "categoryId">, mongoose.Document { 
+    categoryId: mongoose.Types.ObjectId
+    supplierId: mongoose.Types.ObjectId
+    createdBy: mongoose.Types.ObjectId
+    lastUpdateBy: mongoose.Types.ObjectId
+}
 
 const productSchema = new Schema<IProductModel>({
     name: { type: String, required: true },
@@ -20,4 +25,4 @@ productSchema.index({ name: 'text' }); // Полнотекстовый поис�
 productSchema.index({ category: 1 }); // Фильтрация по категории
 productSchema.index({ isArchived: 1 }); // Отдельно архивные/неархивные
 
-export const ProductModel = mongoose.model('Product', productSchema, 'Product');
+export const ProductModel = mongoose.model<IProductModel>('Product', productSchema, 'Product');

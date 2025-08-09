@@ -1,10 +1,10 @@
 import { Types } from "mongoose"
 
 export interface IInventory {
-    _id?: Types.ObjectId
-    productId: Types.ObjectId
-    batchId: Types.ObjectId
-    warehouseId: Types.ObjectId
-    quantityAvailable: number
-    lastUpdate: Date
+    _id?: string                // _id: - идентификатор таблицы остатков
+    productId: string           // productId: - идентификатор продукта
+    batchId: string             // batchId: - идентификатор партии
+    warehouseId: string         // warehouseId: - идентификатор склада
+    quantityAvailable: number   // quantityAvailable: - количество остатков
+    lastUpdate: Date            // lastUpdate: - дата последнего обновления
 }

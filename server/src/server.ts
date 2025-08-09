@@ -3,8 +3,7 @@ import mongoose from 'mongoose'
 import express, { NextFunction, Request, Response } from 'express'
 import cors from 'cors'
 import morgan from 'morgan'
-import { mainRouter } from './src/routes'
-import { authMiddleware } from './src/middleware/authMiddleware'
+import { mainRouter } from '../src/routes'
 
 dotenv.config()
 

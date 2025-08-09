@@ -1,13 +1,15 @@
 import { Request, Response } from 'express';
-import mongoose, { Types } from 'mongoose';
-import { IOrderModel, OrderModel } from '../models/orderModel';
+
+import { IOrderDetails } from '@interfaces/IOrderDetails';
+import { IBatch } from '@interfaces/IBatch';
+
+import { OrderModel } from '../models/orderModel';
 import { OrderDetailsModel } from '../models/orderDetailsModel';
 import { InventoryModel } from '../models/inventoryModel';
 import { TransactionModel } from '../models/transactionModel';
-import { IOrderDetails } from '../../../interfaces/IOrderDetails';
 import { OrderNumModel } from '../models/orderNumModel';
-import { IBatch } from '../../../interfaces/IBatch';
 import { BatchModel } from '../models/batchModel';
+import mongoose from 'mongoose';
 
 
 export class OrderController {
@@ -70,13 +72,13 @@ export class OrderController {
             let prefix = '';
             switch (body.orderType) {
                 case 'Приход':
-                    prefix = 'ПР';
+                    prefix = 'ПР'
                     break;
                 case 'Расход':
-                    prefix = 'РС';
+                    prefix = 'РС'
                     break;
                 case 'Перемещение':
-                    prefix = 'ПМ';
+                    prefix = 'ПМ'
                     break;
             }
 
@@ -117,6 +119,8 @@ export class OrderController {
                 orderType: body.orderType,
                 exchangeRate: body.exchangeRate,
                 bonusRef: body.bonusRef,
+                expenses: body.expenses,
+                payment: body.payment,
                 supplierId: body.orderType === 'Приход' ? body.supplierId : null,
                 customerId: body.orderType === 'Расход' ? body.customerId : null,
                 warehouseId: body.warehouseId,
@@ -128,8 +132,8 @@ export class OrderController {
             // Создание позиций заказа
             const orderDetails: IOrderDetails[] = body.items.map((item: IOrderDetails) => {
                 const orderDetail: IOrderDetails = {
-                    orderId: order._id,
-                    batchId: new Types.ObjectId, // партия определяется при списании для расходов
+                    orderId: order._id ? order._id.toString() : '',
+                    // batchId: '', // партия определяется при списании для расходов
                     productId: item.productId,
                     quantity: item.quantity,
                     bonusStock: item.bonusStock,
@@ -156,8 +160,8 @@ export class OrderController {
 
                 if (body.orderType === 'Приход') {
                     const createBatch: IBatch = {
-                        productId,
-                        supplierId: order.supplierId!,
+                        productId: item.productId.toString(),
+                        supplierId: order.supplierId?.toString()!,
                         receiptDate: new Date(order.orderDate),
                         purchasePrice: (item.unitPrice * (order.exchangeRate ?? 1)) || 0,
                         expirationDate: new Date('2026-01-01'),

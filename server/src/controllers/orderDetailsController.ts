@@ -1,12 +1,11 @@
 import { Request, Response } from 'express';
-import mongoose, { ObjectId, Types } from 'mongoose';
-import { IOrderDetailsModel, OrderDetailsModel } from '../models/orderDetailsModel';
+import { OrderDetailsModel } from '../models/orderDetailsModel';
 import { InventoryModel } from '../models/inventoryModel';
 import { TransactionModel } from '../models/transactionModel';
 import { OrderModel } from '../models/orderModel';
 import { BatchModel } from '../models/batchModel';
-import { IOrderDetails } from '../../../interfaces/IOrderDetails';
-import { IOrder } from '../../../interfaces/IOrder';
+import { IOrderDetails } from '@interfaces/IOrderDetails';
+import { IOrder } from '@interfaces/IOrder';
 
 export class OrderDetailsController {
     // Добавить позицию
@@ -91,7 +90,7 @@ export class OrderDetailsController {
     static async removeItem(req: Request, res: Response) {
         try {
             const orderDetailsId = req.params.id;
-            const detail: IOrderDetailsModel | null = await OrderDetailsModel.findById(orderDetailsId);
+            const detail: IOrderDetails | null = await OrderDetailsModel.findById(orderDetailsId);
             if (!detail) throw new Error('Позиция не найдена');
 
             const order: IOrder | null = await OrderModel.findById(detail.orderId);
@@ -161,7 +160,7 @@ export class OrderDetailsController {
         }
     }
 
-    private static async getCurrentInventory(batchId: Types.ObjectId, warehouseId: Types.ObjectId): Promise<number> {
+    private static async getCurrentInventory(batchId: string, warehouseId: string): Promise<number> {
         const inventory = await InventoryModel.findOne({ batchId, warehouseId });
         return inventory?.quantityAvailable || 0;
     }

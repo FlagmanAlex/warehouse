@@ -1,27 +1,27 @@
-import { IExcelImportParams } from '../interfaces/IExcelImportParams';
+import { IExcelImportParams } from '../../interfaces/IExcelImportParams';
 import dotenv from 'dotenv'
 dotenv.config()
-import mongoose, { ObjectId, Schema, Types } from 'mongoose'
-import { readExcelRangeToJSon, writeExcel } from './src/utils/excel';
-import { IUser } from '../interfaces/IUser';
-import { UserModel } from './src/models/userModel';
-import { ICustomer } from '../interfaces/ICustomer';
-import { ICategory } from '../interfaces/ICategory';
-import { IProduct } from '../interfaces/IProduct';
-import { IProductModel, ProductModel } from './src/models/productModel';
-import { ISupplier } from '../interfaces/ISupplier';
-import { PriceHistoryModel } from './src/models/priceHistoryModel';
-import { OrderModel } from './src/models/orderModel';
-import { BatchModel } from './src/models/batchModel';
-import { InventoryModel } from './src/models/inventoryModel';
-import { OrderDetailsModel } from './src/models/orderDetailsModel';
-import { IWarehouse } from '../interfaces/IWarehouse';
-import { SupplierModel } from './src/models/supplierModel';
-import { CustomerModel } from './src/models/customerModel';
-import { CategoryModel } from './src/models/categoryModel';
-import { WarehouseModel } from './src/models/warehouseModel';
-import { TransactionModel } from './src/models/transactionModel';
-import { time } from 'console';
+import mongoose, { Types } from 'mongoose'
+import { readExcelRangeToJSon, writeExcel } from './utils/excel';
+import { IUser } from '../../interfaces/IUser';
+import { UserModel } from './models/userModel';
+import { ICustomer } from '../../interfaces/ICustomer';
+import { ICategory } from '../../interfaces/ICategory';
+import { IProduct } from '../../interfaces/IProduct';
+import { ProductModel } from './models/productModel';
+import { ISupplier } from '../../interfaces/ISupplier';
+import { PriceHistoryModel } from './models/priceHistoryModel';
+import { OrderModel } from './models/orderModel';
+import { BatchModel } from './models/batchModel';
+import { InventoryModel } from './models/inventoryModel';
+import { OrderDetailsModel } from './models/orderDetailsModel';
+import { IWarehouse } from '../../interfaces/IWarehouse';
+import { SupplierModel } from './models/supplierModel';
+import { CustomerModel } from './models/customerModel';
+import { CategoryModel } from './models/categoryModel';
+import { WarehouseModel } from './models/warehouseModel';
+import { TransactionModel } from './models/transactionModel';
+import { OrderNumModel } from './models/orderNumModel';
 
 interface IJournal {
     '№ заказа': string
@@ -122,12 +122,11 @@ class ImportExcel {
     private userId = new Types.ObjectId
     private token = ''
     private fileName = `./temp-${new Date().toLocaleDateString()}`
-    private categoryMap: Map<string, Types.ObjectId> = new Map()
-    private warehouseMap: Map<string, Types.ObjectId> = new Map()
-    private supplierMap: Map<string, Types.ObjectId> = new Map()
-    private productMap: Map<string, Types.ObjectId> = new Map()
-    private customerMap: Map<string, Types.ObjectId> = new Map()
-    private workSheet: string = performance.now().toString()
+    private categoryMap: Map<string, string> = new Map()
+    private warehouseMap: Map<string, string> = new Map()
+    private supplierMap: Map<string, string> = new Map()
+    private productMap: Map<string, string> = new Map()
+    private customerMap: Map<string, string> = new Map()
 
     private paramsExcel = {
         fileName: '../iHerbРасчетЗатрат.xlsx',
@@ -527,6 +526,7 @@ class ImportExcel {
         }
     }
     private async addOrderIn() {
+        await OrderNumModel.deleteMany({})
         await BatchModel.deleteMany({})
         await InventoryModel.deleteMany({})
         await TransactionModel.deleteMany({})
@@ -554,6 +554,8 @@ class ImportExcel {
                 orderType: 'Приход',
                 exchangeRate: item['Курс'],
                 bonusRef: item['Вознаграждение UAH'],
+                expenses: item['Логистика RUB'],
+                payment: item['Сумма оплаты факт USD'],
                 status: 'Завершен',
                 userId: this.userId,
                 supplierId: supplierId,
@@ -650,9 +652,9 @@ class ImportExcel {
                 if (!acc[key])
                     acc[key] = {
                         orderDate: new Date(ДатаП),
-                        customerId,
+                        customerId: new Types.ObjectId(customerId), //customerId,
                         supplierId: new Types.ObjectId(),
-                        productId,
+                        productId: new Types.ObjectId(productId),
                         quantity: 0,
                         unitPrice: item['Продажа RUB'],
                         bonusStock: 0,

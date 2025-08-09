@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "server": "nodemon ./dist/server.js"
+    "server": "nodemon ./dist/server/src/server.js",
+    "import": "node ./dist/server/src/importExcel.js"
   },
   "keywords": [],
   "author": "",

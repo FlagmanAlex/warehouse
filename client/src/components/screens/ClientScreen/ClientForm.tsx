@@ -11,7 +11,7 @@ import { useNavigation, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fetchApi } from '../../../utils';
-import { Client, ClientStackParamList, RootStackParamList } from '../../../types/types';
+import { ClientStackParamList  } from '../../../types/types';
 
 
 type ClientFormScreenNavigationProp = StackNavigationProp<ClientStackParamList, 'ClientList'>;
@@ -36,9 +36,9 @@ const ClientForm = ({ route, navigation }: { route: ClientFormScreenRouteProp; n
     const [isEditing, setIsEditing] = useState(false);
 
     useEffect(() => {
-        if (route.params?.clientId) {
+        if (route.params?.customerId) {
             setIsEditing(true);
-            fetchClient(route.params.clientId);
+            fetchClient(route.params.customerId);
         }
     }, []);
 
@@ -66,7 +66,7 @@ const ClientForm = ({ route, navigation }: { route: ClientFormScreenRouteProp; n
 
         try {
             if (isEditing) {
-                await fetchApi(`customer/${route.params.clientId}`, 'PUT', data)
+                await fetchApi(`customer/${route.params.customerId}`, 'PUT', data)
             } else {
                 await fetchApi('customer', 'POST', data)
             }
@@ -93,7 +93,7 @@ const ClientForm = ({ route, navigation }: { route: ClientFormScreenRouteProp; n
                     text: 'Удалить',
                     onPress: async () => {
                         try {
-                            await fetchApi(`customer/${route.params.clientId}`, 'DELETE');
+                            await fetchApi(`customer/${route.params.customerId}`, 'DELETE');
                             navigation.goBack();
                         } catch (error) {
                             console.error('Ошибка удаления:', error);

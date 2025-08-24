@@ -1,5 +1,7 @@
 // types.ts
 
+import { DocStatus, DocStatusIn, DocStatusOut, DocType } from "@interfaces";
+
 
 // Типы
 export type ProductStackParamList = {
@@ -19,7 +21,7 @@ export type StockStackParamList = {
 
 export type ClientStackParamList = {
     ClientList: { refresh?: boolean };
-    ClientForm: { clientId: string };
+    ClientForm: { customerId: string };
 };
 
 export type RootStackParamList = {
@@ -32,23 +34,20 @@ export type OrderStackParamList = {
     OrderForm: { orderId: string };
 };
 
+export type DocStackParamList = {
+    DocScreen: undefined;
+    DocForm: { docId: string };
+};
+
 export type DrawerParamList = {
     Stock: undefined;
     Product: undefined;
     Client: undefined;
     Order: undefined;
+    Doc: undefined;
     Logout: undefined;
 };
 
-export interface Client {
-    _id: string;
-    name: string;
-    phone: string;
-    address: string;
-    percent: number;
-    accountManager: string;
-    __v?: number;
-}
 
 export interface LoginData {
     email: string;
@@ -63,82 +62,4 @@ export interface AuthResponse {
         email: string;
         role: string;
     };
-}
-
-export interface Product {
-    _id: string;
-    name: string;
-    article: string;
-    categoryId: {
-        _id: string;
-        name: string;
-    };
-    unitOfMeasurement: string;
-    price: number;
-    isArchived: boolean;
-    createdBy: {
-        _id: string;
-        username: string;
-    };
-    lastUpdateBy: {
-        _id: string;
-        username: string;
-    };
-    supplierId: {
-        _id: string;
-        name: string;
-    };
-}
-
-export interface Category {
-    _id: string;
-    name: string;
-}
-
-// Интерфейсы для сущностей
-interface ICustomer {
-    _id: string;
-    name: string;
-    phone: string;
-    address: string;
-    gps: string;
-    percent: number;
-    accountManager: string;
-    __v: number;
-}
-
-interface IWarehouse {
-    _id: string;
-    name: string;
-    userId: string;
-    __v: number;
-}
-
-interface IOrderDetail {
-    _id: string;
-    orderId: string;
-    productId: IProduct;
-    batchId: string | null;
-    quantity: number;
-    unitPrice: number;
-    bonusStock: number;
-    __v: number;
-}
-
-interface IOrder {
-    _id: string;
-    orderNum: string;
-    orderDate: string;
-    orderType: string;
-    customerId: ICustomer;
-    supplierId: string | null;
-    warehouseId: IWarehouse;
-    status: string;
-    userId: string;
-    __v: number;
-}
-
-export interface IOrderResponse {
-    order: IOrder;
-    details: IOrderDetail[];
 }

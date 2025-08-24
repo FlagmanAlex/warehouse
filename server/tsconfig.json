@@ -28,8 +28,11 @@
     "moduleResolution": "node10",                     /* Указать, как TypeScript ищет файл по заданному модульному идентификатору. */
     "baseUrl": ".",                                  /* Указать базовую директорию для разрешения нерелятивных имен модулей. */
     "paths": {
-        "@src/*": ["./src/*"],
-        "@interfaces/*": ["../interfaces/*"],
+        "@interfaces": ["../interfaces"],
+        "@interfaces/DTO": ["../interfaces/DTO"],
+        "@models": ["./src/models"],
+        "@controllers": ["./src/controllers"],
+        "@services": ["./src/services"],
     },                                      /* Указать набор записей, которые перенаправляют импорты на дополнительные места поиска. */
     // "rootDirs": [],                                   /* Разрешить обработку нескольких папок как одной при разрешении модулей. */
     // "typeRoots": [],                                  /* Указать несколько папок, которые действуют как './node_modules/@types'. */

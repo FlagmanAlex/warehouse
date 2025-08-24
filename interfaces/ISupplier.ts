@@ -6,5 +6,4 @@ export interface ISupplier {
     phone?: string;
     email?: string;
     address?: string;
-    userId: string; // Добавлено поле userId
 }

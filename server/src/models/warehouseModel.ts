@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { IWarehouse } from "@interfaces/IWarehouse";
+import { IWarehouse } from "@interfaces";
 
 interface IWarehouseModel extends Omit<IWarehouse, '_id' | 'userId'>, mongoose.Document {
     userId: Schema.Types.ObjectId

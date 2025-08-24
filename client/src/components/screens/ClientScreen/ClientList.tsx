@@ -11,9 +11,10 @@ import {
 import { Card, Title, TextInput as PaperInput, Button, IconButton, Text } from 'react-native-paper';
 import { RouteProp, useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { Client, ClientStackParamList, RootStackParamList } from '../../../types/types';
+import { ClientStackParamList } from '../../../types/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fetchApi } from '../../../utils';
+import { ICustomer } from '@interfaces';
 
 
 type ClientListNavigationProp = StackNavigationProp<ClientStackParamList, 'ClientList'>;
@@ -21,7 +22,7 @@ type ClientListNavigationProp = StackNavigationProp<ClientStackParamList, 'Clien
 
 
 const ClientList = () => {
-    const [clients, setClients] = useState<Client[]>([]);
+    const [customers, setCustomers] = useState<ICustomer[]>([]);
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [isLoading, setIsLoading] = useState<boolean>(true);
     // const [filteredClients, setFilteredClients] = useState<Client[]>([]);
@@ -29,12 +30,12 @@ const ClientList = () => {
     const route = useRoute<RouteProp<ClientStackParamList, 'ClientList'>>();
 
     // Используем useMemo вместо useEffect
-    const filteredClients = useMemo(() => {
-        if (clients.length === 0) return [];
-        return clients.filter((client) =>
-            client.name.toLowerCase().includes(searchQuery.toLowerCase())
+    const filteredCustomers = useMemo(() => {
+        if (customers.length === 0) return [];
+        return customers.filter((customer) =>
+            customer.name.toLowerCase().includes(searchQuery.toLowerCase())
         );
-    }, [clients, searchQuery]);
+    }, [customers, searchQuery]);
 
     useEffect(() => {
         fetchClients();
@@ -51,7 +52,7 @@ const ClientList = () => {
     const fetchClients = async () => {
         try {
             const customers = await fetchApi('customer', 'GET', {});
-            setClients(customers);
+            setCustomers(customers);
         } catch (error) {
             console.error('Ошибка загрузки клиентов:', error);
         } finally {
@@ -79,11 +80,11 @@ const ClientList = () => {
 
             {/* Список клиентов */}
             <FlatList
-                data={filteredClients}
-                keyExtractor={(item) => item._id}
+                data={filteredCustomers}
+                keyExtractor={(item) => item._id!.toString()}
                 refreshControl={<RefreshControl refreshing={isLoading} onRefresh={fetchClients} />}
                 renderItem={({ item }) => (
-                    <TouchableOpacity onPress={() => navigation.navigate('ClientForm', { clientId: item._id })}>
+                    <TouchableOpacity onPress={() => navigation.navigate('ClientForm', { customerId: item._id! })}>
                         <Card style={styles.card}>
                             <Card.Content>
                                 <Text variant='titleLarge'>{item.name}</Text>
@@ -101,7 +102,7 @@ const ClientList = () => {
                 size={30}
                 iconColor="#fff"
                 style={styles.floatingButton}
-                onPress={() => navigation.navigate('ClientForm', { clientId: '' })}
+                onPress={() => navigation.navigate('ClientForm', { customerId: '' })}
             />
         </View>
     );

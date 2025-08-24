@@ -1,4 +1,3 @@
-
 export interface IWarehouse {
     _id?: string;
     name: string;               // Название склада

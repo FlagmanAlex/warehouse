@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { ISupplier } from "@interfaces/ISupplier";
+import { ISupplier } from "@interfaces";
 
 interface ISupplierModel  extends Omit<ISupplier, '_id' | 'userId'>, mongoose.Document {
     userId: mongoose.Types.ObjectId
@@ -12,7 +12,7 @@ const supplierSchema = new Schema<ISupplierModel>({
     phone: String,
     email: String,
     address: String,
-    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true }, // Добавлено поле userId
+    // userId: { type: Schema.Types.ObjectId, ref: 'User', required: true }, // Добавлено поле userId
 });
 
 export const SupplierModel = mongoose.model<ISupplierModel>('Supplier', supplierSchema, 'Supplier');

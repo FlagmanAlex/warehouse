@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { IProduct } from "@interfaces/IProduct";
+import { IProduct } from "@interfaces";
 
 export interface IProductModel extends Omit<IProduct, "_id" | "supplierId" | "createdBy" | "lastUpdateBy" | "categoryId">, mongoose.Document { 
     categoryId: mongoose.Types.ObjectId

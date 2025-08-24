@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
     View,
     TextInput,
-    Button,
     Text,
     StyleSheet,
     Alert,
@@ -12,6 +11,7 @@ import { useAuth } from './AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { AuthStackParamList } from '../../../types/types';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { Button } from '../../../shared/Button';
 
 // Типизация навигации
 
@@ -53,12 +53,17 @@ const LoginScreen = () => {
                 style={styles.input}
                 secureTextEntry
             />
-            <Button title="Войти" onPress={handleLogin} color="#28a745" />
             <Button
-                title="Зарегистрироваться"
+                onPress={handleLogin}
+                bgColor="#28a745"
+                textColor='#fff'
+            > Войти </Button>
+            <Button
                 onPress={() => navigation.navigate('RegisterScreen')}
-                color="#007bff"
-            />
+                bgColor="#007bff"
+                textColor='#fff'
+                style={{ marginTop: 10 }}
+            > Зарегистрироваться </Button>
         </View>
     );
 };

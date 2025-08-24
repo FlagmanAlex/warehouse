@@ -20,7 +20,7 @@ export class TransactionController {
             ]);
 
             if (!batch) throw new Error('Партия не найдена');
-            if (transactionType === 'Расход' && (!inventory || inventory.quantityAvailable < changeQuantity)) {
+            if (transactionType === 'Outgoing' && (!inventory || inventory.quantityAvailable < changeQuantity)) {
                 throw new Error('Недостаточно товара на складе');
             }
 
@@ -68,9 +68,9 @@ export class TransactionController {
             // Добавляем вычисляемое поле newQuantity
             const formattedTransactions = transactions.map(transaction => ({
                 ...transaction.toObject(),
-                newQuantity: transaction.previousQuantity + transaction.changeQuantity,
+                newQuantity: transaction.previousQuantity + transaction.changedQuantity,
                 productInfo: transaction.productId || null,
-                transactionType: transaction.transactionType === 'Приход' ? 'in' : 'out',
+                transactionType: transaction.transactionType === 'Incoming' ? 'in' : 'out',
                 // orderDate: transaction.orderId?.orderDate || null // <-- Получаем дату документа заказа
 
             }));

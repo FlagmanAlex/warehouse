@@ -10,7 +10,6 @@ import {
 
 import { Button } from '../../../shared/Button'
 import {
-    Product,
     ProductStackParamList,
 } from '../../../types/types';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -20,10 +19,12 @@ import { TextField } from '../../../shared/TextField';
 import { ButtonApply } from '../../../shared/Buttons/ButtonApply';
 import { THEME } from '../../../Default';
 import { IconButton } from 'react-native-paper';
+import { IProduct } from '@interfaces';
+import { ResponseProductDto } from '@interfaces/DTO';
 
 const ProductList = () => {
-    const [products, setProducts] = useState<Product[]>([]);
-    const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+    const [products, setProducts] = useState<ResponseProductDto[]>([]);
+    const [filteredProducts, setFilteredProducts] = useState<ResponseProductDto[]>([]);
     const [searchQuery, setSearchQuery] = useState<string>('');
     const navigation = useNavigation<NativeStackNavigationProp<ProductStackParamList>>();
 
@@ -88,15 +89,18 @@ const ProductList = () => {
                 onChangeText={handleSearch}
             />
 
+
+
+
             <FlatList
                 data={filteredProducts}
-                keyExtractor={item => item._id}
+                keyExtractor={item => item._id!.toString()}
                 renderItem={({ item }) => (
                     <View style={styles.productItem}>
                         <TouchableOpacity
-                            onPress={() => handleEdit(item._id)}
+                            onPress={() => handleEdit(item._id!)}
                         >
-                            <Text style={styles.productName}>{`${item.categoryId?.name}, ${item.name}`}</Text>
+                            <Text style={styles.productName}>{`${item.categoryName}, ${item.name}`}</Text>
                             <Text>Артикул: {item.article}</Text>
                             <Text>Цена: {item.price} руб.</Text>
                         </TouchableOpacity>

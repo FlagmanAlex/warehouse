@@ -1,8 +1,11 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import { Request, Response } from 'express';
-import { UserModel } from '../models/userModel';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { IUser } from '../../../interfaces/IUser';
+import { UserModel } from '@models';
+import { IUser } from '@interfaces';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
@@ -83,8 +86,6 @@ export const userController = {
   // Авторизация
   async login(req: AuthRequest, res: Response) {
     try {
-      console.log(req.headers);
-      console.log(req.body);
       const { email, password } = req.body;
 
       const user: IUser | null = await UserModel.findOne({ email });
@@ -92,10 +93,11 @@ export const userController = {
         // Проверка пароля
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
+          console.log('Неверный email или пароль');
           res.status(401).json({ error: 'Неверный email или пароль' });
           return
         }
-
+        
         // Генерация токена
         const token = jwt.sign(
           { userId: user._id, role: user.role },
@@ -113,6 +115,7 @@ export const userController = {
           token
         });
       } else {
+        console.log('Неверный email или пароль');
         res.status(401).json({ error: 'Неверный email или пароль' });
       }
 

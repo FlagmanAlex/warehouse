@@ -1,10 +1,10 @@
 import express from 'express';
-import { getAllSuppliers, createSupplier } from '../controllers/supplierController';
+import { supplierController } from '@controllers';
 
 export const supplierRouter = express.Router();
 
 // Получение списка всех поставщиков
-supplierRouter.get('/', getAllSuppliers);
+supplierRouter.get('/', supplierController.getAllSuppliers);
 
 // Создание нового поставщика
-supplierRouter.post('/', createSupplier);
+supplierRouter.post('/', supplierController.createSupplier);

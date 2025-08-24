@@ -4,13 +4,13 @@ import React, { useState } from 'react';
 import {
     View,
     TextInput,
-    Button,
     Text,
     StyleSheet,
     Alert,
 } from 'react-native';
 import { fetchApi } from '../../../utils';
 import { useNavigation } from '@react-navigation/native';
+import { Button } from '../../../shared/Button';
 
 interface RegisterData {
     username: string;
@@ -70,13 +70,18 @@ const RegisterScreen = () => {
                 style={styles.input}
                 secureTextEntry
             />
-            <Button title="Зарегистрироваться" onPress={handleRegister} color="#28a745" />
+            <Button onPress={handleRegister} bgColor="#28a745" textColor="#fff">
+                Зарегистрироваться
+            </Button>
 
             <Button
-                title="Вернуться к входу"
                 onPress={() => navigation.goBack()}
-                color="#6c757d"
-            />
+                bgColor="#6c757d"
+                textColor="#fff"
+                style={{ marginTop: 10 }}
+            >
+                Вернуться к входу
+            </Button>
         </View>
     );
 };

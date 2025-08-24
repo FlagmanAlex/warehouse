@@ -1,5 +1,3 @@
-import { Types } from "mongoose";
-
 export interface ICustomer {
     _id?: string;               // _id - клиента
     name: string;               // Имя
@@ -8,6 +6,6 @@ export interface ICustomer {
     email?: string;             // Электронная почта
     address?: string;           // Адрес
     gps?: string                // GPS
-    percent?: Number            // Процент
+    percent?: number            // Процент
     accountManager: string;     // userId
 }

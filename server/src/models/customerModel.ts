@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { ICustomer } from "@interfaces/ICustomer";
+import { ICustomer } from "@interfaces";
 
 interface ICustomerModel extends Omit<ICustomer, '_id'| 'accountManager'>, mongoose.Document {
     accountManager: mongoose.Types.ObjectId

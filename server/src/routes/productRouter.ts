@@ -1,5 +1,5 @@
 import express from 'express';
-import { productController } from '../controllers/productController';
+import { productController } from '@controllers';
 import { body } from 'express-validator';
 import { adminMiddleware, authMiddleware } from '../middleware/authMiddleware';
 

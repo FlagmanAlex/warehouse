@@ -1,7 +1,7 @@
 import mongoose, { Schema } from "mongoose";
-import { IBatch } from '@interfaces/IBatch';
+import { IBatch } from '@interfaces';
 
-interface IBatchModel extends Omit<IBatch, '_id' | 'productId' | 'supplierId' | 'warehouseId'>, mongoose.Document {
+export interface IBatchModel extends Omit<IBatch, '_id' | 'productId' | 'supplierId' | 'warehouseId'>, mongoose.Document {
     productId: mongoose.Types.ObjectId
     supplierId: mongoose.Types.ObjectId
     warehouseId: mongoose.Types.ObjectId
@@ -17,8 +17,8 @@ const batchSchema = new Schema<IBatchModel>({
     unitOfMeasure: { type: String, required: true, enum: ['шт', 'кг', 'л', 'м'], default: 'шт' }, // Добавлено: единица измерения
     status: { // Добавлено: статус партии
         type: String,
-        enum: ['активный', 'срок', 'блок', 'заканчивается'],
-        default: 'активный'
+        enum: ['active', 'expired', 'blocked', 'ending_soon'],
+        default: 'active'
     },
     warehouseId: { type: Schema.Types.ObjectId, ref: 'Warehouse', required: true }
 });

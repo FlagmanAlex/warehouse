@@ -1,10 +1,10 @@
 import express from 'express';
-import { getAllPriceHistories, createPriceHistory } from '../controllers/priceHistoryController';
+import { priceHistoryController } from '@controllers';
 
 export const priceHistoryRouter = express.Router();
 
 // Получение истории цен
-priceHistoryRouter.get('/', getAllPriceHistories);
+priceHistoryRouter.get('/', priceHistoryController.getAllPriceHistories);
 
 // Создание новой записи в истории цен
-priceHistoryRouter.post('/', createPriceHistory);
+priceHistoryRouter.post('/', priceHistoryController.createPriceHistory);

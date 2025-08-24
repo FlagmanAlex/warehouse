@@ -4,8 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "server": "nodemon ./dist/server/src/server.js",
-    "import": "node ./dist/server/src/importExcel.js"
+    "start:build": "tsc-watch --onSuccess 'tsc-alias'",
+    "start:nodemon": "nodemon ./dist/server/src/server.js",
+    "import": "node ./dist/server/src/importExcel.js",
+    "server": "concurrently \"npm run start:build\" \"npm run start:nodemon\""
   },
   "keywords": [],
   "author": "",
@@ -18,9 +20,12 @@
     "@types/jsonwebtoken": "^9.0.9",
     "@types/morgan": "^1.9.9",
     "@types/node": "^22.15.14",
+    "concurrently": "^9.2.0",
     "dotenv": "^16.5.0",
     "morgan": "^1.10.0",
     "nodemon": "^3.1.10",
+    "tsc-alias": "^1.8.16",
+    "tsc-watch": "^7.1.1",
     "typescript": "^5.8.3"
   },
   "dependencies": {

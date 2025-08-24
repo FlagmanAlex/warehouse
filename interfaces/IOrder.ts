@@ -1,21 +1,18 @@
-import { Types } from "mongoose"
-/**
- * @interface интерфейс IOrder
- */
+// Interfaces/IOrder.ts
+
+import { IOrderItem } from "./IOrderItem";
+
 export interface IOrder {
-    _id?: string                                    //ID заказа
-    orderNum: string                                //Номер заказа
-    docNum: string                                  //Номер документа
-    orderDate: Date                                 //Дата заказа
-    vendorCode: string                              //Код поставщика
-    orderType: 'Приход' | 'Расход' | 'Перемещение'  //Тип заказа
-    exchangeRate: number                            //Курс
-    bonusRef: number
-    expenses: number
-    payment: number
-    warehouseId: string
-    supplierId: string
-    customerId: string
-    status: 'Активен' | 'В резерве' | 'Завершен' | 'Отменен'
-    userId: string                                  //Создатель
+    _id?: string;               // Идентификатор заказа
+
+    customerId: string;         // Идентификатор клиента
+    orderNum: string;           // Номер заказа
+    orderDate: Date;            // Дата заказа
+    totalAmount: number;        // Общая сумма заказа
+    totalQuantity: number;      // Общее количество товара
+    userId: string;             // Идентификатор пользователя
+    deliveryDate?: Date;        // Дата доставки
+    priority?: 'Низкий' | 'Средний' | 'Высокий';    // Приоритет заказа
+    description?: string;       // Описание заказа
+    items: IOrderItem[];        // Список товаров в заказе
 }

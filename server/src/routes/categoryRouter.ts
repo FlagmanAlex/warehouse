@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { categoryController } from '../controllers/categoryController';
+import { categoryController } from '@controllers';
 
 export const categoryRouter = Router();
 
@@ -22,4 +22,4 @@ categoryRouter.get('/:id/products', categoryController.getCategoryProducts);
 categoryRouter.patch('/:id', categoryController.updateCategory);
 
 // Удаление категории
-categoryRouter.delete('/:id', categoryController.deleteCategory);
+categoryRouter.delete('/:id', categoryController.deleteCategory)

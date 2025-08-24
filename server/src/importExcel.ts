@@ -1,27 +1,21 @@
-import { IExcelImportParams } from '../../interfaces/IExcelImportParams';
 import dotenv from 'dotenv'
 dotenv.config()
 import mongoose, { Types } from 'mongoose'
 import { readExcelRangeToJSon, writeExcel } from './utils/excel';
-import { IUser } from '../../interfaces/IUser';
-import { UserModel } from './models/userModel';
-import { ICustomer } from '../../interfaces/ICustomer';
-import { ICategory } from '../../interfaces/ICategory';
-import { IProduct } from '../../interfaces/IProduct';
-import { ProductModel } from './models/productModel';
-import { ISupplier } from '../../interfaces/ISupplier';
-import { PriceHistoryModel } from './models/priceHistoryModel';
-import { OrderModel } from './models/orderModel';
-import { BatchModel } from './models/batchModel';
-import { InventoryModel } from './models/inventoryModel';
-import { OrderDetailsModel } from './models/orderDetailsModel';
-import { IWarehouse } from '../../interfaces/IWarehouse';
-import { SupplierModel } from './models/supplierModel';
-import { CustomerModel } from './models/customerModel';
-import { CategoryModel } from './models/categoryModel';
-import { WarehouseModel } from './models/warehouseModel';
-import { TransactionModel } from './models/transactionModel';
-import { OrderNumModel } from './models/orderNumModel';
+import {
+    IUser, ICustomer,
+    ICategory, IProduct, ISupplier,
+    IWarehouse, IExcelImportParams, IDoc,
+    IDocItem
+} from '@interfaces';
+import { CreateDocDto, CreateProductDto, CreateDocItemDto, CreateSupplierDto, CreateCustomerDto, CreateWarehouseDto, CreateCategoryDto, ResponseWarehouseDto, ResponseSupplierDto, ResponseProductDto, ResponseCustomerDto } from "@interfaces/DTO";
+import {
+    UserModel, ProductModel, PriceHistoryModel,
+    DocModel, BatchModel, InventoryModel,
+    DocItemsModel, SupplierModel, CustomerModel,
+    CategoryModel, WarehouseModel, TransactionModel, DocNumModel,
+    ITransactionModel
+} from '@models';
 
 interface IJournal {
     '№ заказа': string
@@ -63,15 +57,6 @@ interface IHeadJournal {
     'Чистая прибыль RUB': number
     '% наценки': number
 }
-interface IClient {
-    name: string
-    phone: string
-    address: string
-    gps: string
-    percent: number
-
-}
-
 class Database {
     private static instance: Database
     private readonly url: string
@@ -115,13 +100,13 @@ class Database {
 
 class ImportExcel {
     private startTime = performance.now()
-    private server = `${process.env.HOST}:${process.env.PORT}`
+    private server: string = `${process.env.HOST}:${process.env.PORT}`
     private headJournal: IHeadJournal[] = []
     private journal: IJournal[] = []
-    private clients: IClient[] = []
-    private userId = new Types.ObjectId
-    private token = ''
-    private fileName = `./temp-${new Date().toLocaleDateString()}`
+    private clients: ICustomer[] = []
+    private userId: string = ''
+    private token: string = ''
+    private fileName: string = `./temp-${new Date().toLocaleDateString()}`
     private categoryMap: Map<string, string> = new Map()
     private warehouseMap: Map<string, string> = new Map()
     private supplierMap: Map<string, string> = new Map()
@@ -153,13 +138,6 @@ class ImportExcel {
         await this.getJournal()
         await this.getHeadJournal()
         await this.getClient()
-    }
-    private getTime() {
-        const seconds = (performance.now() - this.startTime) / 1000
-        const h = Math.floor(seconds / 3600);
-        const m = Math.floor((seconds % 3600) / 60);
-        const s = Math.floor(seconds % 60)
-        return `${h}ч.${m}м.${s}с.`;
     }
     private async fetchApi(
         url: string,
@@ -193,6 +171,13 @@ class ImportExcel {
             console.log('Тело запроса:', body);
         }
     }
+    private getTime() {
+        const seconds = (performance.now() - this.startTime) / 1000
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = Math.floor(seconds % 60)
+        return `${h}ч.${m}м.${s}с.`;
+    }
     private async importUser() {
         try {
             // Удаляем User перед созданием
@@ -207,7 +192,7 @@ class ImportExcel {
             const data = await this.fetchApi('auth/register', 'POST', this.token, createUser)
 
             this.userId = data.user._id
-            this.token = data.token
+            this.token = `Bearer ${data.token}`
             console.log('Создание коллекции User прошло успешно');
 
         } catch (error) {
@@ -285,23 +270,25 @@ class ImportExcel {
                 address: client.address,
                 gps: client.gps,
                 percent: client.percent,
+                accountManager: this.userId
             }))
     }
+    //-------------------------------------------------------------------
     private async addSuppliers() {
         console.log('Создание коллекции Supplier...');
         await SupplierModel.deleteMany({})
-        try {
-            const supplier = this.headJournal.map((item) => (item['Поставщик']))
 
-            const uniqueSupplier: { name: string, userId: Types.ObjectId }[] = supplier.reduce((acc, item) => {
+        try {
+            const supplier: any[] = this.headJournal.map((item) => (item['Поставщик']))
+
+            const uniqueSupplier: CreateSupplierDto[] = supplier.reduce((acc, item) => {
                 if (!acc.some((supp: { name: string }) => supp.name === item)) {
                     acc.push({
-                        name: item,
-                        userId: this.userId
+                        name: item
                     })
                 }
                 return acc
-            }, [] as { name: string, userId: Types.ObjectId }[])
+            }, [] )
             await Promise.all(uniqueSupplier.map(async (item) => await this.fetchApi(`supplier`, 'POST', this.token, item)))
         } catch (error) {
             console.log(error);
@@ -313,7 +300,7 @@ class ImportExcel {
         await CustomerModel.deleteMany({})
         //Загружаем данные клиентов
         try {
-            const customer = this.clients.map((item) => (
+            const customer: CreateCustomerDto[] = this.clients.map((item) => (
                 {
                     name: item.name,
                     address: item.address,
@@ -337,13 +324,12 @@ class ImportExcel {
         console.log('Создание коллекции Warehouse...');
         await WarehouseModel.deleteMany({})
         try {
-            const uniqueWarehouse = Array.from(new Set(this.journal.map(item => item['Группа'])))
-                .map(group => ({ name: group }))
+            const uniqueWarehouse: CreateWarehouseDto[]  = Array.from(new Set(this.journal.map(item => item['Группа'])))
+                .map(group => ({ name: group, userId: this.userId }))
                 .filter(item => item.name !== undefined);
-            uniqueWarehouse.push({ name: 'Транзит' });
-            await Promise.all(uniqueWarehouse.map(async item => {
-                const data = await this.fetchApi(`warehouse`, 'POST', this.token, { name: item.name, userId: this.userId })
-            }))
+            uniqueWarehouse.push({ name: 'Транзит', userId: this.userId });
+            await Promise.all(uniqueWarehouse.map(async item =>  
+                await this.fetchApi(`warehouse`, 'POST', this.token, item)))
         } catch (error) {
             console.log('Ошибка сервере', (error as Error).message);
         }
@@ -358,7 +344,7 @@ class ImportExcel {
             const rootId = root._id
 
             //Получение уникальных значений из journals, создание массива категорий и запись в базу.
-            const uniqueCategory: ICategory[] = Array.from(new Set(this.journal.map(item => item['Бренд'])))
+            const uniqueCategory: CreateCategoryDto[] = Array.from(new Set(this.journal.map(item => item['Бренд'])))
                 .filter(item => item)
                 .map(item => ({ name: item, parentCategory: rootId }))
 
@@ -400,17 +386,19 @@ class ImportExcel {
             // 3. Формируем уникальные продукты
             //------------------------------------------------------------------------------------
             const seen = new Set()
-            const uniqueProducts: any = []
+            const uniqueProducts: CreateProductDto[] = []
             this.journal.forEach(journal => {
                 if (
                     !journal['Бренд'] ||
                     !journal['Артикул'] ||
                     !journal['Наименование'] ||
-                    !journal['Поставщик']
-                ) return
+                    !journal['Поставщик'] ||
+                    !journal['Группа']
+                ) throw new Error('Недостаточно данных в journal');
 
                 const categoryId = this.categoryMap.get(journal['Бренд']);
                 const supplierId = this.supplierMap.get(journal['Поставщик']);
+                const defaultWarehouseId = this.warehouseMap.get(journal['Группа']);
 
                 if (!categoryId || !supplierId) {
                     throw new Error(`Ошибка в categoryId (${journal['Бренд']}) или supplierId (${journal['Поставщик']})`);
@@ -429,10 +417,11 @@ class ImportExcel {
                         categoryId,
                         unitOfMeasurement: 'шт',
                         price: 0,
-                        isArchived: false,
+                        supplierId,
                         createdBy: this.userId,
                         lastUpdateBy: this.userId,
-                        supplierId,
+                        isArchived: false,
+                        defaultWarehouseId: defaultWarehouseId || '',
                     })
                 }
             })
@@ -481,7 +470,7 @@ class ImportExcel {
         try {
             //------------------------------------------------------------------------------------
             console.log('Получаем список складов');
-            const warehouse: IWarehouse[] = await this.fetchApi(`warehouse`, 'GET', this.token, {})
+            const warehouse: ResponseWarehouseDto[] = await this.fetchApi(`warehouse`, 'GET', this.token, {})
 
             console.log('Делаем warehouseMap');
             this.warehouseMap = new Map(warehouse.map(item => {
@@ -491,7 +480,7 @@ class ImportExcel {
             // 2. Получаем поставщиков
             //------------------------------------------------------------------------------------
             console.log('Получаем supplier');
-            const suppliers: ISupplier[] = await this.fetchApi(`supplier`, 'GET', this.token, {})
+            const suppliers: ResponseSupplierDto[] = await this.fetchApi(`supplier`, 'GET', this.token, {})
 
             console.log('Делаем supplierMap');
             this.supplierMap = new Map(suppliers.map(item => {
@@ -501,7 +490,7 @@ class ImportExcel {
 
             //------------------------------------------------------------------------------------
             console.log('Получаем product');
-            const products: IProduct[] = await this.fetchApi(`product`, 'GET', this.token, {})
+            const products: ResponseProductDto[] = await this.fetchApi(`product`, 'GET', this.token, {})
 
             console.log('Делаем productMap');
             this.productMap = new Map(products.map(item => {
@@ -511,7 +500,7 @@ class ImportExcel {
 
             //------------------------------------------------------------------------------------
             console.log('Получаем customer');
-            const customer: ICustomer[] = await this.fetchApi(`customer`, 'GET', this.token, {})
+            const customer: ResponseCustomerDto[] = await this.fetchApi(`customer`, 'GET', this.token, {})
 
             console.log('Делаем customerMap');
             this.customerMap = new Map(customer.map(item => {
@@ -522,18 +511,18 @@ class ImportExcel {
 
             //------------------------------------------------------------------------------------
         } catch (error) {
-
+            console.log((error as Error).message);
         }
     }
-    private async addOrderIn() {
-        await OrderNumModel.deleteMany({})
+    private async addDocIn() {
+        await DocNumModel.deleteMany({})
         await BatchModel.deleteMany({})
         await InventoryModel.deleteMany({})
         await TransactionModel.deleteMany({})
-        await OrderModel.deleteMany({})
-        await OrderDetailsModel.deleteMany({})
+        await DocModel.deleteMany({})
+        await DocItemsModel.deleteMany({})
 
-        console.log('Начало addOrderIn');
+        console.log('Начало addDocIn');
 
         try {
 
@@ -544,91 +533,74 @@ class ImportExcel {
             console.log((error as Error).message);
         }
 
-        for (const [index, item] of this.headJournal.entries()) {
-            const supplierId = this.supplierMap.get(item['Поставщик'])
-            const warehouseId = this.warehouseMap.get('Транзит')
-            const order = {
-                orderDate: new Date(item['Дата заказа']),
-                docNum: item['№ заказа'],
-                vendorCode: item['№ отслеживания'],
-                orderType: 'Приход',
-                exchangeRate: item['Курс'],
-                bonusRef: item['Вознаграждение UAH'],
-                expenses: item['Логистика RUB'],
-                payment: item['Сумма оплаты факт USD'],
-                status: 'Завершен',
-                userId: this.userId,
-                supplierId: supplierId,
-                warehouseId: warehouseId,
-                customerId: new Types.ObjectId()
-            }
-            // console.log('получаем массив orderItems по номеру заказа');
-            const orderItems = this.journal
-                .filter(journal => journal['№ заказа'].toString() === item['№ заказа'].toString())
-                .map(item => (
-                    {
-                        productId: this.productMap.get(item['Артикул'].toString()),
-                        quantity: 1,
-                        unitPrice: item['Цена закупки'],
-                        bonusStock: item.Bonus
-                    }
-                ))
+        try {
+            for (const [index, item] of this.headJournal.entries()) {
+                const supplierId: string | undefined = this.supplierMap.get(item['Поставщик'])
+                const warehouseId: string | undefined = this.warehouseMap.get('Транзит')
+                const order: CreateDocDto = {
+                    docDate: new Date(item['Дата заказа']),
+                    orderNum: item['№ заказа'],
+                    vendorCode: item['№ отслеживания'],
+                    docType: 'Incoming',
+                    exchangeRate: item['Курс'],
+                    bonusRef: -item['Вознаграждение UAH'],
+                    expenses: item['Логистика RUB'],
+                    payment: item['Сумма оплаты факт USD'],
+                    status: 'Draft',
+                    supplierId: supplierId || '',
+                    warehouseId: warehouseId || '',
+                    items: []
+                }
+                // console.log('получаем массив orderItems по номеру заказа');
+                const docItems: CreateDocItemDto[] = this.journal
+                    .filter(journal => journal['№ заказа'].toString() === item['№ заказа'].toString())
+                    .map(item => (
+                        {
+                            productId: this.productMap.get(item['Артикул'].toString()) || '',
+                            quantity: 1,
+                            unitPrice: item['Цена закупки'],
+                            bonusStock: -item.Bonus,
+                        }
+                    ))
 
-            //Суммируем orderDetails по quantity и bonusStock
-            const map = new Map()
-            orderItems.forEach(item => {
-                const exist = map.get(item.productId)
-                if (exist) {
-                    exist.quantity += item.quantity
-                    exist.bonusStock += item.bonusStock
-                } else map.set(item.productId, { ...item })
-            })
+                //Суммируем orderDetails по quantity и bonusStock
+                const map = new Map()
+                docItems.forEach(item => {
+                    const exist = map.get(item.productId)
+                    if (exist) {
+                        exist.quantity += item.quantity
+                        exist.bonusStock += item.bonusStock
+                    } else map.set(item.productId, { ...item })
+                })
 
-            const detailsWithoutBatch = Array.from(map.values())
-            const createOrder = {
-                ...order,
-                items: detailsWithoutBatch
-            }
-            try {
-                const resOrder = await this.fetchApi('order', 'POST', this.token, createOrder)
+                const detailsWithoutBatch = Array.from(map.values())
+                const createDoc: CreateDocDto = {
+                    ...order,
+                    items: detailsWithoutBatch
+                }
+
+                const resOrder = await this.fetchApi('doc', 'POST', this.token, createDoc)
                 if (resOrder.message) console.log(resOrder.message);
 
-                process.stdout.write(`\r🔄️ Создание заказа ${index} из ${this.headJournal.length} №${item['№ заказа']}  (${Math.round((index / this.headJournal.length) * 100)}%)     `)
+                process.stdout.write(`\r🔄️ Создание документа "Приход"] ${index} из ${this.headJournal.length} №${item['№ заказа']}  (${Math.round((index / this.headJournal.length) * 100)}%)     `)
             }
-            catch (error) {
-                console.log((error as Error).message);
-            }
-
-
+        }
+        catch (error) {
+            console.log((error as Error).message);
         }
     }
     //Создание расходных документов
-    private async addOrderOut() {
+    private async addDocOut() {
 
-        interface IDetailOrder {
-            orderDate: Date,
-            customerId: Types.ObjectId | undefined,
-            supplierId: Types.ObjectId | undefined
-            productId: Types.ObjectId | undefined,
+        interface IDocItemExcel {
+            docDate: Date,
+            customerId: string,
+            productId: string,
             quantity: number,
             unitPrice: number,
             bonusStock: number,
             batchId: null,
-            orderId: null,
-        }
-        interface IOrderAndOrderDetails {
-            orderDate: Date
-            orderType: string
-            warehouseId: Types.ObjectId
-            customerId: Types.ObjectId
-            supplierId: Types.ObjectId
-            userId: Types.ObjectId
-            items: Array<{
-                productId: Types.ObjectId | undefined
-                quantity: number
-                unitPrice: number
-                bonusStock: number
-            }>
+            docId: null,
         }
 
         await this.DeleteAllOrderOut()
@@ -639,7 +611,7 @@ class ImportExcel {
         //получаем массив из уникальных документов из journalHead
 
         //1. групируем по ДатаП, Клиент, Артикул
-        const ordersDetails = Object.values(this.journal
+        const docItems: IDocItemExcel[] = Object.values(this.journal
             .filter(item => {
                 const { ДатаП, Клиент, Артикул } = item
                 return !!ДатаП && !!Клиент && !!Артикул
@@ -651,40 +623,38 @@ class ImportExcel {
                 const key = `${ДатаП}-${Клиент}-${Артикул}`
                 if (!acc[key])
                     acc[key] = {
-                        orderDate: new Date(ДатаП),
-                        customerId: new Types.ObjectId(customerId), //customerId,
-                        supplierId: new Types.ObjectId(),
-                        productId: new Types.ObjectId(productId),
+                        docDate: new Date(ДатаП),
+                        customerId: customerId || '', //customerId,
+                        productId: productId || '',
                         quantity: 0,
                         unitPrice: item['Продажа RUB'],
                         bonusStock: 0,
                         batchId: null,
-                        orderId: null,
+                        docId: null,
                     }
                 acc[key].quantity += 1
                 return acc
-            }, {} as Record<string, IDetailOrder>)
+            }, {} as Record<string, IDocItemExcel>)
         )
 
         //2. Групипруем по ДатаП, Клиент для создания заказов на дату по клиенту
 
-        const orders = Object.values(ordersDetails.reduce((acc, item) => {
-            const key = `${item.orderDate.toISOString()}-${item.customerId}`
+        const docs: CreateDocDto[] = Object.values(docItems.reduce((acc, item) => {
+            const key = `${item.docDate.toISOString()}-${item.customerId}`
             if (!acc[key]) {
                 acc[key] = {
-                    orderDate: item.orderDate,
+                    docDate: item.docDate,
                     customerId: item.customerId,
-                    orderType: 'Расход',
-                    supplierId: item.supplierId,
-                    userId: this.userId,
-                    warehouseId: this.warehouseMap.get('Транзит'),
+                    docType: 'Outgoing',
+                    warehouseId: this.warehouseMap.get('Транзит')!,
+                    status: 'Draft',
                     items: [] as Array<{
-                        productId: Types.ObjectId,
+                        productId: string,
                         quantity: number,
                         bonusStock: number,
                         unitPrice: number,
                     }>
-                } as unknown as IOrderAndOrderDetails
+                } 
             }
             acc[key].items.push({
                 productId: item.productId,
@@ -695,17 +665,17 @@ class ImportExcel {
 
             return acc
 
-        }, {} as Record<string, IOrderAndOrderDetails>))
+        }, {} as Record<string, CreateDocDto>))
 
         // console.log(orders);
 
-        for (const [index, order] of orders.entries()) {
+        for (const [index, doc] of docs.entries()) {
             try {
-                const saveOrder = await this.fetchApi('order', 'POST', this.token, order)
-                process.stdout.write(`\r🔄️ Создание заказа ${index} из ${orders.length} (${Math.round((index / orders.length) * 100)}%)    `)
+                const saveOrder = await this.fetchApi('doc', 'POST', this.token, doc)
+                process.stdout.write(`\r🔄️ Создание документа "Расход" ${index} из ${docs.length} (${Math.round((index / docs.length) * 100)}%)    `)
             } catch (error) {
-                await writeExcel(Array(order), `${this.fileName}.xlsx`, 'OrderOut_Order')
-                await writeExcel(Array(order.items), `${this.fileName}.xlsx`, 'OrderOut_OrderItems')
+                await writeExcel(Array(doc), `${this.fileName}.xlsx`, 'DocOut_Doc')
+                await writeExcel(Array(doc.items), `${this.fileName}.xlsx`, 'DocOut_DocItems')
                 console.log(`Ошибка при сохранении заказа`, error);
 
             }
@@ -714,46 +684,46 @@ class ImportExcel {
     private async DeleteAllOrderOut() {
         try {
             // 1. Найти все расходные заказы
-            const orders = await OrderModel.find({ orderType: 'Расход' });
+            const docs = await DocModel.find({ docType: 'Расход' });
 
-            if (!orders.length) {
+            if (!docs.length) {
                 console.log('Нет расходных заказов для удаления');
                 return;
             }
 
             // 2. Получить массив ID этих заказов
-            const orderIds = orders.map(order => order._id);
+            const docIds = docs.map(doc => doc._id);
 
             // 3. Найти связанные позиции заказов
-            const orderDetails = await OrderDetailsModel.find({
-                orderId: { $in: orderIds }
+            const docItems = await DocItemsModel.find({
+                docId: { $in: docIds }
             });
 
             // 4. Найти связанные транзакции
-            const transactions = await TransactionModel.find({
-                orderId: { $in: orderIds },
-                transactionType: 'Расход'
+            const transactions: ITransactionModel[] = await TransactionModel.find({
+                docId: { $in: docIds },
+                transactionType: 'Outgoing'
             });
 
             // 5. Восстановить остатки по партиям
             for (const transaction of transactions) {
-                const { productId, batchId, warehouseId, changeQuantity } = transaction;
+                const { productId, batchId, warehouseId, changedQuantity } = transaction;
 
                 // Прибавляем обратно кол-во (т.к. это было списание)
                 await InventoryModel.updateOne(
                     { productId, batchId, warehouseId },
-                    { $inc: { quantityAvailable: Math.abs(changeQuantity) } }
+                    { $inc: { quantityAvailable: Math.abs(changedQuantity) } }
                 );
             }
 
             // 6. Удалить связанные данные
-            await OrderDetailsModel.deleteMany({ orderId: { $in: orderIds } });
-            await TransactionModel.deleteMany({ orderId: { $in: orderIds } });
+            await DocItemsModel.deleteMany({ orderId: { $in: docIds } });
+            await TransactionModel.deleteMany({ orderId: { $in: docIds } });
 
             // 7. Удалить сами заказы
-            await OrderModel.deleteMany({ _id: { $in: orderIds } });
+            await DocModel.deleteMany({ _id: { $in: docIds } });
 
-            console.log(`Удалено ${orders.length} расходных заказов и восстановлены остатки`);
+            console.log(`Удалено ${docs.length} расходных заказов и восстановлены остатки`);
         } catch (error) {
             console.error('Ошибка при удалении расходных заказов:', error);
         }
@@ -765,14 +735,15 @@ class ImportExcel {
             await db.connect()
 
             await this.init()
+            console.log(this.userId, this.token);
 
             await this.addSuppliers()
             await this.addCustomers()
             await this.addWarehouse()
             await this.addCategory()
             await this.addProduct()
-            await this.addOrderIn()
-            await this.addOrderOut()
+            await this.addDocIn()
+            await this.addDocOut()
             console.log(this.getTime())
 
         } finally {

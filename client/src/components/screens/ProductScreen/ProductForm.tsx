@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
     View,
-    TextInput,
-    Button,
     StyleSheet,
     Alert,
     Text,
@@ -10,8 +8,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { fetchApi } from '../../../utils';
-import { IProduct } from '../../../../../interfaces/IProduct';
-import { ICategory } from '../../../../../interfaces/ICategory';
+import { IProduct, ICategory } from '@warehouse/interfaces';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ProductStackParamList } from '../../../types/types';
 import { Dropdown } from 'react-native-element-dropdown';
@@ -29,38 +26,58 @@ const ProductForm = ({ route }: { route: { params: { productId?: string } } }) =
     });
 
     const [categories, setCategories] = useState<ICategory[]>([]);
+    const [loadingCategories, setLoadingCategories] = useState(true);
 
     useEffect(() => {
         const loadCategories = async () => {
             try {
                 const response = await fetchApi('category', 'GET');
-                setCategories(response);
+                setCategories(Array.isArray(response) ? response : []);
             } catch (error) {
                 console.error('Error fetching categories:', error);
+                Alert.alert('Ошибка', 'Не удалось загрузить категории');
+                setCategories([]);
+            } finally {
+                setLoadingCategories(false);
             }
         };
 
         loadCategories();
 
-        if (route.params.productId) {
+        if (route.params?.productId) {
             fetchProduct(route.params.productId);
+        } else {
+            // Сброс при создании нового товара
+            setProduct({
+                name: '',
+                article: '',
+                categoryId: '',
+                unitOfMeasurement: 'шт',
+                price: 0,
+                isArchived: false,
+            });
         }
-    }, [route.params]);
+    }, [route.params?.productId]);
 
     const fetchProduct = async (id: string) => {
         try {
             const response = await fetchApi(`product/${id}`, 'GET');
-            setProduct(response);
-            console.log(product);
-
+            // Нормализуем categoryId: если объект — берём _id, иначе оставляем как есть
+            const categoryId = response.categoryId?._id || response.categoryId || '';
+            setProduct({
+                ...response,
+                categoryId,
+            });
         } catch (error) {
             console.error('Error fetching product:', error);
+            Alert.alert('Ошибка', 'Не удалось загрузить товар');
+            navigation.goBack();
         }
     };
 
     const handleSubmit = async () => {
-        if (!product.name || !product.article || !product.price) {
-            Alert.alert('Ошибка', 'Заполните все поля');
+        if (!product.name || !product.article || product.price == null || product.price < 0) {
+            Alert.alert('Ошибка', 'Заполните все обязательные поля');
             return;
         }
 
@@ -68,7 +85,7 @@ const ProductForm = ({ route }: { route: { params: { productId?: string } } }) =
             const createProduct = {
                 name: product.name,
                 article: product.article,
-                categoryId: product.categoryId._id,
+                categoryId: product.categoryId,
                 unitOfMeasurement: 'шт',
                 price: product.price,
                 isArchived: false,
@@ -81,8 +98,8 @@ const ProductForm = ({ route }: { route: { params: { productId?: string } } }) =
     };
 
     const handleUpdate = async () => {
-        if (!product.name || !product.article) {
-            Alert.alert('Ошибка', 'Заполните все поля');
+        if (!product._id || !product.name || !product.article) {
+            Alert.alert('Ошибка', 'Заполните все обязательные поля');
             return;
         }
 
@@ -95,68 +112,88 @@ const ProductForm = ({ route }: { route: { params: { productId?: string } } }) =
     };
 
     const handleDelete = async (id: string) => {
-        try {
-            Alert.alert(
-                'Подтвердите удаление',
-                'Вы уверены, что хотите удалить этот товар?',
-                [
-                    {
-                        text: 'Отмена',
-                        style: 'cancel',
+        if (!id) return;
+
+        Alert.alert(
+            'Подтвердите удаление',
+            'Вы уверены, что хотите удалить этот товар?',
+            [
+                {
+                    text: 'Отмена',
+                    style: 'cancel',
+                },
+                {
+                    text: 'Удалить',
+                    onPress: () => {
+                        (async () => {
+                            try {
+                                await fetchApi(`product/${id}`, 'DELETE');
+                                navigation.goBack();
+                            } catch (error) {
+                                console.error('Error deleting product:', error);
+                                Alert.alert('Ошибка', 'Не удалось удалить товар');
+                            }
+                        })();
                     },
-                    {
-                        text: 'Удалить',
-                        onPress: async () => {
-                            await fetchApi(`product/${id}`, 'DELETE', {});
-                            navigation.goBack();
-                        },
-                    },
-                ],
-                { cancelable: false }
-            )
-        } catch (error) {
-            console.error('Error deleting product:', error);
-        }
+                },
+            ],
+            { cancelable: false }
+        );
     };
 
+    // Преобразуем категории для Dropdown
+    const dropdownData = categories.map((category) => ({
+        label: category.name,
+        value: category._id,
+    }));
 
     return (
         <View style={styles.container}>
-
-
             {/* Выбор категории */}
-            <Dropdown
-                style={styles.dropdown}
-                placeholderStyle={styles.placeholderStyle}
-                selectedTextStyle={styles.selectedTextStyle}
-                inputSearchStyle={styles.inputSearchStyle}
-                iconStyle={styles.iconStyle}
-                data={categories.map((category) => ({ label: category.name, value: category._id }))}
-                search
-                maxHeight={300}
-                labelField="label"
-                valueField="value"
-                placeholder={!product.categoryId ? 'Выберите категорию' : ''}
-                value={product.categoryId._id || ''}
-                onChange={(item) => {
-                    setProduct({ ...product, categoryId: { _id: item.value, name: item.value } });
-                }}
-            />
+            <Text style={styles.label}>Категория</Text>
+            {loadingCategories ? (
+                <Text style={styles.placeholderStyle}>Загрузка категорий...</Text>
+            ) : (
+                <Dropdown
+                    style={styles.dropdown}
+                    placeholderStyle={styles.placeholderStyle}
+                    selectedTextStyle={styles.selectedTextStyle}
+                    inputSearchStyle={styles.inputSearchStyle}
+                    iconStyle={styles.iconStyle}
+                    data={dropdownData}
+                    search
+                    maxHeight={300}
+                    labelField="label"
+                    valueField="value"
+                    placeholder="Выберите категорию"
+                    value={product.categoryId || ''}
+                    onChange={(item) => {
+                        setProduct({ ...product, categoryId: item.value });
+                    }}
+                />
+            )}
 
+            {/* Название */}
+            <Text style={styles.label}>Название</Text>
             <TextField
-                placeholder="Название"
+                placeholder="Введите название товара"
                 value={product.name || ''}
                 multiline
                 onChangeText={(text) => setProduct({ ...product, name: text })}
-            // style={styles.input}
             />
+
+            {/* Артикул */}
+            <Text style={styles.label}>Артикул</Text>
             <TextField
-                placeholder="Артикул"
+                placeholder="Введите артикул"
                 value={product.article || ''}
                 onChangeText={(text) => setProduct({ ...product, article: text })}
             />
+
+            {/* Цена */}
+            <Text style={styles.label}>Цена</Text>
             <TextField
-                placeholder="Цена"
+                placeholder="Введите цену"
                 value={product.price?.toString() || ''}
                 onChangeText={(text) =>
                     setProduct({
@@ -167,21 +204,25 @@ const ProductForm = ({ route }: { route: { params: { productId?: string } } }) =
                 keyboardType="numeric"
             />
 
+            {/* Кнопки */}
+            {route.params?.productId ? (
+                <>
+                    <TouchableOpacity style={styles.updateButton} onPress={handleUpdate}>
+                        <Text style={styles.updateButtonText}>Обновить товар</Text>
+                    </TouchableOpacity>
 
-
-            {route.params.productId ? (
-                <TouchableOpacity style={styles.updateButton} onPress={handleUpdate}>
-                    <Text style={styles.updateButtonText}>Обновить товар</Text>
-                </TouchableOpacity>
-                
+                    <TouchableOpacity
+                        style={styles.deleteButton}
+                        onPress={() => handleDelete(product._id || '')}
+                    >
+                        <Text style={styles.deleteButtonText}>Удалить товар</Text>
+                    </TouchableOpacity>
+                </>
             ) : (
                 <TouchableOpacity style={styles.createButton} onPress={handleSubmit}>
                     <Text style={styles.createButtonText}>Создать товар</Text>
                 </TouchableOpacity>
             )}
-            <TouchableOpacity style={styles.deleteButton} onPress={() => handleDelete(product._id || '')} >
-                <Text style={styles.deleteButtonText}>Удалить товар</Text>
-            </TouchableOpacity>
         </View>
     );
 };
@@ -190,42 +231,29 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 16,
-    },
-    input: {
-        borderWidth: 1,
-        borderColor: '#ccc',
-        padding: 10,
-        marginBottom: 10,
-        borderRadius: 5,
+        backgroundColor: '#fff',
     },
     label: {
         marginBottom: 8,
-        fontWeight: 'bold',
+        fontWeight: '600',
+        fontSize: 14,
+        color: '#333',
     },
     dropdown: {
-        marginBottom: 10,
-        borderColor: 'grey',
-        borderWidth: 0.5,
+        marginBottom: 16,
+        borderColor: '#ccc',
+        borderWidth: 1,
         borderRadius: 8,
-        padding: 10,
-    },
-    icon: {
-        marginRight: 5,
-    },
-    labelDrop: {
-        position: 'absolute',
-        backgroundColor: 'white',
-        left: 22,
-        top: 8,
-        zIndex: 999,
         paddingHorizontal: 8,
-        fontSize: 14,
+        backgroundColor: '#fff',
     },
     placeholderStyle: {
         fontSize: 16,
+        color: '#999',
     },
     selectedTextStyle: {
         fontSize: 16,
+        color: '#333',
     },
     iconStyle: {
         width: 20,
@@ -233,45 +261,49 @@ const styles = StyleSheet.create({
     },
     inputSearchStyle: {
         height: 40,
-        borderRadius: 4,
-        paddingHorizontal: 5,
         fontSize: 16,
-        borderColor: 'grey',
+        backgroundColor: '#f9f9f9',
+        borderColor: '#ddd',
+        borderWidth: 1,
+        borderRadius: 4,
+        paddingHorizontal: 8,
     },
     deleteButton: {
         backgroundColor: '#dc3545',
-        padding: 15,
-        borderRadius: 5,
+        paddingVertical: 15,
+        borderRadius: 8,
         alignItems: 'center',
-        marginTop: 10,
+        marginTop: 12,
     },
     deleteButtonText: {
         color: '#fff',
         fontSize: 16,
+        fontWeight: '600',
     },
     updateButton: {
         backgroundColor: '#007BFF',
-        padding: 15,
-        borderRadius: 5,
+        paddingVertical: 15,
+        borderRadius: 8,
         alignItems: 'center',
-        marginTop: 10,
+        marginTop: 12,
     },
     updateButtonText: {
         color: '#fff',
         fontSize: 16,
+        fontWeight: '600',
     },
     createButton: {
         backgroundColor: '#28a745',
-        padding: 15,
-        borderRadius: 5,
+        paddingVertical: 15,
+        borderRadius: 8,
         alignItems: 'center',
-        marginTop: 10,
+        marginTop: 12,
     },
     createButtonText: {
         color: '#fff',
         fontSize: 16,
+        fontWeight: '600',
     },
-
 });
 
 export default ProductForm;

@@ -6,14 +6,16 @@ import {
   FlatList,
 } from 'react-native';
 import { useEffect, useState } from 'react';
-import { fetchApi } from '../../../utils';
-import { ResponseDocDto, ResponseDocItemDto } from '@interfaces/DTO';
+import { fetchApi } from '../../../../utils';
+import { CreateDocDto, ResponseDocDto, ResponseDocItemDto } from '@warehouse/interfaces/DTO';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
-import { DocStackParamList } from '../../../types/types';
-import { Field } from './Field';
+import { DocStackParamList } from '../../../../types/types';
+import { Field } from '../Field';
 import { Button } from 'src/shared/Button';
-import { EditableItem } from './EditableItem';
-import { DocStatus, DocType } from '@interfaces';
+import { EditableItem } from '../EditableItem';
+import { DocStatus, DocStatusIn, DocStatusOut, DocType, IDoc, IDocBase, IDocOrder } from '@warehouse/interfaces';
+import { DOC_STATUS_IN, DOC_STATUS_OUT, DOC_TYPE } from 'src/utils/statusLabels';
+import HeaderForm from './HeaderForm';
 
 type DocFormRouteProps = RouteProp<DocStackParamList, 'DocForm'>;
 
@@ -21,10 +23,10 @@ type DocFormRouteProps = RouteProp<DocStackParamList, 'DocForm'>;
 const DocForm = () => {
   const route = useRoute<DocFormRouteProps>();
   const navigation = useNavigation();
-  const { docId } = route.params || {};
+  const { docId, docType } = route.params || '';
 
   // Данные с сервера
-  const [doc, setDoc] = useState<ResponseDocDto | null>(null);
+  const [doc, setDoc] = useState<IDoc | null>(null);
   const [items, setItems] = useState<ResponseDocItemDto[]>([]);
 
   // Режим редактирования
@@ -32,7 +34,27 @@ const DocForm = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const docNew: IDocOrder = {
+    docNum: '',
+    docDate: new Date(),
+    exchangeRate: 1,
+    bonusRef: 0,
+    expenses: 0,
+    warehouseId: '',
+    userId: '',
+    orderNum: '',
+    description: '',
+    docType: 'Order',
+    status: 'Draft',
+    customerId: '',
+    priority: 'Low',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+
+
   useEffect(() => {
+    if (!docId) setDoc(docNew);
     loadDoc();
   }, [docId]);
 
@@ -85,6 +107,7 @@ const DocForm = () => {
     );
   };
 
+
   if (loading) {
     return (
       <View style={styles.center}>
@@ -102,85 +125,7 @@ const DocForm = () => {
   }
 
   const header = () => {
-    return (
-      <View style={[styles.container]}>
-        {/* Заголовок */}
-        <View style={styles.actions}>
-          {!isEditing ? (
-            <View style={[styles.detailsRow, {flex: 1, justifyContent: 'space-between' }]}>
-              <Button onPress={() => setIsEditing(true)} bgColor='#007bff' textColor='#fff' >Редактировать</Button>
-              <Button onPress={handleDelete} bgColor="#d32f2f" textColor="#fff" >Удалить</Button>
-            </View>
-          ) : (
-            <View style={[styles.detailsRow, {flex: 1, justifyContent: 'space-between' }]}>
-              <Button onPress={handleSave} bgColor="#28a745" textColor="#fff" >Сохранить</Button>
-              <Button onPress={() => setIsEditing(false)} bgColor="#6c757d" textColor="#fff" >Отмена</Button>
-            </View>
-          )}
-        </View>
-        {/* № документа */}        
-        <Text style={[styles.title, { justifyContent: 'center' }]}>Документ №{doc.docNum}</Text>
-
-        <View style={styles.header}>
-        
-          {/*Дата документа */}
-          <Field
-            label="Дата"
-            value={doc.docDate}
-            editable={isEditing}
-            type='date'
-            onChange={(val) => setDoc({ ...doc, docDate: new Date(val) })}
-          />
-          <Text style={[styles.statusBadge, { backgroundColor: getStatusColor(doc.status) }]}>
-            {doc.status}
-          </Text>
-        </View>
-
-
-        {/* Основные поля */}
-        <View style={styles.card}>
-          <Field
-            label="Тип"
-            value={doc.docType}
-            editable={isEditing}
-            onChange={(val) => setDoc({ ...doc, docType: val as DocType })}
-            options={[
-              { label: 'Приход', value: 'Приход' },
-              { label: 'Расход', value: 'Расход' },
-              { label: 'Перемещение', value: 'Перемещение' },
-              { label: 'Списание', value: 'Списание' },
-            ]}
-          />
-          <Field
-            label="Статус"
-            value={doc.status}
-            editable={isEditing}
-            onChange={(val) => setDoc({ ...doc, status: val as DocStatus })}
-            options={[
-              { label: 'Черновик', value: 'Черновик' },
-              { label: 'Активен', value: 'Активен' },
-              { label: 'В резерве', value: 'В резерве' },
-              { label: 'Проведен', value: 'Проведен' },
-              { label: 'Отменен', value: 'Отменен' },
-            ]}
-          />
-
-          {doc.customerId ? (
-            <Field label="Клиент" value={doc.customerId.name} editable={false} />
-          ) : doc.supplierId ? (
-            <Field label="Поставщик" value={doc.supplierId.name} editable={false} />
-          ) : null}
-        </View>
-
-        {isEditing ? (
-          <View style={styles.actions}>
-              <Button bgColor='#28a745' textColor='#fff' onPress={() => Alert.alert('TODO: добавление')}>"+ Добавить позицию"</Button>
-          </View>
-        ) : null}
-
-      </View>
-    );
-  };
+  }
 
   const footer = () => {
     return (
@@ -199,7 +144,16 @@ const DocForm = () => {
       <FlatList
         data={items}
         keyExtractor={(item) => item._id}
-        ListHeaderComponent={header}
+        ListHeaderComponent={
+          <HeaderForm
+            doc={doc}
+            isEditing={isEditing}
+            setIsEditing={setIsEditing}
+            handleDelete={handleDelete}
+            setDoc={setDoc}
+            handleSave={handleSave}
+          />
+        }
         ListFooterComponent={footer}
         renderItem={({ item }) =>
           isEditing ? (
@@ -211,7 +165,7 @@ const DocForm = () => {
                 <Text>Кол-во: {item.quantity}</Text>
                 <Text>Цена: {item.unitPrice.toFixed(0)} ₽</Text>
                 <Text>Скидка: {item.bonusStock.toFixed(0)} ₽</Text>
-                <Text>Сумма: {(item.quantity * (item.unitPrice  - item.bonusStock)).toFixed(0)} ₽</Text>
+                <Text>Сумма: {(item.quantity * (item.unitPrice - item.bonusStock)).toFixed(0)} ₽</Text>
               </View>
             </View>
           )
@@ -224,49 +178,15 @@ const DocForm = () => {
   );
 };
 
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'Завершен':
-      return '#2e7d32';
-    case 'Отменен':
-      return '#c62828';
-    case 'В резерве':
-      return '#f57c00';
-    default:
-      return '#1976d2';
-  }
-};
 
 export default DocForm;
 
 // Стили
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8f8f8' },
   content: { padding: 16 },
+  detailsRow: { flexDirection: 'row', gap: 10, marginTop: 4, flexWrap: 'wrap' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   error: { color: '#d32f2f' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  title: { fontSize: 20, fontWeight: 'bold', color: '#1a1a1a' },
-  statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#fff',
-  },
-  actions: { flexDirection: 'row', gap: 10, marginBottom: 16 },
-  card: {
-    backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
-  },
   fieldRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
   label: { fontWeight: '600', color: '#555', width: 90 },
   value: { flex: 1, color: '#333' },
@@ -299,7 +219,6 @@ const styles = StyleSheet.create({
   },
   itemRow: { paddingVertical: 10 },
   productName: { fontSize: 16, fontWeight: '600', color: '#212121' },
-  detailsRow: { flexDirection: 'row', gap: 10, marginTop: 4, flexWrap: 'wrap' },
   editRow: { flexDirection: 'row', gap: 8, marginTop: 8 },
   editInput: {
     borderWidth: 1,
@@ -329,4 +248,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#1a1a1a',
   },
-});
+})

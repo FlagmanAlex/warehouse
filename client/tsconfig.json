@@ -4,8 +4,8 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "@interfaces": ["../interfaces"],
-      "@interfaces/DTO": ["../interfaces/DTO"]
+      "@warehouse/interfaces": ["../interfaces"],
+      "@warehouse/interfaces/DTO": ["../interfaces/DTO"]
     }
   }
 }

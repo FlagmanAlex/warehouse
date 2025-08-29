@@ -25,7 +25,7 @@ import {
   StockStackParamList
 } from './src/types/types';
 import { DocScreen } from './src/components/screens/DocScreen/DocScreen';
-import DocForm from './src/components/screens/DocScreen/DocForm';
+import DocForm from './src/components/screens/DocScreen/DocForm/DocForm';
 import { ActivityIndicator } from 'react-native';
 
 

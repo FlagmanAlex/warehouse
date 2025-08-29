@@ -1,22 +1,22 @@
 // controllers/DocController.ts
 
 import { Request, Response } from 'express';
-import { CreateDocDto, ResponseDocDto } from '@interfaces/DTO';
+// import { CreateDocDto,  } from '@interfaces/DTO';
 import { DocModel, DocItemsModel, DocNumModel } from '@models';
 import { DocService } from '../services/DocService';
-import { DocStatus } from '@interfaces';
+import { DocStatus, IDoc } from '@interfaces';
 
 // === Дополнительный DTO для обновления статуса (может быть вынесен в DTO)
 
 export class DocController {
     // === Создание документа (только черновик) ===
-    static async createDoc(req: Request<{}, {}, CreateDocDto>, res: Response) {
-        const body = req.body;
+    static async createDoc(req: Request<{}, {}, { doc: IDoc, items: any[] }>, res: Response) {
+        const { doc, items} = req.body;
 
         try {
             // Генерация номера
-            const prefixMap: Record<string, string> = { Incoming: 'ПР', Outgoing: 'РС', Transfer: 'ПМ' };
-            const prefix = prefixMap[body.docType];
+            const prefixMap: Record<string, string> = { Order: 'ЗК', Incoming: 'ПР', Outgoing: 'РС', Transfer: 'ПМ' };
+            const prefix = prefixMap[doc.docType];
             if (!prefix) {
                 res.status(400).json({ error: 'Неверный тип документа' });
                 return
@@ -31,17 +31,16 @@ export class DocController {
             const docNum = `${prefix}${String(sequence.nextNumber).padStart(6, '0')}`;
 
             // Создание документа
-            const doc = await DocModel.create({
-                ...body,
+            const newDoc = await DocModel.create({
+                ...doc,
                 docNum,
-                status: 'Draft',
                 userId: req.userId
             });
 
-            const items = body.items.map((item) => ({ ...item, docId: doc._id }));
-            await DocItemsModel.insertMany(items);
+            const newItems = items.map((item) => ({ ...item, docId: newDoc._id }));
+            await DocItemsModel.insertMany(newItems);
 
-            res.status(201).json({ doc, items });
+            res.status(201).json({ doc: newDoc, items: newItems });
         } catch (error: any) {
             console.error('Ошибка при создании документа:', error);
             res.status(500).json({ error: error.message });

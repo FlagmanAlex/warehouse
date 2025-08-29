@@ -6,9 +6,11 @@ import {
     IUser, ICustomer,
     ICategory, IProduct, ISupplier,
     IWarehouse, IExcelImportParams, IDoc,
-    IDocItem
+    IDocItem,
+    IDocIncoming,
+    IDocOutgoing
 } from '@interfaces';
-import { CreateDocDto, CreateProductDto, CreateDocItemDto, CreateSupplierDto, CreateCustomerDto, CreateWarehouseDto, CreateCategoryDto, ResponseWarehouseDto, ResponseSupplierDto, ResponseProductDto, ResponseCustomerDto } from "@interfaces/DTO";
+// import { CreateDocDto, CreateProductDto, CreateDocItemDto, CreateSupplierDto, CreateCustomerDto, CreateWarehouseDto, CreateCategoryDto, ResponseWarehouseDto, ResponseSupplierDto, ResponseProductDto, ResponseCustomerDto } from "@interfaces/DTO";
 import {
     UserModel, ProductModel, PriceHistoryModel,
     DocModel, BatchModel, InventoryModel,
@@ -281,18 +283,29 @@ class ImportExcel {
         try {
             const supplier: any[] = this.headJournal.map((item) => (item['Поставщик']))
 
-            const uniqueSupplier: CreateSupplierDto[] = supplier.reduce((acc, item) => {
+            const uniqueSupplier: ISupplier[] = supplier.reduce((acc, item) => {
                 if (!acc.some((supp: { name: string }) => supp.name === item)) {
                     acc.push({
                         name: item
                     })
                 }
                 return acc
-            }, [] )
+            }, [])
             await Promise.all(uniqueSupplier.map(async (item) => await this.fetchApi(`supplier`, 'POST', this.token, item)))
+            // 2. Получаем поставщиков
+            //------------------------------------------------------------------------------------
+            console.log('Получаем supplier');
+            const suppliers: ISupplier[] = await this.fetchApi(`supplier`, 'GET', this.token, {})
+
+            console.log('Делаем supplierMap');
+            this.supplierMap = new Map(suppliers.map(item => {
+                if (!item._id) throw Error(`При создании supplierMap есть несуществующий идентификатор элемента ${item.name}`)
+                return [item.name, item._id]
+            }))
         } catch (error) {
             console.log(error);
         }
+
         console.log('Создание коллекции Suppliers завершено');
     }
     private async addCustomers() {
@@ -300,7 +313,7 @@ class ImportExcel {
         await CustomerModel.deleteMany({})
         //Загружаем данные клиентов
         try {
-            const customer: CreateCustomerDto[] = this.clients.map((item) => (
+            const customer: ICustomer[] = this.clients.map((item) => (
                 {
                     name: item.name,
                     address: item.address,
@@ -314,6 +327,17 @@ class ImportExcel {
                 await this.fetchApi(`customer`, 'POST', this.token, item)
                 process.stdout.write(`\r 🔄️ Прогресс: ${index + 1}/${customer.length} (${Math.round(((index + 1) / customer.length) * 100)}%)     `)
             }
+
+            //------------------------------------------------------------------------------------
+            console.log('Получаем customer');
+            const customerMap: ICustomer[] = await this.fetchApi(`customer`, 'GET', this.token, {})
+
+            console.log('Делаем customerMap');
+            this.customerMap = new Map(customerMap.map(item => {
+                if (!item._id) throw Error(`При создании customerMap есть несуществующий идентификатор элемента ${item.name}`)
+                return [item.name, item._id]
+            }))
+
             // await Promise.all(customer.map(async (item) => await this.fetchApi(`customer`, 'POST', this.token, item)))
         } catch (error) {
             console.log(error);
@@ -324,15 +348,25 @@ class ImportExcel {
         console.log('Создание коллекции Warehouse...');
         await WarehouseModel.deleteMany({})
         try {
-            const uniqueWarehouse: CreateWarehouseDto[]  = Array.from(new Set(this.journal.map(item => item['Группа'])))
+            const uniqueWarehouse: IWarehouse[] = Array.from(new Set(this.journal.map(item => item['Группа'])))
                 .map(group => ({ name: group, userId: this.userId }))
                 .filter(item => item.name !== undefined);
             uniqueWarehouse.push({ name: 'Транзит', userId: this.userId });
-            await Promise.all(uniqueWarehouse.map(async item =>  
+            await Promise.all(uniqueWarehouse.map(async item =>
                 await this.fetchApi(`warehouse`, 'POST', this.token, item)))
+            //------------------------------------------------------------------------------------
+            console.log('Получаем список складов');
+            const warehouse: IWarehouse[] = await this.fetchApi(`warehouse`, 'GET', this.token, {})
+
+            console.log('Делаем warehouseMap');
+            this.warehouseMap = new Map(warehouse.map(item => {
+                if (!item._id) throw Error(`При создании warehouseMap есть несуществующий идентификатор элемента ${item.name}`)
+                return [item.name, item._id]
+            }))
         } catch (error) {
-            console.log('Ошибка сервере', (error as Error).message);
+            console.log('Ошибка сервера', (error as Error).message);
         }
+
         console.log('Создание коллекции Warehouse завершено');
     }
     private async addCategory() {
@@ -344,7 +378,7 @@ class ImportExcel {
             const rootId = root._id
 
             //Получение уникальных значений из journals, создание массива категорий и запись в базу.
-            const uniqueCategory: CreateCategoryDto[] = Array.from(new Set(this.journal.map(item => item['Бренд'])))
+            const uniqueCategory: ICategory[] = Array.from(new Set(this.journal.map(item => item['Бренд'])))
                 .filter(item => item)
                 .map(item => ({ name: item, parentCategory: rootId }))
 
@@ -386,7 +420,7 @@ class ImportExcel {
             // 3. Формируем уникальные продукты
             //------------------------------------------------------------------------------------
             const seen = new Set()
-            const uniqueProducts: CreateProductDto[] = []
+            const uniqueProducts: IProduct[] = []
             this.journal.forEach(journal => {
                 if (
                     !journal['Бренд'] ||
@@ -396,13 +430,15 @@ class ImportExcel {
                     !journal['Группа']
                 ) throw new Error('Недостаточно данных в journal');
 
+                // console.log(`Группа: ${journal['Группа']} warehouse: ${this.warehouseMap.get(journal['Группа'])}`);
+
                 const categoryId = this.categoryMap.get(journal['Бренд']);
                 const supplierId = this.supplierMap.get(journal['Поставщик']);
                 const defaultWarehouseId = this.warehouseMap.get(journal['Группа']);
 
-                if (!categoryId || !supplierId) {
-                    throw new Error(`Ошибка в categoryId (${journal['Бренд']}) или supplierId (${journal['Поставщик']})`);
-                }
+                if (!categoryId) throw new Error(`Ошибка в categoryId (${journal['Бренд']})`);
+                if (!supplierId) throw new Error(`Ошибка в supplierId (${journal['Поставщик']})`);
+                if (!defaultWarehouseId) throw new Error(`Ошибка в defaultWarehouseId (${journal['Группа']})`);
 
                 //Проверка на уникальность только по артикулу и наименованию
                 const key = `${journal['Артикул']}-${journal['Наименование']}`
@@ -454,43 +490,9 @@ class ImportExcel {
                 console.log('✅ Все продукты успешно созданы');
             }
 
-            return {
-                total: uniqueProducts.length,
-                success: uniqueProducts.length - errorProducts.length,
-                errors: errorProducts.length,
-                errorProducts
-            };
-
-        } catch (error) {
-            console.error('❌ Критическая ошибка в addProduct:', error);
-            throw error; // Пробрасываем ошибку выше для обработки
-        }
-    }
-    private async InitialMap() {
-        try {
-            //------------------------------------------------------------------------------------
-            console.log('Получаем список складов');
-            const warehouse: ResponseWarehouseDto[] = await this.fetchApi(`warehouse`, 'GET', this.token, {})
-
-            console.log('Делаем warehouseMap');
-            this.warehouseMap = new Map(warehouse.map(item => {
-                if (!item._id) throw Error(`При создании warehouseMap есть несуществующий идентификатор элемента ${item.name}`)
-                return [item.name, item._id]
-            }))
-            // 2. Получаем поставщиков
-            //------------------------------------------------------------------------------------
-            console.log('Получаем supplier');
-            const suppliers: ResponseSupplierDto[] = await this.fetchApi(`supplier`, 'GET', this.token, {})
-
-            console.log('Делаем supplierMap');
-            this.supplierMap = new Map(suppliers.map(item => {
-                if (!item._id) throw Error(`При создании supplierMap есть несуществующий идентификатор элемента ${item.name}`)
-                return [item.name, item._id]
-            }))
-
             //------------------------------------------------------------------------------------
             console.log('Получаем product');
-            const products: ResponseProductDto[] = await this.fetchApi(`product`, 'GET', this.token, {})
+            const products: IProduct[] = await this.fetchApi(`product`, 'GET', this.token, {})
 
             console.log('Делаем productMap');
             this.productMap = new Map(products.map(item => {
@@ -498,20 +500,15 @@ class ImportExcel {
                 return [item.article, item._id]
             }))
 
-            //------------------------------------------------------------------------------------
-            console.log('Получаем customer');
-            const customer: ResponseCustomerDto[] = await this.fetchApi(`customer`, 'GET', this.token, {})
-
-            console.log('Делаем customerMap');
-            this.customerMap = new Map(customer.map(item => {
-                if (!item._id) throw Error(`При создании customerMap есть несуществующий идентификатор элемента ${item.name}`)
-                return [item.name, item._id]
-            }))
-            // console.log(this.customerMap);
-
-            //------------------------------------------------------------------------------------
+            return {
+                total: uniqueProducts.length,
+                success: uniqueProducts.length - errorProducts.length,
+                errors: errorProducts.length,
+                errorProducts
+            };
         } catch (error) {
-            console.log((error as Error).message);
+            console.error('❌ Критическая ошибка в addProduct:', error);
+            throw error; // Пробрасываем ошибку выше для обработки
         }
     }
     private async addDocIn() {
@@ -526,9 +523,6 @@ class ImportExcel {
 
         try {
 
-            //Получаем все мапы
-            await this.InitialMap()
-
         } catch (error) {
             console.log((error as Error).message);
         }
@@ -537,7 +531,8 @@ class ImportExcel {
             for (const [index, item] of this.headJournal.entries()) {
                 const supplierId: string | undefined = this.supplierMap.get(item['Поставщик'])
                 const warehouseId: string | undefined = this.warehouseMap.get('Транзит')
-                const order: CreateDocDto = {
+                const createDoc: IDocIncoming = {
+                    docNum: '',
                     docDate: new Date(item['Дата заказа']),
                     orderNum: item['№ заказа'],
                     vendorCode: item['№ отслеживания'],
@@ -545,14 +540,17 @@ class ImportExcel {
                     exchangeRate: item['Курс'],
                     bonusRef: -item['Вознаграждение UAH'],
                     expenses: item['Логистика RUB'],
-                    payment: item['Сумма оплаты факт USD'],
+                    description: `Сумма оплаты: ${item['Сумма оплаты факт USD']}`,
                     status: 'Draft',
                     supplierId: supplierId || '',
                     warehouseId: warehouseId || '',
-                    items: []
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                    userId: this.userId
                 }
                 // console.log('получаем массив orderItems по номеру заказа');
-                const docItems: CreateDocItemDto[] = this.journal
+                type IDocItemNew = Omit<IDocItem, 'docId' | 'batchId'>;
+                const docItems: IDocItemNew[] = this.journal
                     .filter(journal => journal['№ заказа'].toString() === item['№ заказа'].toString())
                     .map(item => (
                         {
@@ -573,13 +571,9 @@ class ImportExcel {
                     } else map.set(item.productId, { ...item })
                 })
 
-                const detailsWithoutBatch = Array.from(map.values())
-                const createDoc: CreateDocDto = {
-                    ...order,
-                    items: detailsWithoutBatch
-                }
+                const createItems = Array.from(map.values())
 
-                const resOrder = await this.fetchApi('doc', 'POST', this.token, createDoc)
+                const resOrder = await this.fetchApi('doc', 'POST', this.token, { doc: createDoc, items: createItems })
                 if (resOrder.message) console.log(resOrder.message);
 
                 process.stdout.write(`\r🔄️ Создание документа "Приход"] ${index} из ${this.headJournal.length} №${item['№ заказа']}  (${Math.round((index / this.headJournal.length) * 100)}%)     `)
@@ -599,80 +593,103 @@ class ImportExcel {
             quantity: number,
             unitPrice: number,
             bonusStock: number,
-            batchId: null,
-            docId: null,
+            batchId: string | null,
+            docId: string | null,
         }
 
         await this.DeleteAllOrderOut()
 
-        //Получаем все мапы
-        await this.InitialMap()
-
         //получаем массив из уникальных документов из journalHead
 
         //1. групируем по ДатаП, Клиент, Артикул
-        const docItems: IDocItemExcel[] = Object.values(this.journal
-            .filter(item => {
-                const { ДатаП, Клиент, Артикул } = item
-                return !!ДатаП && !!Клиент && !!Артикул
-            })
-            .reduce((acc, item) => {
-                const { ДатаП, Клиент, Артикул } = item
-                const customerId = this.customerMap.get(Клиент)
-                const productId = this.productMap.get(Артикул)
-                const key = `${ДатаП}-${Клиент}-${Артикул}`
-                if (!acc[key])
-                    acc[key] = {
-                        docDate: new Date(ДатаП),
-                        customerId: customerId || '', //customerId,
-                        productId: productId || '',
-                        quantity: 0,
-                        unitPrice: item['Продажа RUB'],
-                        bonusStock: 0,
-                        batchId: null,
-                        docId: null,
+        const docItems: IDocItemExcel[] = Object.values(
+            this.journal
+                .filter(item => {
+                    const { ДатаП, Клиент, Артикул } = item
+                    return !!ДатаП && !!Клиент && !!Артикул
+                })
+                .reduce((acc, item) => {
+                    const { ДатаП, Клиент, Артикул } = item
+                    const customerId = this.customerMap.get(Клиент)
+                    const productId = this.productMap.get(Артикул)
+
+                    if (!customerId) {
+                        console.error(`Не найден клиент: ${Клиент}`)
+                        return acc
                     }
-                acc[key].quantity += 1
-                return acc
-            }, {} as Record<string, IDocItemExcel>)
+
+                    if (!productId) {
+                        console.error(`Не найден товар: ${Артикул}`)
+                        return acc
+                    }
+
+                    const key = `${ДатаП}-${Клиент}-${Артикул}`
+                    if (!acc[key])
+                        acc[key] = {
+                            docDate: new Date(ДатаП),
+                            customerId,
+                            productId,
+                            quantity: 0,
+                            unitPrice: item['Продажа RUB'],
+                            bonusStock: 0,
+                            batchId: null,
+                            docId: null,
+                        }
+                    acc[key].quantity += 1
+                    acc[key].bonusStock += (item['Bonus'] || 0)
+                    return acc
+                }, {} as Record<string, IDocItemExcel>)
         )
 
         //2. Групипруем по ДатаП, Клиент для создания заказов на дату по клиенту
 
-        const docs: CreateDocDto[] = Object.values(docItems.reduce((acc, item) => {
-            const key = `${item.docDate.toISOString()}-${item.customerId}`
-            if (!acc[key]) {
-                acc[key] = {
-                    docDate: item.docDate,
-                    customerId: item.customerId,
-                    docType: 'Outgoing',
-                    warehouseId: this.warehouseMap.get('Транзит')!,
-                    status: 'Draft',
-                    items: [] as Array<{
-                        productId: string,
-                        quantity: number,
-                        bonusStock: number,
-                        unitPrice: number,
-                    }>
-                } 
-            }
-            acc[key].items.push({
-                productId: item.productId,
-                quantity: item.quantity,
-                bonusStock: 0,
-                unitPrice: item.unitPrice
-            })
+        interface ExcelDoc {
+            doc: IDocOutgoing
+            items: IDocItem[]
+        }
 
-            return acc
+        const excelDocs = Object.values(
+            docItems.reduce((acc, item) => {
+                const key = `${item.docDate.toISOString()}-${item.customerId}`
+                if (!acc[key]) {
+                    acc[key] = {
+                        doc: {
+                            docDate: item.docDate,
+                            customerId: item.customerId,
+                            docType: 'Outgoing',
+                            status: 'Draft',
+                            description: '',
+                            createdAt: new Date(),
+                            updatedAt: new Date(),
+                            userId: this.userId,
+                            bonusRef: 0,
+                            exchangeRate: 1,
+                            expenses: 0,
+                            orderNum: '',
+                            docNum: '',
+                            warehouseId: this.warehouseMap.get('Транзит') || '',
+                        },
+                        items: []
+                    }
+                }
+                acc[key].items.push({
+                    docId: '',
+                    productId: item.productId,
+                    quantity: item.quantity,
+                    bonusStock: 0,
+                    unitPrice: item.unitPrice,
+                })
 
-        }, {} as Record<string, CreateDocDto>))
+                return acc
+
+            }, {} as Record<string, ExcelDoc>))
 
         // console.log(orders);
 
-        for (const [index, doc] of docs.entries()) {
+        for (const [index, doc] of excelDocs.entries()) {
             try {
                 const saveOrder = await this.fetchApi('doc', 'POST', this.token, doc)
-                process.stdout.write(`\r🔄️ Создание документа "Расход" ${index} из ${docs.length} (${Math.round((index / docs.length) * 100)}%)    `)
+                process.stdout.write(`\r🔄️ Создание документа "Расход" ${index} из ${excelDocs.length} (${Math.round((index / excelDocs.length) * 100)}%)    `)
             } catch (error) {
                 await writeExcel(Array(doc), `${this.fileName}.xlsx`, 'DocOut_Doc')
                 await writeExcel(Array(doc.items), `${this.fileName}.xlsx`, 'DocOut_DocItems')
@@ -735,8 +752,6 @@ class ImportExcel {
             await db.connect()
 
             await this.init()
-            console.log(this.userId, this.token);
-
             await this.addSuppliers()
             await this.addCustomers()
             await this.addWarehouse()

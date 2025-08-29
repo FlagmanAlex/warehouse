@@ -3,7 +3,7 @@ import { View, Text, TextInput, StyleSheet } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 import React, { useState, useEffect } from 'react';
 import { DatePicker } from 'src/shared/DatePicker';
-import { DocStatus, DocType } from '@interfaces';
+import { DocStatus, DocType } from '@warehouse/interfaces';
 
 interface FieldProps {
     label: string;
@@ -80,7 +80,8 @@ export const Field = ({ label, value, editable, onChange, options, type = 'text'
                     placeholder="Выберите..."
                     value={text}
                     onChange={(item) => handleChange(item.value)}
-                    maxHeight={200}
+                    
+                    maxHeight={300}
                     containerStyle={styles.dropdownContainer}
                     itemContainerStyle={styles.dropdownItemContainer}
                     itemTextStyle={styles.dropdownItemText}

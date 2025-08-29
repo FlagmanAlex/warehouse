@@ -1,34 +1,20 @@
-export interface IDoc {
-    _id?: string                                    //ID заказа
-    orderNum: string                                //Номер заказа в базе
-    docNum: string                                  //Номер заказа поставщика в приходе
-    docDate: Date                                   //Дата заказа
-    vendorCode: string                              //№ отслеживания прихода
-    exchangeRate: number                            //Курс
-    bonusRef: number                                //Вознаграждение
-    expenses: number                                //Логистика
-    // payment: number                                 //Сумма оплаты
-    warehouseId: string                             //ID склада
-    fromWarehouseId?: string                         //ID склада отправителя
-    toWarehouseId?: string                           //ID склада получателя
-    userId: string                                  //Создатель
-    createdAt: Date                                 //Дата создания
-    updatedAt: Date                                 //Дата обновления
-    description?: string                            //Описание
-    orderId?: string                                 //ID заказа
-    docType: DocType                                //Тип заказа
-    supplierId: string                              //ID поставщика
-    status: DocStatus                         //Статус
-    customerId: string                                  //ID покупателя
-}
 
 
+
+/** ******************************
+ * Тип документа
+ * ******************************/
 export type DocType =
+    | 'Order'           // Заказ
     | 'Incoming'        // Приходные документы
     | 'Outgoing'        // Расходные документы
-    | 'Return'          // Возвратные документы
     | 'Transfer'        // Документы перемещения
-    | 'WriteOff'        // Документы списания
+// | 'Return'          // Возвратные документы
+// | 'WriteOff'        // Документы списания
+
+/** ******************************
+ * Статусы документов для прихода
+ * ******************************/
 export type DocStatusIn =
     //Для прихода
     | 'Draft'           //Не влияет на остатки и финансы
@@ -38,6 +24,10 @@ export type DocStatusIn =
     | 'Delivered'       //Создает партии, увеличивает остаток в Inventory, создает транзакции
     | 'Completed'       //Статус меняется после создания документа Оплата
     | 'Canceled'        //Инверсия остатка, проведение дополнительных транзакций
+
+/** ******************************
+ * Статусы документов для расхода
+ ******************************/
 export type DocStatusOut =
     //Для расхода
     | 'Draft'           //Не влияет на остатки и финансы
@@ -46,4 +36,73 @@ export type DocStatusOut =
     | 'Completed'       //Статус меняется после создания документа Оплата
     | 'Canceled'        //Инверсия остатка, проведение дополнительных транзакций
 
+/** ******************************
+ * Приоритет заказа
+ ******************************/
+export type PriorityOrder =
+    | 'Low'         // Низкий приоритет
+    | 'Medium'      // Средний приоритет
+    | 'High';       // Высокий приоритет
+
 export type DocStatus = DocStatusIn | DocStatusOut;
+
+
+
+export interface IDocBase {
+    /** ID заказа */
+    _id?: string                                    
+    /** Входящий номер документа в бумажном носителе */
+    orderNum: string                                
+    /** Внутренний Номер документа в базе */
+    docNum: string                                  
+    /** Дата заказа */
+    docDate: Date                                   
+    /** Курс */
+    exchangeRate: number                            
+    /** Вознаграждение */
+    bonusRef: number                                
+    /** Логистика */
+    expenses: number                                
+    /** Сумма оплаты */
+    // payment: number                                 
+    /** ID склада */
+    warehouseId: string                             
+    /** Создатель */
+    userId: string                                  
+    /** Дата создания */
+    createdAt: Date                                 
+    /** Дата обновления */
+    updatedAt: Date                                 
+    /** Описание */
+    description?: string                            
+    /** ID заказа */
+    docId?: string                                 
+    /** Тип заказа */
+    docType: DocType                               
+    /** Статус */
+    status: DocStatus                         
+}
+
+export interface IDocTransfer extends IDocBase {
+    docType: 'Transfer'
+    fromWarehouseId: string
+    toWarehouseId: string
+}
+
+export interface IDocIncoming extends IDocBase {
+    docType: 'Incoming'
+    vendorCode: string                              //№ отслеживания курьерской службы
+    supplierId: string
+}
+
+export interface IDocOutgoing extends IDocBase {
+    docType: 'Outgoing'
+    customerId: string
+}
+export interface IDocOrder extends IDocBase {
+    docType: 'Order'
+    customerId: string
+    priority: PriorityOrder
+}
+
+export type IDoc = IDocIncoming | IDocOutgoing | IDocOrder | IDocTransfer;

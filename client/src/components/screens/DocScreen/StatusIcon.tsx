@@ -10,10 +10,11 @@ import {
   TouchableWithoutFeedback,
   Alert,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Icon from 'react-native-vector-icons/FontAwesome5';
 import { fetchApi } from '../../../utils';
-import { DocStatus, DocStatusOut } from '@interfaces';
+import { DocStatus, DocStatusOut } from '@warehouse/interfaces';
 import { DOC_STATUS_OUT } from 'src/utils/statusLabels';
+import { getIconName, getStatusColor } from 'src/utils/iconName';
 
 // Допустимые переходы между статусами
 const STATUS_TRANSITIONS: Record<DocStatusOut, DocStatusOut[]> = {
@@ -33,39 +34,6 @@ type StatusIconProps = {
 const StatusIcon = ({ status, docId, onStatusChange }: StatusIconProps) => {
   const [modalVisible, setModalVisible] = useState(false);
 
-  const getStatusColor = (status: DocStatus) => {
-    switch (status) {
-      case 'Draft':
-        return '#ffa500';
-      case 'Reserved':
-        return '#ffa500';
-      case 'Shipped':
-        return '#008000';
-      case 'Completed':
-        return '#008000';
-      case 'Canceled':
-        return '#ff0000';
-      default:
-        return '#000000';
-    }
-  };
-
-  const getIconName = (status: DocStatus) => {
-    switch (status) {
-      case 'Draft':
-        return 'edit';
-      case 'Reserved':
-        return 'clock-o';
-      case 'Shipped':
-        return 'truck';
-      case 'Completed':
-        return 'check-square-o';
-      case 'Canceled':
-        return 'window-close';
-      default:
-        return 'help';
-    }
-  };
 
   const availableStatuses = STATUS_TRANSITIONS[status as DocStatusOut] || [];
 

@@ -1,12 +1,15 @@
 import mongoose, { Schema } from "mongoose";
 import { IDoc } from "@interfaces";
 
-export interface IDocModel extends Omit<IDoc, '_id' | 'userId' | 'warehouseId' | 'customerId' | 'supplierId'>, mongoose.Document {
+export interface IDocModel extends Omit<IDoc, '_id' | 'userId' | 'warehouseId'>, mongoose.Document {
     userId: mongoose.Types.ObjectId,
     warehouseId: mongoose.Types.ObjectId,
     customerId: mongoose.Types.ObjectId,
-    supplierId: mongoose.Types.ObjectId
- }
+    supplierId: mongoose.Types.ObjectId,
+    fromWarehouseId: mongoose.Types.ObjectId,
+    toWarehouseId: mongoose.Types.ObjectId,
+    vendorCode?: string
+}
 // Схема для заказов
 const docSchema = new Schema<IDocModel>({
     docNum: { type: String, required: true, unique: true },
@@ -18,22 +21,19 @@ const docSchema = new Schema<IDocModel>({
     bonusRef: { type: Number },
     expenses: { type: Number },
     // payment: { type: Number },
-    customerId: {
-        type: Schema.Types.ObjectId,
-        ref: 'Customer',
-        required: () => { return (this as any).docType === 'Incoming' }
-    }, // Ссылка на клиента
+    customerId: { type: Schema.Types.ObjectId, ref: 'Customer', required: () => { return (this as any).docType === 'Incoming' } }, // Ссылка на клиента
+    supplierId: { type: Schema.Types.ObjectId, ref: 'Supplier', required: () => { return (this as any).docType === 'Outgoing' } }, // Ссылка на поставщика
 
-    supplierId: {
-        type: Schema.Types.ObjectId,
-        ref: 'Supplier',
-        required: () => { return (this as any).docType === 'Outgoing' }
-    }, // Ссылка на поставщика
-    warehouseId: { type: Schema.Types.ObjectId, ref: 'Warehouse', required: true }, 
+    toWarehouseId: { type: Schema.Types.ObjectId, ref: 'Warehouse', required: () => { return (this as any).docType === 'Transfer' } },
+    fromWarehouseId: { type: Schema.Types.ObjectId, ref: 'Warehouse', required: () => { return (this as any).docType === 'Transfer' } },
+    
+    warehouseId: { type: Schema.Types.ObjectId, ref: 'Warehouse', required: true },
 
     status: { type: String, default: 'Draft',   }, 
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-
+    description: { type: String },
+    docId: { type: Schema.Types.ObjectId, ref: 'Doc', required: false },
+    
 });
 
 docSchema.index({ docDate: -1 }); // Сортировка заказов по дате

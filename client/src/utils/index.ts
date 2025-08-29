@@ -1,7 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { NavigationContainerRef } from '@react-navigation/native';
-
-const server = 'http://192.168.50.100:5050';
+import { server } from "src/Default";
 
 let navigationRef: NavigationContainerRef<any>;
 // let authContext: { logout: () => Promise<void> };
@@ -10,6 +9,8 @@ export const setNavigationRef = (ref: NavigationContainerRef<any>) => {
     navigationRef = ref;
 };
 export const getNavigationRef = () => navigationRef;
+
+
 
 // export const setAuthContext = (context: { logout: () => Promise<void> }) => {
 //     authContext = context;
@@ -23,7 +24,7 @@ export const fetchApi = async <T = any>(
     headers: Record<string, string> = {}
 ): Promise<T> => {
     const token = await AsyncStorage.getItem('@auth_token');
-
+    
     try {
         const requestOptions: RequestInit = {
             method,
@@ -33,12 +34,14 @@ export const fetchApi = async <T = any>(
                 ...headers
             }
         };
-
+        
         if (body && method !== 'GET') {
             requestOptions.body = JSON.stringify(body);
         }
 
-        const response = await fetch(`${server}/api/${url}`, requestOptions);
+        const uri = `${server}/api/${url}`
+        console.log(uri);
+        const response = await fetch(uri, requestOptions);
 
         // Если статус 401 — значит, токен просрочен или недействителен
         if (response.status === 401) {

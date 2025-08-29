@@ -6,14 +6,16 @@ export interface IProduct {
     categoryId: string          //Id категории
     unitOfMeasurement?: ProductUnit;    //Единицы измерения
     price: number               //Цена
-    minStock: number            //Минимальный запас
-    isArchived: boolean         //Рахивация позиции в справочнике (вместо удаления)
+    minStock?: number            //Минимальный запас
+    isArchived: boolean         //Архивация позиции в справочнике (вместо удаления)
     createdBy: string           //Создатель
     lastUpdateBy: string        //Обновил
-    supplierId: string          //Поставщик
-    createdAt: Date             //Дата создания
-    updatedAt: Date             //Дата последнего обновления
+    supplierId?: string          //Поставщик
+    createdAt?: Date             //Дата создания
+    updatedAt?: Date             //Дата последнего обновления
     defaultWarehouseId: string  //Id склада по умолчанию
+    image?: string[]             //Изображения
+    packagingId?: string           //Упаковка
 }
 
 export type ProductUnit = 'шт' | 'кг' | 'мл' | 'л' | 'г';

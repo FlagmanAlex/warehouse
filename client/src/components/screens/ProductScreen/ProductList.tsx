@@ -8,7 +8,6 @@ import {
     TextInput,
 } from 'react-native';
 
-import { Button } from '../../../shared/Button'
 import {
     ProductStackParamList,
 } from '../../../types/types';
@@ -16,11 +15,9 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { fetchApi } from '../../../utils';
 import { TextField } from '../../../shared/TextField';
-import { ButtonApply } from '../../../shared/Buttons/ButtonApply';
 import { THEME } from '../../../Default';
 import { IconButton } from 'react-native-paper';
-import { IProduct } from '@interfaces';
-import { ResponseProductDto } from '@interfaces/DTO';
+import { ResponseProductDto } from '@warehouse/interfaces/DTO';
 
 const ProductList = () => {
     const [products, setProducts] = useState<ResponseProductDto[]>([]);
@@ -100,7 +97,7 @@ const ProductList = () => {
                         <TouchableOpacity
                             onPress={() => handleEdit(item._id!)}
                         >
-                            <Text style={styles.productName}>{`${item.categoryName}, ${item.name}`}</Text>
+                            <Text style={styles.productName}>{`${item.categoryId.name}, ${item.name}`}</Text>
                             <Text>Артикул: {item.article}</Text>
                             <Text>Цена: {item.price} руб.</Text>
                         </TouchableOpacity>

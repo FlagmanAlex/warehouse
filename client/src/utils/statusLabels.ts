@@ -1,11 +1,11 @@
-import { DocStatusIn, DocStatusOut, DocType } from "@interfaces";
+import { DocStatusIn, DocStatusOut, DocType } from "@warehouse/interfaces";
 
 export const DOC_TYPE: Record<DocType, string> = {
     Incoming: 'Приход',
     Outgoing: 'Расход',
     Transfer: 'Перемещение',
-    WriteOff: 'Списание',
-    Return: 'Возврат'
+    // WriteOff: 'Списание',
+    // Return: 'Возврат'
 };
 
 export const DOC_STATUS_OUT: Record<DocStatusOut, string> = {
@@ -28,6 +28,13 @@ export const DOCTYPE_CHIP: Record<DocType, string> = {
     Incoming: 'download',
     Outgoing: 'upload',
     Transfer: 'arrow-swap',
-    WriteOff: 'slides',
-    Return: 'arrow-return-left'
+    // WriteOff: 'slides',
+    // Return: 'arrow-return-left'
+};
+export const DOCSTATUS_CHIP: Record<DocStatusOut, string> = {
+    Draft: 'edit',
+    Reserved: 'clock',
+    Shipped: 'exclamation',
+    Completed: 'check',
+    Canceled: 'times'
 };

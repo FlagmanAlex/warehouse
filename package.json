@@ -1,10 +1,16 @@
 {
   "name": "warehouse",
+  "private": true,
   "version": "1.0.0",
   "description": "",
+  "workspaces": [
+    "client",
+    "server",
+    "interfaces"
+  ],
   "main": "index.js",
   "scripts": {
-    "server": "cd server && npm run server",
+    "server": "cd server && npm run dev",
     "client": "cd client && npm run client",
     "import": "cd server && npm run import"
   },

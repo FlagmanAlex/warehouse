@@ -1,17 +1,17 @@
 // controllers/OrderController.ts
 
 import { Request, Response } from 'express';
-import { CreateOrderDto } from '@interfaces/DTO';
 import { OrderService } from '@services';
+import { IDoc } from '@interfaces';
 
 export class OrderController {
   /**
    * Создание заказа
    */
-  static async createOrder(req: Request<{}, {}, CreateOrderDto>, res: Response) {
+  static async createOrder(req: Request<{}, {}, IDoc>, res: Response) {
     try {
-      const order = await OrderService.createOrder(req.body);
-      res.status(201).json(order);
+      // const order = await OrderService.createOrder(req.body);
+      // res.status(201).json(order);
     } catch (error: any) {
       res.status(400).json({ error: error.message });
     }

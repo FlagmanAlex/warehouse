@@ -52,7 +52,9 @@ export const STYLE = StyleSheet.create({
     },
 })
 
-export const host = 'http://192.168.50.2'
-export const port = '5001'
-// host: 'https://api.mirvitaminok.ru',
-// port: ''
+const host = 'http://192.168.50.100'
+// const host = 'https://api.mirvitaminok.ru'
+
+const port = '5001'
+
+export const server = `${host}:${port}`

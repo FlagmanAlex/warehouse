@@ -36,7 +36,10 @@ export type OrderStackParamList = {
 
 export type DocStackParamList = {
     DocScreen: undefined;
-    DocForm: { docId: string };
+    DocForm: { 
+        docId: string,
+        docType: string
+    };
 };
 
 export type DrawerParamList = {

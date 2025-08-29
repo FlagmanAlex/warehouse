@@ -4,11 +4,11 @@
     "slug": "Vitaminka",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/MirVitaminokPost.jpg",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/MirVitaminokPost.jpg",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -16,14 +16,22 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.mirvitaminok.vitaminka",
+      "versionName": "1.0.0",
+      "buildType": "apk",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/MirVitaminokScreen.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "a8aeb1f3-8d98-4b65-b84b-0e6874f3447e"
+      }
     }
   }
 }

@@ -11,9 +11,7 @@ import {
   DocItemsModel
 } from '@models';
 
-import { 
-  CreateOrderDto, 
-} from '@interfaces/DTO';
+// import { CreateOrderDto, } from '@interfaces/DTO';
 import { IInventory, IPopulatedInventory, IPopulatedOrder, IPopulatedOrderItem, IPopulatedProductInventory, IProduct } from '@interfaces';
 import mongoose from 'mongoose';
 
@@ -25,47 +23,47 @@ export class OrderService {
   /**
    * Создание заказа
    */
-  static async createOrder(dto: CreateOrderDto): Promise<IOrderModel> {
-    const order = await OrderModel.create({
-      ...dto,
-      orderDate: dto.orderDate ? new Date(dto.orderDate) : new Date(),
-      status: 'Новый',
-      totalAmount: 0,
-      totalQuantity: 0
-    });
+  // static async createOrder(dto: CreateOrderDto): Promise<IOrderModel> {
+  //   const order = await OrderModel.create({
+  //     ...dto,
+  //     orderDate: dto.orderDate ? new Date(dto.orderDate) : new Date(),
+  //     status: 'Новый',
+  //     totalAmount: 0,
+  //     totalQuantity: 0
+  //   });
 
-    const items: IOrderItemModel[] = [];
+  //   const items: IOrderItemModel[] = [];
 
-    let totalQuantity = 0;
-    let totalAmount = 0;
+  //   let totalQuantity = 0;
+  //   let totalAmount = 0;
 
-    for (const item of dto.items) {
-      const product = await ProductModel.findById(item.productId);
-      if (!product) throw new Error(`Товар не найден: ${item.productId}`);
+  //   for (const item of dto.items) {
+  //     const product = await ProductModel.findById(item.productId);
+  //     if (!product) throw new Error(`Товар не найден: ${item.productId}`);
 
-      const fulfilledQuantity = 0;
+  //     const fulfilledQuantity = 0;
 
-      const orderItem = await OrderItemModel.create({
-        orderId: order._id,
-        productId: item.productId,
-        requestedQuantity: item.requestedQuantity,
-        fulfilledQuantity,
-        unitPrice: item.unitPrice,
-        preferredWarehouseId: item.preferredWarehouseId
-      });
+  //     const orderItem = await OrderItemModel.create({
+  //       orderId: order._id,
+  //       productId: item.productId,
+  //       requestedQuantity: item.requestedQuantity,
+  //       fulfilledQuantity,
+  //       unitPrice: item.unitPrice,
+  //       preferredWarehouseId: item.preferredWarehouseId
+  //     });
 
-      items.push(orderItem);
+  //     items.push(orderItem);
 
-      totalQuantity += item.requestedQuantity;
-      totalAmount += item.requestedQuantity * item.unitPrice;
-    }
+  //     totalQuantity += item.requestedQuantity;
+  //     totalAmount += item.requestedQuantity * item.unitPrice;
+  //   }
 
-    order.totalQuantity = totalQuantity;
-    order.totalAmount = totalAmount;
-    await order.save();
+  //   order.totalQuantity = totalQuantity;
+  //   order.totalAmount = totalAmount;
+  //   await order.save();
 
-    return order;
-  }
+  //   return order;
+  // }
 
   /**
    * Получение заказа с позициями

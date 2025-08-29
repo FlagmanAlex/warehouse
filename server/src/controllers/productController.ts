@@ -3,7 +3,7 @@ import { ProductModel } from '../models/productModel';
 import { CategoryModel } from '../models/categoryModel';
 import { SupplierModel } from '../models/supplierModel';
 import { PriceHistoryModel } from '../models/priceHistoryModel';
-import { Types } from 'mongoose';
+import { Document, Types } from 'mongoose';
 import { IProduct } from '../../../interfaces/IProduct';
 
 interface CreateProductRequest extends Request {
@@ -66,8 +66,11 @@ export const productController = {
 
     // Получение списка товаров (с фильтрами и пагинацией)
     async getProducts(req: Request, res: Response) {
+
+        interface ResponseProductDto extends Document {}
+
         try {
-            const products = await ProductModel.find({})
+            const products: ResponseProductDto[] = await ProductModel.find({})
                 .populate('categoryId', 'name')
                 .populate('supplierId', 'name')
                 .populate('createdBy', 'username')

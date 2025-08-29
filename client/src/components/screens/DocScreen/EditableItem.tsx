@@ -1,4 +1,4 @@
-import { ResponseDocItemDto } from "@interfaces/DTO";
+import { ResponseDocItemDto } from "@warehouse/interfaces/DTO";
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 

@@ -11,9 +11,12 @@ import {
 } from 'react-native';
 
 
-import { ResponseDocDto } from '@interfaces/DTO'
+import { ResponseDocDto } from '@warehouse/interfaces/DTO'
 
-import Icon from 'react-native-vector-icons/Fontisto'
+import IconFilter from 'react-native-vector-icons/MaterialCommunityIcons'
+import IconStatus from 'react-native-vector-icons/FontAwesome5'
+import IconDocType from 'react-native-vector-icons/Fontisto'
+
 import { fetchApi } from '../../../utils';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -21,7 +24,12 @@ import { DocStackParamList } from 'src/types/types';
 import { TextField } from 'src/shared/TextField';
 import { DatePicker } from 'src/shared/DatePicker';
 import StatusIcon from './StatusIcon';
-import { DOC_TYPE, DOCTYPE_CHIP } from 'src/utils/statusLabels';
+import { DOC_STATUS_OUT, DOC_TYPE, DOCSTATUS_CHIP, DOCTYPE_CHIP } from 'src/utils/statusLabels';
+import { Button } from 'src/shared/Button';
+import { getStatusColor } from 'src/utils/iconName';
+import { DocStatus } from '@warehouse/interfaces';
+import { THEME } from 'src/Default';
+import Icon from 'react-native-vector-icons/FontAwesome5';
 
 export const DocScreen = () => {
 
@@ -30,13 +38,15 @@ export const DocScreen = () => {
   const [doc, setDoc] = useState<ResponseDocDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [filterShow, setFilterShow] = useState(false);
 
   // Для фильтрации по дате
   const [startDate, setStartDate] = useState<Date>(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   const [endDate, setEndDate] = useState<Date>(new Date());
 
-  //Для фильтрации по типу документа
+  //Для фильтрации
   const [selectedDocType, setSelectedDocType] = useState<string | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
 
   //Поиск по клиенту/поставщику
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -93,16 +103,6 @@ export const DocScreen = () => {
     );
   };
 
-  // const onDateChange = (event: any, selectedDate: Date | undefined, isStart: boolean) => {
-  //   if (selectedDate) {
-  //     if (isStart) {
-  //       setStartDate(selectedDate);
-  //     } else {
-  //       setEndDate(selectedDate);
-  //     }
-  //   }
-  //   fetchDocs(true);
-  // };
 
   // Фильтрация документов
   const filteredDocs = doc.filter((item) => {
@@ -115,6 +115,8 @@ export const DocScreen = () => {
     // Фильтр по типу
     if (selectedDocType && item.docType !== selectedDocType) return false;
 
+    if (selectedStatus && item.status !== selectedStatus) return false;
+
     // Поиск по клиенту или поставщику
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
@@ -126,13 +128,14 @@ export const DocScreen = () => {
     return true;
   });
 
+
   // В DocScreen.tsx, в функции renderItem:
 
   const renderItem = ({ item }: { item: ResponseDocDto }) => (
     <View style={styles.docCard}>
       <TouchableOpacity
         style={styles.header}
-        onPress={() => navigation.navigate('DocForm', { docId: item._id })}
+        onPress={() => navigation.navigate('DocForm', { docId: item._id, docType: item.docType })}
       >
         <View style={styles.row}>
           <Text style={styles.subtitle}>№{item.docNum}</Text>
@@ -145,6 +148,7 @@ export const DocScreen = () => {
           <Text style={styles.subtitle}>Дата: {new Date(item.docDate).toLocaleDateString()}</Text>
 
           {/* Передаём docId и onStatusChange */}
+
           <StatusIcon
             status={item.status}
             docId={item._id}
@@ -179,83 +183,82 @@ export const DocScreen = () => {
           setDate={(date) => setStartDate(new Date(date))}
         />
 
+        <Button
+          onPress={() => setFilterShow(!filterShow)}
+          bgColor={filterShow ? '#f0f0f0' : '#fff'}
+          textColor='#007bff'
+        >
+          <IconFilter size={24} name={filterShow ? "filter-minus" : "filter-menu-outline"} />
+        </Button>
+
         <DatePicker
           date={endDate}
           setDate={(date) => setEndDate(new Date(date))}
         />
-        {/* <TouchableOpacity onPress={() => showDatePicker(true)}>
-          <Text>{startDate ? startDate.toLocaleDateString() : 'Выберите начальную дату'}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => showDatePicker(false)}>
-          <Text>{endDate ? endDate.toLocaleDateString() : 'Выберите конечную дату'}</Text>
-        </TouchableOpacity> */}
       </View>
-
-      {/* {showStartPicker && (
-        <DateTimePicker
-          value={startDate || new Date()}
-          mode="date"
-          display="default"
-          onChange={(e, date) => onDateChange(e, date, true)}
-        />
-      )}
-      {showEndPicker && (
-        <DateTimePicker
-          value={endDate || new Date()}
-          mode="date"
-          display="default"
-          onChange={(e, date) => onDateChange(e, date, false)}
-        />
-      )} */}
 
       {/* Фильтр по типу документа */}
-      <View style={styles.filterRow}>
-        <View style={styles.chipContainer}>
-          {Object.keys(DOCTYPE_CHIP).map((type) => (
-            <TouchableOpacity
-              key={type}
-              style={[
-                styles.chip, styles.chipContainer,
-                selectedDocType === type && type !== 'Все' && styles.chipSelected,
-              ]}
-              onPress={() => setSelectedDocType(type === 'Все' ? null : type)}
-            >
-                <Icon
+      {filterShow && (
+        <>
+          <View style={styles.filterRow}>
+            {Object.keys(DOCTYPE_CHIP).map((type) => (
+              <TouchableOpacity
+                key={type}
+                style={[
+                  styles.chip,
+                  selectedDocType === type && type !== null && styles.chipSelected,
+                  selectedDocType === type && type === null && styles.chipAllSelected,
+                ]}
+                onPress={() => setSelectedDocType(type === selectedDocType ? null : type)}
+              >
+                <IconDocType
                   name={DOCTYPE_CHIP[type as keyof typeof DOCTYPE_CHIP]}
-                  size={20}
+                  size={24}
+                  color="#333"
 
                 />
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+          {/* Фильтр по статусу документа */}
+          <View style={styles.filterRow}>
+            {Object.keys(DOCSTATUS_CHIP).map((status) => (
+              <TouchableOpacity
+                key={status}
+                style={[
+                  styles.chip,
+                  selectedStatus === status && styles.chipSelected,
+                  selectedStatus === status && status === null && styles.chipAllSelected
+                ]}
+                onPress={() => setSelectedStatus(status === selectedStatus ? null : status)}
+              >
+                <IconStatus
+                  name={DOCSTATUS_CHIP[status as keyof typeof DOCSTATUS_CHIP]}
+                  size={24}
+                  color={getStatusColor(status as DocStatus)}
+                />
+              </TouchableOpacity>
+            ))}
+          </View>
+          {/* Поиск по клиенту или поставщику */}
+          <View style={styles.searchContainer}>
+            <TextField
+              placeholder="Поиск по клиенту или поставщику"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
+          <Button
+            bgColor={THEME.button.add}
+            textColor={THEME.color.white}
+            onPress={() => navigation.navigate('DocForm', { docId: '', docType: selectedDocType || 'Outgoing' })}
+          >
+            <Text><Icon name="plus" size={24} /></Text>
+          </Button>
+        </>
+      )}
 
-      {/* <Dropdown
-        data={[
-          { label: 'Все', value: null },
-          { label: 'Приход', value: 'Приход' },
-          { label: 'Расход', value: 'Расход' },
-          { label: 'Перемещение', value: 'Перемещение' }
-        ]}
-        labelField="label"
-        valueField="value"
-        placeholder="Выберите тип документа"
-        value={selectedDocType}
-        onChange={item => {
-          setSelectedDocType(item.value);
-        }}
-      /> */}
 
-
-      {/* Поиск по клиенту или поставщику */}
-      <View style={styles.searchContainer}>
-        <TextField
-          // style={styles.searchInput}
-          placeholder="Поиск по клиенту или поставщику"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-      </View>
 
       {loading ? (
         <ActivityIndicator size="large" />
@@ -274,10 +277,6 @@ export const DocScreen = () => {
 
 
 const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
   container: {
     flex: 1,
     padding: 16,
@@ -285,26 +284,86 @@ const styles = StyleSheet.create({
   },
   datePickers: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 16,
+    gap: 8,
+  },
+  filterRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    gap: 8,
+    marginBottom: 12,
+    paddingHorizontal: 4,
+  },
+  chipContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    paddingHorizontal: 4,
+  },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    backgroundColor: '#f9f9f9',
+  },
+  chipSelected: {
+    backgroundColor: '#d3e8ff',
+    borderColor: '#007BFF',
+  },
+  chipAllSelected: {
+    backgroundColor: '#007BFF',
+    borderColor: '#007BFF',
+  },
+  chipText: {
+    color: '#333',
+    fontSize: 14,
+  },
+  chipTextSelected: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  searchContainer: {
+    marginBottom: 16,
+    paddingHorizontal: 4,
   },
   docCard: {
     backgroundColor: '#fff',
     borderRadius: 8,
     padding: 16,
     marginBottom: 12,
-    elevation: 3,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
   header: {
-    marginBottom: 10,
+    gap: 6,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 8,
   },
   title: {
     fontSize: 18,
     fontWeight: 'bold',
   },
   subtitle: {
-    marginTop: 4,
+    fontSize: 14,
     color: '#555',
+    fontWeight: '500',
   },
   detailContainer: {
     borderTopWidth: 1,
@@ -336,66 +395,9 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
   },
-
-  filters: {
-    marginBottom: 16,
-    gap: 12,
+  divider: {
+    height: 1,
+    backgroundColor: '#eee',
+    marginVertical: 12,
   },
-  searchContainer: {
-    paddingHorizontal: 4,
-  },
-  searchInput: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 10,
-    fontSize: 16,
-    backgroundColor: '#fff',
-  },
-  filterRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 4,
-    gap: 8,
-  },
-  filterLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    width: 50,
-  },
-  chipContainer: {
-    flex: 1,
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    flexWrap: 'wrap',
-    gap: 8,
-    paddingBottom: 12,
-  },
-  chip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    backgroundColor: '#f9f9f9',
-  },
-  chipSelected: {
-    backgroundColor: '#d3e8ff',
-    borderColor: '#007BFF',
-  },
-  chipText: {
-    color: '#333',
-    fontSize: 14,
-  },
-  chipTextSelected: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  chipAllSelected: {
-    backgroundColor: '#007BFF',
-    borderColor: '#007BFF',
-  },
-
 });

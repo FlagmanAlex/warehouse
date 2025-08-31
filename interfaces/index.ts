@@ -6,8 +6,6 @@ export * from './IDoc'                          //Документ
 export * from './IDocItem'                      //Позиции документа
 export * from './IDocNum'                       //Номера документов  
 export * from './IInventory'                    //Остатки
-export * from './IOrder'                        //Заказы
-export * from './IOrderItem'                    //Позиции заказа
 export * from './IPayment'                      //Платежи
 export * from './IPriceHistory'                 //История цен
 export * from './IProduct'                      //Товары

@@ -11,11 +11,7 @@ import {
 } from 'react-native';
 
 
-import { ResponseDocDto } from '@warehouse/interfaces/DTO'
-
-import IconFilter from 'react-native-vector-icons/MaterialCommunityIcons'
-import IconStatus from 'react-native-vector-icons/FontAwesome5'
-import IconDocType from 'react-native-vector-icons/Fontisto'
+import Icon from 'react-native-vector-icons/FontAwesome5';
 
 import { fetchApi } from '../../../utils';
 import { useNavigation } from '@react-navigation/native';
@@ -24,18 +20,18 @@ import { DocStackParamList } from 'src/types/types';
 import { TextField } from 'src/shared/TextField';
 import { DatePicker } from 'src/shared/DatePicker';
 import StatusIcon from './StatusIcon';
-import { DOC_STATUS_OUT, DOC_TYPE, DOCSTATUS_CHIP, DOCTYPE_CHIP } from 'src/utils/statusLabels';
+import { DOC_TYPE, DOCSTATUS_CHIP, DOCTYPE_CHIP } from 'src/utils/statusLabels';
 import { Button } from 'src/shared/Button';
 import { getStatusColor } from 'src/utils/iconName';
 import { DocStatus } from '@warehouse/interfaces';
+import { DocDto } from '@warehouse/interfaces/DTO'
 import { THEME } from 'src/Default';
-import Icon from 'react-native-vector-icons/FontAwesome5';
 
 export const DocScreen = () => {
 
   const navigation = useNavigation<StackNavigationProp<DocStackParamList>>();
 
-  const [doc, setDoc] = useState<ResponseDocDto[]>([]);
+  const [doc, setDoc] = useState<DocDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [filterShow, setFilterShow] = useState(false);
@@ -51,6 +47,10 @@ export const DocScreen = () => {
   //Поиск по клиенту/поставщику
   const [searchQuery, setSearchQuery] = useState<string>('');
 
+  //Маппинг customerId и supplierId
+  const customerMap = new Map<string, string>();
+  const supplierMap = new Map<string, string>();
+
   // Загрузка всех документов
   useEffect(() => {
     fetchDocs(true);
@@ -65,11 +65,12 @@ export const DocScreen = () => {
 
     try {
 
-      const docs: ResponseDocDto[] = await fetchApi(
+      const docs: DocDto[] = await fetchApi(
         `doc?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`,
         'GET',
       );
       setDoc(docs);
+
     } catch (error) {
       console.error('Ошибка загрузки документов:', error);
     } finally {
@@ -120,8 +121,8 @@ export const DocScreen = () => {
     // Поиск по клиенту или поставщику
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      const customerMatch = item.customerId?.name.toLowerCase().includes(query);
-      const supplierMatch = item.supplierId?.name.toLowerCase().includes(query);
+      const customerMatch = item.docType === 'Outgoing' && item.customerId?.name.toLowerCase().includes(query);
+      const supplierMatch = item.docType === 'Incoming' && item.supplierId?.name.toLowerCase().includes(query);
       if (!customerMatch && !supplierMatch) return false;
     }
 
@@ -131,11 +132,11 @@ export const DocScreen = () => {
 
   // В DocScreen.tsx, в функции renderItem:
 
-  const renderItem = ({ item }: { item: ResponseDocDto }) => (
+  const renderItem = ({ item }: { item: DocDto }) => (
     <View style={styles.docCard}>
       <TouchableOpacity
         style={styles.header}
-        onPress={() => navigation.navigate('DocForm', { docId: item._id, docType: item.docType })}
+        onPress={() => navigation.navigate('DocForm', { docId: item._id!, docType: item.docType })}
       >
         <View style={styles.row}>
           <Text style={styles.subtitle}>№{item.docNum}</Text>
@@ -151,7 +152,7 @@ export const DocScreen = () => {
 
           <StatusIcon
             status={item.status}
-            docId={item._id}
+            docId={item._id!}
             onStatusChange={(newStatus) => {
               setDoc((prev) =>
                 prev.map((doc) =>
@@ -162,16 +163,15 @@ export const DocScreen = () => {
           />
         </View>
 
-        {item.customerId ? (
-          <Text style={styles.subtitle}>Клиент: {item.customerId.name}</Text>
-        ) : (
-          <Text style={styles.subtitle}>Поставщик: {item?.supplierId?.name || '—'}</Text>
-        )}
+        {(item.docType === 'Incoming') && <Text style={styles.subtitle}>Поставщик: {item.supplierId?.name}</Text>}
+        {(item.docType === 'Outgoing') && <Text style={styles.subtitle}>Клиент: {item.customerId?.name}</Text>}
 
         <Text selectable>ID документа: {item._id}</Text>
       </TouchableOpacity>
     </View>
-  );
+  )
+
+
   return (
     <View style={styles.container}>
 
@@ -188,7 +188,7 @@ export const DocScreen = () => {
           bgColor={filterShow ? '#f0f0f0' : '#fff'}
           textColor='#007bff'
         >
-          <IconFilter size={24} name={filterShow ? "filter-minus" : "filter-menu-outline"} />
+          <Icon size={24} name={filterShow ? "caret-up" : "caret-down"} />
         </Button>
 
         <DatePicker
@@ -211,7 +211,7 @@ export const DocScreen = () => {
                 ]}
                 onPress={() => setSelectedDocType(type === selectedDocType ? null : type)}
               >
-                <IconDocType
+                <Icon
                   name={DOCTYPE_CHIP[type as keyof typeof DOCTYPE_CHIP]}
                   size={24}
                   color="#333"
@@ -232,7 +232,7 @@ export const DocScreen = () => {
                 ]}
                 onPress={() => setSelectedStatus(status === selectedStatus ? null : status)}
               >
-                <IconStatus
+                <Icon
                   name={DOCSTATUS_CHIP[status as keyof typeof DOCSTATUS_CHIP]}
                   size={24}
                   color={getStatusColor(status as DocStatus)}
@@ -265,7 +265,7 @@ export const DocScreen = () => {
       ) : (
         <FlatList
           data={filteredDocs}
-          keyExtractor={(item) => item._id}
+          keyExtractor={(item) => item._id!}
           renderItem={renderItem}
           refreshing={refreshing}
           onRefresh={() => fetchDocs(false)}

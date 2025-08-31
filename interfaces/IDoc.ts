@@ -46,8 +46,6 @@ export type PriorityOrder =
 
 export type DocStatus = DocStatusIn | DocStatusOut;
 
-
-
 export interface IDocBase {
     /** ID заказа */
     _id?: string                                    
@@ -56,17 +54,13 @@ export interface IDocBase {
     /** Внутренний Номер документа в базе */
     docNum: string                                  
     /** Дата заказа */
-    docDate: Date                                   
-    /** Курс */
-    exchangeRate: number                            
+    docDate: Date   
     /** Вознаграждение */
     bonusRef: number                                
     /** Логистика */
     expenses: number                                
-    /** Сумма оплаты */
-    // payment: number                                 
     /** ID склада */
-    warehouseId: string                             
+    warehouseId?: string                             
     /** Создатель */
     userId: string                                  
     /** Дата создания */
@@ -93,6 +87,8 @@ export interface IDocIncoming extends IDocBase {
     docType: 'Incoming'
     vendorCode: string                              //№ отслеживания курьерской службы
     supplierId: string
+    /** Курс */
+    exchangeRate: number                            
 }
 
 export interface IDocOutgoing extends IDocBase {

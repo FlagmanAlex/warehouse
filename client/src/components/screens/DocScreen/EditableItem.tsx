@@ -1,12 +1,13 @@
-import { ResponseDocItemDto } from "@warehouse/interfaces/DTO";
+import { IDocItem } from "@warehouse/interfaces";
+import { DocItemDto } from "@warehouse/interfaces/DTO";
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 
 // Редактируемая позиция
-export const EditableItem = ({ item, onUpdate }: { item: ResponseDocItemDto; onUpdate: (item: ResponseDocItemDto) => void }) => {
+export const EditableItem = ({ item, onUpdate }: { item: DocItemDto; onUpdate: (item: DocItemDto) => void }) => {
   const [quantity, setQuantity] = useState(item.quantity.toString());
   const [price, setPrice] = useState(item.unitPrice.toString());
-  const [bonusStock, setBonusStock] = useState(item.bonusStock.toString());
+  const [bonusStock, setBonusStock] = useState<string>(item.bonusStock?.toString() || '');
 
   useEffect(() => {
     // const sum = parseFloat(quantity) * parseFloat(price);

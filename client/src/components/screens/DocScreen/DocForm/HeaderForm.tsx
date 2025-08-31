@@ -3,16 +3,17 @@ import { View, Text, StyleSheet } from 'react-native';
 import React from 'react';
 import { Button } from 'src/shared/Button';
 import { Field } from '../Field';
-import { DocStatus, DocStatusIn, DocStatusOut, DocType, IDoc } from '@warehouse/interfaces';
+import { DocStatus, DocStatusIn, DocStatusOut, DocType, IDoc, IDocIncoming, IDocOrder } from '@warehouse/interfaces';
 import { DOC_STATUS_IN, DOC_STATUS_OUT, DOC_TYPE } from 'src/utils/statusLabels';
+import { DocDto, DocIncomingDto, DocOrderDto, DocOutgoingDto, DocTransferDto } from '@warehouse/interfaces/DTO';
 
 
 type HeaderFormProps = {
-    doc: IDoc;
+    doc: DocDto;
     isEditing: boolean;
     setIsEditing: (editing: boolean) => void;
     handleDelete: () => void;
-    setDoc: (doc: IDoc) => void;
+    setDoc: (doc: DocDto) => void;
     handleSave: () => void;
 };
 
@@ -31,24 +32,34 @@ const HeaderForm = ({ doc, isEditing, setIsEditing, handleDelete, handleSave, se
         }
     };
 
+    const handleChange = (val: DocType) => {
+        (val === 'Incoming') && setDoc({ ...doc, docType: 'Incoming' } as DocIncomingDto);
+        (val === 'Outgoing') && setDoc({ ...doc, docType: 'Outgoing' } as DocOutgoingDto);
+        (val === 'Order') && setDoc({ ...doc, docType: 'Order' } as DocOrderDto);
+        (val === 'Transfer') && setDoc({ ...doc, docType: 'Transfer' } as DocTransferDto);
+
+    }
+
     const Header = () => {
-        switch (doc.docType) {
-            case 'Order':
-                return (
-                    <View style={styles.card}>
-                        <Field
-                            label="Тип"
-                            value={isEditing ? 'Order' : DOC_TYPE['Order']}
-                            editable={isEditing}
-                            onChange={() => setDoc({ ...doc, docType: 'Order' })}
-                            options={Object.keys(DOC_TYPE).map((key) => ({
-                                label: DOC_TYPE[key as DocType],
-                                value: key,
-                            }))}
-                        />
+        return (
+            <>
+                <View style={styles.card}>
+                    <Field
+                        label="Тип"
+                        value={isEditing ? doc.docType : DOC_TYPE[doc.docType]}
+                        editable={isEditing}
+                        onChange={(val) => handleChange(val as DocType)}
+                        options={Object.keys(DOC_TYPE).map((key) => ({
+                            label: DOC_TYPE[key as DocType],
+                            value: key,
+                        }))}
+                    />
+                    {/* Для документа Incoming */}
+                    {doc.docType === 'Order' && (
+                    <>
                         <Field
                             label="Приоритет"
-                            value={isEditing ? doc.priority : doc.priority}
+                            value={isEditing ? (doc).priority : (doc).priority}
                             editable={isEditing}
                             onChange={(val) => setDoc({ ...doc, priority: val as 'Low' | 'Medium' | 'High' })}
                             options={[
@@ -57,85 +68,51 @@ const HeaderForm = ({ doc, isEditing, setIsEditing, handleDelete, handleSave, se
                                 { label: 'Высокий', value: 'High' },
                             ]}
                         />
-                        <Field label="Клиент" value={doc.customerId} editable={false} />
-                    </View>
-                )
+                        <Field label="Клиент" value={doc.customerId?.name} editable={false} />
+                    </>
+                    )}
 
-            case 'Outgoing':
-                return (
-                    <View style={styles.card}>
-                        <Field
-                            label="Тип"
-                            value={isEditing ? 'Outgoing' : DOC_TYPE[doc.docType]}
-                            editable={isEditing}
-                            onChange={() => setDoc({ ...doc, docType: 'Outgoing' })}
-                            options={Object.keys(DOC_TYPE).map((key) => ({
-                                label: DOC_TYPE[key as DocType],
-                                value: key,
-                            }))}
-                        />
-                        <Field
-                            label="Статус"
-                            value={isEditing ? doc.status : DOC_STATUS_OUT[doc.status as DocStatusOut]}
-                            editable={isEditing}
-                            onChange={(val) => setDoc({ ...doc, status: val as DocStatusOut })}
-                            options={Object.keys(DOC_STATUS_OUT).map((key) => ({
-                                label: DOC_STATUS_OUT[key as DocStatusOut],
-                                value: key,
-                            }))}
-                        />
-                        <Field label="Клиент" value={doc.customerId} editable={false} />
-                    </View>
-
-                )
-            case 'Incoming':
-                return (
-                    <View style={styles.card}>
-                        <Field
-                            label="Тип"
-                            value={isEditing ? 'Incoming' : DOC_TYPE[doc.docType]}
-                            editable={isEditing}
-                            onChange={() => setDoc({ ...doc, docType: 'Incoming' })}
-                            options={Object.keys(DOC_TYPE).map((key) => ({
-                                label: DOC_TYPE[key as DocType],
-                                value: key,
-                            }))}
-                        />
-                        <Field
-                            label="Статус"
-                            value={isEditing ? doc.status : DOC_STATUS_IN[doc.status as DocStatusIn]}
-                            editable={isEditing}
-                            onChange={(val) => setDoc({ ...doc, status: val as DocStatusIn })}
-                            options={Object.keys(DOC_STATUS_IN).map((key) => ({
-                                label: DOC_STATUS_IN[key as DocStatusIn],
-                                value: key,
-                            }))}
-                        />
-                        <Field label="Поставщик" value={doc.supplierId} editable={false} />
-                    </View>
-                );
-            case 'Transfer':
-                return (
-                    <View style={styles.card}>
-                        <Field
-                            label="Тип"
-                            value={isEditing ? 'Transfer' : DOC_TYPE[doc.docType]}
-                            editable={isEditing}
-                            onChange={() => setDoc({ ...doc, docType: 'Transfer' })}
-                            options={Object.keys(DOC_TYPE).map((key) => ({
-                                label: DOC_TYPE[key as DocType],
-                                value: key,
-                            }))}
-                        />
-                        <Field label="Откуда" value={doc.fromWarehouseId} editable={false} />
-                        <Field label="Куда" value={doc.toWarehouseId} editable={false} />
-                    </View>
-                );
-            default:
-                break;
-        }
+                    {/* Для документа Outgoing */}
+                    {doc.docType === 'Outgoing' && (
+                        <>
+                            <Field
+                                label="Статус"
+                                value={isEditing ? doc.status : DOC_STATUS_OUT[doc.status as DocStatusOut]}
+                                editable={isEditing}
+                                onChange={(val) => setDoc({ ...doc, status: val as DocStatusOut })}
+                                options={Object.keys(DOC_STATUS_OUT).map((key) => ({
+                                    label: DOC_STATUS_OUT[key as DocStatusOut],
+                                    value: key,
+                                }))}
+                            />
+                            <Field label="Клиент" value={doc.customerId?.name} editable={false} />
+                        </>
+                    )}
+                    {doc.docType === 'Incoming' && (
+                        <>
+                            <Field
+                                label="Статус"
+                                value={isEditing ? doc.status : DOC_STATUS_IN[doc.status as DocStatusIn]}
+                                editable={isEditing}
+                                onChange={(val) => setDoc({ ...doc, status: val as DocStatusIn })}
+                                options={Object.keys(DOC_STATUS_IN).map((key) => ({
+                                    label: DOC_STATUS_IN[key as DocStatusIn],
+                                    value: key,
+                                }))}
+                            />
+                            <Field label="Поставщик" value={doc.supplierId?.name} editable={false} />
+                        </>
+                    )}
+                    {doc.docType === 'Transfer' && (
+                        <>
+                            <Field label="Откуда" value={doc.fromWarehouseId?.name} editable={false} />
+                            <Field label="Куда" value={doc.toWarehouseId?.name} editable={false} />
+                        </>
+                    )}
+                </View>
+            </>
+        );
     }
-
 
     return (
         <View style={styles.container}>

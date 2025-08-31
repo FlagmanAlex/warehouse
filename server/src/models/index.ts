@@ -11,7 +11,5 @@ export * from './supplierModel';
 export * from './transactionModel';
 export * from './userModel';
 export * from './warehouseModel';
-export * from './orderModel';
-export * from './orderItemModel';
 export * from './paymentModel';
 export * from './accountModel';

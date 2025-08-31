@@ -5,6 +5,7 @@ import { Request, Response } from 'express';
 import { DocModel, DocItemsModel, DocNumModel } from '@models';
 import { DocService } from '../services/DocService';
 import { DocStatus, IDoc } from '@interfaces';
+import { DocItemDto } from "@interfaces/DTO";
 
 // === Дополнительный DTO для обновления статуса (может быть вынесен в DTO)
 
@@ -86,7 +87,14 @@ export class DocController {
             }
 
             const items = await DocItemsModel.find({ docId: doc._id })
-                .populate('productId batchId');
+                .populate('batchId')
+                .populate({
+                    path: 'productId',
+                    populate: {
+                        path: 'categoryId',
+                    }
+                })
+
 
             res.json({ doc, items });
         } catch (error: any) {

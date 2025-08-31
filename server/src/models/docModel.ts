@@ -9,6 +9,8 @@ export interface IDocModel extends Omit<IDoc, '_id' | 'userId' | 'warehouseId'>,
     fromWarehouseId: mongoose.Types.ObjectId,
     toWarehouseId: mongoose.Types.ObjectId,
     vendorCode?: string
+    exchangeRate?: number,
+
 }
 // Схема для заказов
 const docSchema = new Schema<IDocModel>({
@@ -17,9 +19,9 @@ const docSchema = new Schema<IDocModel>({
     docDate: { type: Date, default: () =>  Date.now() },
     vendorCode: { type: String },
     docType: { type: String, required: true },
-    exchangeRate: { type: Number },
     bonusRef: { type: Number },
     expenses: { type: Number },
+    exchangeRate: { type: Number },
     // payment: { type: Number },
     customerId: { type: Schema.Types.ObjectId, ref: 'Customer', required: () => { return (this as any).docType === 'Incoming' } }, // Ссылка на клиента
     supplierId: { type: Schema.Types.ObjectId, ref: 'Supplier', required: () => { return (this as any).docType === 'Outgoing' } }, // Ссылка на поставщика

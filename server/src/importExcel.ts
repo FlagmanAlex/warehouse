@@ -663,7 +663,6 @@ class ImportExcel {
                             updatedAt: new Date(),
                             userId: this.userId,
                             bonusRef: 0,
-                            exchangeRate: 1,
                             expenses: 0,
                             orderNum: '',
                             docNum: '',

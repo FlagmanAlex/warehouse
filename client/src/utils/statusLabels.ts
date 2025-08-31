@@ -1,6 +1,7 @@
 import { DocStatusIn, DocStatusOut, DocType } from "@warehouse/interfaces";
 
 export const DOC_TYPE: Record<DocType, string> = {
+    Order: 'Заказ',
     Incoming: 'Приход',
     Outgoing: 'Расход',
     Transfer: 'Перемещение',
@@ -25,9 +26,10 @@ export const DOC_STATUS_IN: Record<DocStatusIn, string> = {
     Canceled: 'Отменен'
 };
 export const DOCTYPE_CHIP: Record<DocType, string> = {
+    Order: 'clipboard-list',
     Incoming: 'download',
     Outgoing: 'upload',
-    Transfer: 'arrow-swap',
+    Transfer: 'arrows-alt-h',
     // WriteOff: 'slides',
     // Return: 'arrow-return-left'
 };

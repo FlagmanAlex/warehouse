@@ -43,7 +43,7 @@ export class DocItemsController {
             });
 
             // Получаем текущее количество на складе
-            const previousQuantity = await this.getCurrentInventory(requestDocItem.batchId!, doc.warehouseId);
+            const previousQuantity = await this.getCurrentInventory(requestDocItem.batchId!, doc.warehouseId!);
 
             // Обновляем остатки
             const quantityChange = requestDocItem.quantity 
@@ -102,7 +102,7 @@ export class DocItemsController {
                     ? -item.quantity
                     : item.quantity;
 
-                const previousQuantity = await this.getCurrentInventory(item.batchId!, doc.warehouseId);
+                const previousQuantity = await this.getCurrentInventory(item.batchId!, doc.warehouseId!);
 
                 // Обновляем остатки
                 const inventoryUpdateResult = await InventoryModel.updateOne(

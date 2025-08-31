@@ -7,15 +7,11 @@ import {
 } from 'react-native';
 import { useEffect, useState } from 'react';
 import { fetchApi } from '../../../../utils';
-import { CreateDocDto, ResponseDocDto, ResponseDocItemDto } from '@warehouse/interfaces/DTO';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { DocStackParamList } from '../../../../types/types';
-import { Field } from '../Field';
-import { Button } from 'src/shared/Button';
 import { EditableItem } from '../EditableItem';
-import { DocStatus, DocStatusIn, DocStatusOut, DocType, IDoc, IDocBase, IDocOrder } from '@warehouse/interfaces';
-import { DOC_STATUS_IN, DOC_STATUS_OUT, DOC_TYPE } from 'src/utils/statusLabels';
 import HeaderForm from './HeaderForm';
+import { DocDto, DocItemDto, DocOrderDto } from '@warehouse/interfaces/DTO';
 
 type DocFormRouteProps = RouteProp<DocStackParamList, 'DocForm'>;
 
@@ -23,39 +19,37 @@ type DocFormRouteProps = RouteProp<DocStackParamList, 'DocForm'>;
 const DocForm = () => {
   const route = useRoute<DocFormRouteProps>();
   const navigation = useNavigation();
-  const { docId, docType } = route.params || '';
+  const { docId } = route.params || '';
 
   // Данные с сервера
-  const [doc, setDoc] = useState<IDoc | null>(null);
-  const [items, setItems] = useState<ResponseDocItemDto[]>([]);
+  const [doc, setDoc] = useState<DocDto | null>(null);
+  const [items, setItems] = useState<DocItemDto[]>([]);
 
   // Режим редактирования
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const docNew: IDocOrder = {
+  const docNew: DocOrderDto = {
     docNum: '',
     docDate: new Date(),
-    exchangeRate: 1,
     bonusRef: 0,
     expenses: 0,
-    warehouseId: '',
-    userId: '',
     orderNum: '',
-    description: '',
+    priority: 'Low',
     docType: 'Order',
     status: 'Draft',
-    customerId: '',
-    priority: 'Low',
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    customerId: { _id: '', name: '' },
+    description: '',
   };
 
 
   useEffect(() => {
-    if (!docId) setDoc(docNew);
-    loadDoc();
+    if (!docId) {
+      setDoc(docNew);
+      setLoading(false);
+    }
+    else loadDoc()
   }, [docId]);
 
   const loadDoc = async () => {
@@ -124,14 +118,12 @@ const DocForm = () => {
     );
   }
 
-  const header = () => {
-  }
-
   const footer = () => {
     return (
       <View style={[styles.footer]}>
         <Text style={styles.total}>
-          Всего: {items.reduce((sum, i) => sum + i.quantity, 0)} шт. Сумма: {items.reduce((sum, i) => sum + i.quantity * (i.unitPrice - i.bonusStock), 0).toFixed(0)} ₽
+          Всего: {items.reduce((sum, i) => sum + i.quantity, 0)} шт. Сумма: {items.reduce((sum, i) => 
+            sum + i.quantity * (i.unitPrice - (i.bonusStock || 0)), 0).toFixed(0)} ₽
         </Text>
       </View>
     );
@@ -143,7 +135,7 @@ const DocForm = () => {
 
       <FlatList
         data={items}
-        keyExtractor={(item) => item._id}
+        keyExtractor={(item) => item._id!}
         ListHeaderComponent={
           <HeaderForm
             doc={doc}
@@ -164,8 +156,8 @@ const DocForm = () => {
               <View style={styles.detailsRow}>
                 <Text>Кол-во: {item.quantity}</Text>
                 <Text>Цена: {item.unitPrice.toFixed(0)} ₽</Text>
-                <Text>Скидка: {item.bonusStock.toFixed(0)} ₽</Text>
-                <Text>Сумма: {(item.quantity * (item.unitPrice - item.bonusStock)).toFixed(0)} ₽</Text>
+                <Text>Скидка: {item.bonusStock?.toFixed(0)} ₽</Text>
+                <Text>Сумма: {(item.quantity * (item.unitPrice - (item.bonusStock || 0))).toFixed(0)} ₽</Text>
               </View>
             </View>
           )

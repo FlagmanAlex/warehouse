@@ -12,6 +12,8 @@ docRouter.get('/:id', DocController.getDocById);
 docRouter.post('/', DocController.createDoc);
 //Изменение статуса заказа
 docRouter.put('/:id/status', DocController.updateDocStatus);
+//Обновление заказа
+docRouter.put('/:id', DocController.updateDoc);
 // Проведение заказа
 // docRouter.post('/:id/post', DocController.);
 // Распроведение заказа

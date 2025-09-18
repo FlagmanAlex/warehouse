@@ -1,7 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 import { IDocItem } from "@interfaces";
 
-interface IDocItemsModel extends Omit<IDocItem, '_id' | 'docId' | 'productId' | 'batchId'>, mongoose.Document { 
+export interface IDocItemsModel extends Omit<IDocItem, '_id' | 'docId' | 'productId' | 'batchId'>, mongoose.Document { 
     docId: mongoose.Types.ObjectId;
     productId: mongoose.Types.ObjectId;
     batchId?: mongoose.Types.ObjectId;
@@ -13,7 +13,12 @@ const docItemsSchema = new Schema<IDocItemsModel>({
     batchId: { type: Schema.Types.ObjectId, ref: 'Batch' },
     quantity: { type: Number, required: true, min: 0 },
     unitPrice: { type: Number, required: true },
-    bonusStock: { type: Number }
+    bonusStock: { type: Number },
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now }
 });
+
+docItemsSchema.index({ docId: 1 });
+docItemsSchema.index({ productId: 1 });
 
 export const DocItemsModel = mongoose.model<IDocItemsModel>('DocItems', docItemsSchema, 'DocItems');

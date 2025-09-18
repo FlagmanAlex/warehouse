@@ -7,7 +7,7 @@ import {
     Alert,
 } from 'react-native';
 import { fetchApi } from '../../../utils';
-import { useAuth } from './AuthContext';
+import { useAuth } from '../../screens/AuthScreen/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { AuthStackParamList } from '../../../types/types';
 import { StackNavigationProp } from '@react-navigation/stack';

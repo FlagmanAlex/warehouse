@@ -7,4 +7,7 @@ export interface IDocItem {
     bonusStock?: number     // бонус
     unitPrice: number       // цена
     notes?: string          // заметки
+    createdAt?: Date        // дата создания
+    updatedAt?: Date        // дата обновления
 }
+

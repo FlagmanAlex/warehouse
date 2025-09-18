@@ -56,11 +56,11 @@ export interface IDocBase {
     /** Дата заказа */
     docDate: Date   
     /** Вознаграждение */
-    bonusRef: number                                
-    /** Логистика */
-    expenses: number                                
+    bonusRef: number
+    /** Сумма заказа */                                
+    summ: number
     /** ID склада */
-    warehouseId?: string                             
+    warehouseId: string                             
     /** Создатель */
     userId: string                                  
     /** Дата создания */
@@ -89,6 +89,8 @@ export interface IDocIncoming extends IDocBase {
     supplierId: string
     /** Курс */
     exchangeRate: number                            
+    /** Логистика */
+    expenses: number                                
 }
 
 export interface IDocOutgoing extends IDocBase {
@@ -99,6 +101,7 @@ export interface IDocOrder extends IDocBase {
     docType: 'Order'
     customerId: string
     priority: PriorityOrder
+    expenses: number
 }
 
 export type IDoc = IDocIncoming | IDocOutgoing | IDocOrder | IDocTransfer;

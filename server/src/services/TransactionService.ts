@@ -8,12 +8,13 @@ export class TransactionService {
      * @param quantity - количество
      ********************************************/
     static async createOutgoing(userId: string, productId: string, quantity: number) {
-        await TransactionModel.create({
+        const transaction = await TransactionModel.create({
             userId,
             productId,
             quantity,
             transactionType: 'Outgoing'
         });
+        console.log( 'Создание транзакции расхода', transaction );
     }
 
     /********************************************
@@ -22,6 +23,8 @@ export class TransactionService {
      ********************************************/
     static async delete(transactionId: string) {
         // Логика удаления транзакции
+        console.log( 'Удаление транзакции', transactionId );
+        
     }
 
     /********************************************
@@ -31,5 +34,7 @@ export class TransactionService {
      ********************************************/
     static async getAllForUser(userId: string) {
         // Логика получения транзакций для пользователя
+        console.log( 'Получение транзакций для пользователя', userId );
+        return [];
     }
 }

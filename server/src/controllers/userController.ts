@@ -6,6 +6,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { UserModel } from '@models';
 import { IUser } from '@interfaces';
+import { ResponseUserDto } from '@interfaces/DTO';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
@@ -105,7 +106,7 @@ export const userController = {
           { expiresIn: '24h' }
         );
 
-        res.json({
+        const resp:ResponseUserDto = {
           user: {
             _id: user._id,
             username: user.username,
@@ -113,7 +114,9 @@ export const userController = {
             role: user.role
           },
           token
-        });
+        }
+
+        res.json(resp);
       } else {
         console.log('Неверный email или пароль');
         res.status(401).json({ error: 'Неверный email или пароль' });

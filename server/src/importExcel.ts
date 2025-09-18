@@ -140,6 +140,8 @@ class ImportExcel {
         await this.getJournal()
         await this.getHeadJournal()
         await this.getClient()
+        console.log('✅ Импорт закончен', this.headJournal);
+        
     }
     private async fetchApi(
         url: string,
@@ -540,6 +542,7 @@ class ImportExcel {
                     exchangeRate: item['Курс'],
                     bonusRef: -item['Вознаграждение UAH'],
                     expenses: item['Логистика RUB'],
+                    summ: item['Общий итог iHerb UAH'],
                     description: `Сумма оплаты: ${item['Сумма оплаты факт USD']}`,
                     status: 'Draft',
                     supplierId: supplierId || '',
@@ -580,6 +583,7 @@ class ImportExcel {
             }
         }
         catch (error) {
+            await writeExcel(this.headJournal, `${this.fileName}.xlsx`, performance.now().toString());
             console.log((error as Error).message);
         }
     }
@@ -663,7 +667,8 @@ class ImportExcel {
                             updatedAt: new Date(),
                             userId: this.userId,
                             bonusRef: 0,
-                            expenses: 0,
+                            // expenses: 0,
+                            summ: 0,
                             orderNum: '',
                             docNum: '',
                             warehouseId: this.warehouseMap.get('Транзит') || '',

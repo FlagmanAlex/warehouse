@@ -17,7 +17,10 @@ export class StockService {
             if (free < item.quantity) {
                 throw new Error(`Недостаточно товара для резервирования: ${item.productId}. Доступно: ${free}, требуется: ${item.quantity}`);
             }
+
+            const result = await InventoryModel.updateOne({ productId: item.productId, warehouseId }, { $inc: { quantityReserved: item.quantity, quantityAvailable: -item.quantity } });
         }
+        
     }
 
     /**

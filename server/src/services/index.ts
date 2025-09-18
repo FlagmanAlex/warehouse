@@ -1,1 +1,3 @@
-export * from './DocService';
+export * from './StatusService';
+export * from './InventoryService';
+export * from './DocItemService';

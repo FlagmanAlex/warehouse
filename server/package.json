@@ -2,14 +2,13 @@
   "name": "warehouse",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "start:build": "tsc-watch --onSuccess 'tsc-alias'",
     "start:nodemon": "nodemon ./dist/server/src/server.js",
     "import": "node ./dist/server/src/importExcel.js",
     "dev": "concurrently \"npm run start:build\" \"npm run start:nodemon\"",
     "server": "node ./dist/server/src/server.js"
-
   },
   "keywords": [],
   "author": "",
@@ -37,6 +36,7 @@
     "express": "^5.1.0",
     "express-validator": "^7.2.1",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.14.1"
+    "mongoose": "^8.14.1",
+    "setimmediate": "^1.0.5"
   }
 }

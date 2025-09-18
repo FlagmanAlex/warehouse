@@ -19,7 +19,7 @@ export class DocService {
         console.log(doc.docType, doc.status, newStatus);
         if (doc.docType === 'Outgoing') {
             
-            const validTransaction: Record<DocStatusOut, DocStatusOut[]> = {
+            const validStatusOut: Record<DocStatusOut, DocStatusOut[]> = {
                 'Draft': ['Reserved', 'Canceled'],
                 'Reserved': ['Shipped', 'Canceled'],
                 'Shipped': ['Completed', 'Canceled'],
@@ -27,8 +27,8 @@ export class DocService {
                 'Canceled': ['Draft']
             };
 
-            const allowedTransitions = validTransaction[doc.status as DocStatusOut] || [];
-            if (!allowedTransitions.includes(newStatus as DocStatusOut)) {
+            const allowedStatusOut = validStatusOut[doc.status as DocStatusOut] || [];
+            if (!allowedStatusOut.includes(newStatus as DocStatusOut)) {
                 throw new Error(`Переход из статуса "${doc.status}" на "${newStatus}" невозможен`);
             }
 
@@ -53,7 +53,7 @@ export class DocService {
                 doc.status = newStatus;
         } else if (doc.docType === 'Incoming') {
 
-            const validTransaction: Record<DocStatusIn, DocStatusIn[]> = {
+            const validStatusIn: Record<DocStatusIn, DocStatusIn[]> = {
                 'Draft': ['Shipped', 'Canceled'],
                 'Shipped': ['InTransitHub', 'Canceled'],
                 'InTransitHub': ['InTransitDestination', 'Canceled'],
@@ -63,8 +63,8 @@ export class DocService {
                 'Canceled': ['Draft']
             };
 
-            const allowedTransitions = validTransaction[doc.status as DocStatusIn] || [];
-            if (!allowedTransitions.includes(newStatus as DocStatusIn)) {
+            const allowedStatusIn = validStatusIn[doc.status as DocStatusIn] || [];
+            if (!allowedStatusIn.includes(newStatus as DocStatusIn)) {
                 throw new Error(`Переход из статуса "${doc.status}" на "${newStatus}" невозможен`);
             }
 

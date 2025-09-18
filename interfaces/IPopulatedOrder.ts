@@ -1,6 +1,6 @@
 // Interfaces/IPopulatedOrder.ts
 
-import { IPopulatedCustomer, IPopulatedUser, IPopulatedWarehouse } from './IPopulated';
+import type { IPopulatedCustomer, IPopulatedUser } from './IPopulated';
 
 export interface IPopulatedOrder {
   _id: string;

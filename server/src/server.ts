@@ -17,7 +17,12 @@ if (!BD_NAME || !BD_TOKEN) {
 }
 
 mongoose.connect(BD_TOKEN, { dbName: BD_NAME })
-    .then(() => { console.log('Соединение с базой MongoDB прошло успешно') })
+    .then(() => {
+        console.log('Соединение с базой MongoDB прошло успешно')
+        // ✅ ЗАПУСКАЕМ CHANGE STREAM ТУТ — после подключения!
+        // startDocItemChangeStream();
+        // startDocItemPolling();
+    })
     .catch(e => console.log(`Ошибка подключения к MongoDB: ${e.message}`))
 
 const app = express()

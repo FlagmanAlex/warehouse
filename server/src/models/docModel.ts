@@ -10,6 +10,7 @@ export interface IDocModel extends Omit<IDoc, '_id' | 'userId' | 'warehouseId'>,
     toWarehouseId: mongoose.Types.ObjectId,
     vendorCode?: string
     exchangeRate?: number,
+    expenses?: number
 
 }
 // Схема для заказов
@@ -22,14 +23,17 @@ const docSchema = new Schema<IDocModel>({
     bonusRef: { type: Number },
     expenses: { type: Number },
     exchangeRate: { type: Number },
+    summ: { type: Number, required: true },
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now },
     // payment: { type: Number },
     customerId: { type: Schema.Types.ObjectId, ref: 'Customer', required: () => { return (this as any).docType === 'Incoming' } }, // Ссылка на клиента
     supplierId: { type: Schema.Types.ObjectId, ref: 'Supplier', required: () => { return (this as any).docType === 'Outgoing' } }, // Ссылка на поставщика
 
     toWarehouseId: { type: Schema.Types.ObjectId, ref: 'Warehouse', required: () => { return (this as any).docType === 'Transfer' } },
     fromWarehouseId: { type: Schema.Types.ObjectId, ref: 'Warehouse', required: () => { return (this as any).docType === 'Transfer' } },
-    
-    warehouseId: { type: Schema.Types.ObjectId, ref: 'Warehouse', required: true },
+
+    warehouseId: { type: Schema.Types.ObjectId, ref: 'Warehouse', required: function (this: any){ return this.docType !== 'Order' } }, //Если docType не равен 'Order', то поле обязательно
 
     status: { type: String, default: 'Draft',   }, 
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },

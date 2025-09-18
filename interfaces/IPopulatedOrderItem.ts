@@ -1,6 +1,6 @@
 // Interfaces/IPopulatedOrderItem.ts
 
-import { IPopulatedProduct, IPopulatedWarehouse } from './IPopulated';
+import type { IPopulatedProduct } from './IPopulated';
 
 export interface IPopulatedOrderItem {
   _id?: string;

@@ -1,0 +1,17 @@
+.registerContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  width: 80%;
+  margin: 0 auto;
+  min-height: 100%;
+}
+
+.registerTitle {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  text-align: center;
+}
+

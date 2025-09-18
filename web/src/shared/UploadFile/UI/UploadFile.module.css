@@ -1,0 +1,42 @@
+.UploadFile {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-size: medium;
+    height: 100px;
+    width: 100px;
+    border: 1px dashed #ccc;
+    border-radius: 15px;
+    padding: 10px;
+    user-select: none;
+    cursor: pointer;
+
+    
+}
+.FileInput {
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    z-index: 10;
+  }
+.text {
+    width: 100%;
+    text-align: center;
+    z-index: 5;
+}
+
+.PreviewContainer {
+    margin-top: 10px;
+}
+.FilePreview {
+    width: 100%;
+    height: auto;
+    border: 1px solid #ccc;
+    object-fit: contain;
+}

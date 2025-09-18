@@ -1,0 +1,90 @@
+/* TextField.module.css */
+
+.textField {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: auto;
+}
+
+.inputWrapper {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.input {
+  padding: 20px 40px 5px 10px; /*← Увеличил правый padding, чтобы текст не залезал под крестик */
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  font-size: 1rem;
+  box-shadow: 0px 0px 12px #ccc;
+  transition: all 0.3s ease-out;
+  width: 100%;
+  background: white; /* на случай, если тень перекрывает */
+}
+
+.input:hover {
+  border-color: blue;
+}
+
+.input:focus {
+  outline: none;
+}
+
+.label {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  font-size: 1rem;
+  color: #666;
+  transition: all 0.3s ease-out;
+  background-color: rgba(255, 255, 255, 1);
+  border-radius: 5px;
+  pointer-events: none;
+  z-index: 1; /* чтобы не прятался под input при фокусе */
+}
+
+.focused {
+  border-color: blue;
+}
+
+.focusedLabel {
+  top: 12px;
+  font-size: 0.65rem;
+}
+
+/* КНОПКА ОЧИСТКИ */
+.clearButton {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: #aaa;
+  cursor: pointer;
+  padding: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  transition: color 0.2s ease, background-color 0.2s ease;
+  z-index: 2;
+}
+
+.clearButton:hover {
+  color: 'red';
+  background-color: #f0f0f0;
+}
+
+.clearButton:focus {
+  outline: none;
+}

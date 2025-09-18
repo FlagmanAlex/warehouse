@@ -1,0 +1,29 @@
+.Button {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    height: 30px;
+    max-height: 30px;
+    align-items: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    border-radius: 5px;
+    border: 0px solid;
+    padding: 5px;
+    text-transform: uppercase;
+    font-weight: 700;
+    user-select: none;
+    transition: all 0.1s ease-out;
+    background-color: #999;
+    border: 1px solid #eee;
+    color: #333;
+    cursor: pointer;
+    text-align: center;
+}
+.Button:hover {
+    background-color: #bbb;
+    /* color: #000; */
+}
+.Button:active {
+    background-color: #ddd;
+    transform: scale(0.95);
+}

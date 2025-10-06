@@ -5,20 +5,11 @@ import { SupplierModel } from '../models/supplierModel';
 import { PriceHistoryModel } from '../models/priceHistoryModel';
 import { Document, Types } from 'mongoose';
 import { IProduct } from '../../../interfaces/IProduct';
+import { log } from 'node:console';
+import { ProductDto } from '@interfaces/DTO';
 
 interface CreateProductRequest extends Request {
-    body: {
-        article: string
-        name: string;
-        description?: string;
-        categoryId: Types.ObjectId;
-        unitOfMeasurement?: string;
-        price: number;
-        supplierId: Types.ObjectId
-        createdBy: Types.ObjectId
-        lastUpdateBy: Types.ObjectId
-        isArchived: boolean
-    };
+    body: ProductDto
 }
 
 export const productController = {
@@ -27,23 +18,21 @@ export const productController = {
         try {
 
             const body = req.body
-            // Валидация
 
-            if (!body.article || !body.name || !body.categoryId || !body.supplierId) {
-                res.status(400).json({ message: 'Обязательные поля: article, name, categoryId, supplierId' });
-                console.log('Обязательные поля: article, name, categoryId, supplierId');
+            if (!body.article || !body.name || !body.categoryId ) {
+                res.status(400).json({ message: 'Обязательные поля: article, name, categoryId' });
+                console.log('Обязательные поля: article, name, categoryId');
                 return
             }
 
             // Проверка существования категории и поставщика
-            const [categoryExists, supplierExists] = await Promise.all([
+            const [categoryExists] = await Promise.all([
                 CategoryModel.findById(body.categoryId),
-                SupplierModel.findById(body.supplierId),
             ]);
 
-            if (!categoryExists || !supplierExists) {
-                console.log(`${!categoryExists ? 'Категория' : 'Поставщик'} не найден`)
-                res.status(404).json({ message: `${!categoryExists ? 'Категория' : 'Поставщик'} не найден` });
+            if (!categoryExists ) {
+                console.log(`Категория не найдена`)
+                res.status(404).json({ message: `Категория не найдена` });
                 return
             }
 

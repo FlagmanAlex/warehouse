@@ -8,12 +8,12 @@ export interface IProduct {
     price: number               //Цена
     minStock?: number            //Минимальный запас
     isArchived: boolean         //Архивация позиции в справочнике (вместо удаления)
-    createdBy: string           //Создатель
-    lastUpdateBy: string        //Обновил
+    createdBy?: string           //Создатель
+    lastUpdateBy?: string        //Обновил
     supplierId?: string          //Поставщик
     createdAt?: Date             //Дата создания
     updatedAt?: Date             //Дата последнего обновления
-    defaultWarehouseId: string  //Id склада по умолчанию
+    defaultWarehouseId?: string  //Id склада по умолчанию
     image?: string[]             //Изображения
     packagingId?: string           //Упаковка
 }

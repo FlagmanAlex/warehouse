@@ -1,8 +1,8 @@
-import type { DocType } from "./IDoc";
+import type { DocTypeName } from "./Config";
 
 export interface ITransaction {
     _id?: string;
-    transactionType: DocType
+    transactionType: DocTypeName
     productId: string; // Ссылка на товар
     warehouseId: string; // Ссылка на склад
     batchId: string; // Ссылка на партию

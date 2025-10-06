@@ -1,14 +1,16 @@
 .Button {
-    flex: 1;
+    /* flex: 1; */
     display: flex;
+    flex-direction: row;
     justify-content: center;
-    height: 30px;
-    max-height: 30px;
+    gap: 5px;
+    width: 100%;
+    max-height: 60px;
     align-items: center;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     border-radius: 5px;
     border: 0px solid;
-    padding: 5px;
+    padding: 10px;
     text-transform: uppercase;
     font-weight: 700;
     user-select: none;
@@ -18,12 +20,22 @@
     color: #333;
     cursor: pointer;
     text-align: center;
+    /* добавь тени */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 .Button:hover {
     background-color: #bbb;
     /* color: #000; */
+    opacity: 0.8;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 .Button:active {
     background-color: #ddd;
     transform: scale(0.95);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+.disabled {
+    pointer-events: none;
+    opacity: 0.5;
+    cursor: not-allowed;
 }

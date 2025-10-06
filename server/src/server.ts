@@ -3,7 +3,7 @@ import mongoose from 'mongoose'
 import express, { NextFunction, Request, Response } from 'express'
 import cors from 'cors'
 import morgan from 'morgan'
-import { mainRouter } from './routes'
+import { mainRouter } from './mainRouter'
 
 dotenv.config()
 

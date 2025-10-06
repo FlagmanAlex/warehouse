@@ -35,7 +35,7 @@ type MovementItem = {
     transactionDate: string;
 };
 
-export const StockProduct = () => {
+const StockProduct = () => {
     const { productId } = useParams<{ productId: string }>();
     const [movements, setMovements] = useState<MovementItem[]>([]);
 
@@ -105,3 +105,5 @@ export const StockProduct = () => {
         </div>
     );
 };
+
+export default StockProduct;

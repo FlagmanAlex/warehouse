@@ -1,4 +1,7 @@
 .productFormContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
     padding: 20px;
     max-width: 600px;
     margin: 0 auto;
@@ -36,35 +39,4 @@
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
-}
-
-.btn {
-    padding: 12px 24px;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    color: white;
-}
-
-.btnPrimary {
-    background-color: #007BFF;
-}
-
-.btnSuccess {
-    background-color: #28a745;
-}
-
-.btnDanger {
-    background-color: #dc3545;
-}
-
-.btnSecondary {
-    background-color: #6c757d;
-    margin-top: 16px;
-}
-
-.btn:hover {
-    opacity: 0.9;
 }

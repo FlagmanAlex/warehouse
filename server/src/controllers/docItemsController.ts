@@ -97,7 +97,7 @@ export class DocItemsController {
             const doc: IDoc | null = await DocModel.findById(item.docId);
             if (!doc) throw new Error('Заказ не найден');
 
-            if (doc.status !== 'Canceled') {
+            if (doc.docStatus !== 'Canceled') {
                 const quantityChange = doc.docType === 'Incoming'
                     ? -item.quantity
                     : item.quantity;

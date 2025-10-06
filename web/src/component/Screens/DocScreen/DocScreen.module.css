@@ -127,6 +127,7 @@
 .summContainer {
   display: flex;
   gap: 8px;
+  justify-content: space-between;
   margin-top: 12px;
   padding-top: 12px;
   border-top: 1px solid #eee;
@@ -143,4 +144,10 @@
   padding: 40px;
   color: #888;
   font-style: italic;
+}
+hr {
+  border: 1px solid #eee;
+}
+.deleteIcon {
+  cursor: pointer;
 }

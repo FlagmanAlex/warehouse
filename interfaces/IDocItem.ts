@@ -9,5 +9,6 @@ export interface IDocItem {
     notes?: string          // заметки
     createdAt?: Date        // дата создания
     updatedAt?: Date        // дата обновления
+    description?: string    // описание
 }
 

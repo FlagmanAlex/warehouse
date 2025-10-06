@@ -1,4 +1,4 @@
-import { server } from "./Default";
+import { server } from "@warehouse/interfaces/config";
 
 import type { NavigateFunction } from "react-router-dom";
 
@@ -14,7 +14,7 @@ export const getNavigation = () => navigate;
 
 export const fetchApi = async <T = unknown>(
     url: string,
-    method: 'POST' | 'PUT' | 'GET' | 'DELETE' = 'GET',
+    method: 'POST' | 'PATCH' | 'GET' | 'DELETE' = 'GET',
     body?: object,
     headers: Record<string, string> = {}
 ): Promise<T> => {

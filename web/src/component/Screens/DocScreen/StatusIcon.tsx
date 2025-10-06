@@ -1,15 +1,13 @@
 // components/StatusIcon.tsx
 
 import { useState } from 'react';
-import { fetchApi } from '../../../utils/fetchApi';
-import type { DocStatus, DocStatusOut } from '@warehouse/interfaces';
-import { DOC_STATUS_OUT, DOCSTATUS_CHIP } from '../../../utils/statusLabels';
-import { getStatusColor } from '../../../utils/iconName';
+import { fetchApi } from '../../../api/fetchApi';
+import { DocStatusOutMap, type DocStatusName, type DocStatusOutName } from '@warehouse/interfaces/config';
 import { Icon } from '../../../shared/Icon';
 import { useRevalidator } from 'react-router-dom';
 
 // Допустимые переходы между статусами
-const STATUS_TRANSITIONS: Record<DocStatusOut, DocStatusOut[]> = {
+const STATUS_TRANSITIONS: Record<DocStatusOutName, DocStatusOutName[]> = {
   Draft: ['Reserved', 'Canceled'],
   Reserved: ['Shipped', 'Canceled'],
   Shipped: ['Completed', 'Canceled'],
@@ -18,7 +16,7 @@ const STATUS_TRANSITIONS: Record<DocStatusOut, DocStatusOut[]> = {
 };
 
 type StatusIconProps = {
-  status: DocStatus;
+  status: DocStatusName;
   docId: string;
   // onStatusChange: (newStatus: DocStatus) => void; // Колбэк для обновления в родителе
 };
@@ -28,11 +26,11 @@ export const StatusIcon = ({ status, docId }: StatusIconProps) => {
 
   const revalidator = useRevalidator();
 
-  const availableStatuses = STATUS_TRANSITIONS[status as DocStatusOut] || [];
+  const availableStatuses = STATUS_TRANSITIONS[status as DocStatusOutName] || [];
 
-  const handleStatusChange = async (newStatus: DocStatus) => {
+  const handleStatusChange = async (newStatus: DocStatusName) => {
     try {
-      await fetchApi(`doc/${docId}/status`, 'PUT', {
+      await fetchApi(`doc/${docId}/status`, 'PATCH', {
         status: newStatus,
       });
 
@@ -58,7 +56,11 @@ export const StatusIcon = ({ status, docId }: StatusIconProps) => {
         style={styles.iconButton}
         aria-label="Изменить статус"
       >
-        <Icon name={DOCSTATUS_CHIP[status as keyof typeof DOCSTATUS_CHIP]} size={30} color={getStatusColor(status)} />
+        <Icon
+          name={DocStatusOutMap[status as keyof typeof DocStatusOutMap].icon}
+          color={DocStatusOutMap[status as keyof typeof DocStatusOutMap].color}
+          size={30}
+        />
       </button>
 
       {/* Модальное окно */}
@@ -73,7 +75,7 @@ export const StatusIcon = ({ status, docId }: StatusIconProps) => {
             {availableStatuses.length === 0 ? (
               <p style={styles.noOptions}>Нет доступных действий</p>
             ) : (
-              availableStatuses.map((s: DocStatusOut) => (
+              availableStatuses.map((s: DocStatusOutName) => (
                 <button
                   key={s}
                   style={{
@@ -82,14 +84,18 @@ export const StatusIcon = ({ status, docId }: StatusIconProps) => {
                   }}
                   onClick={() => handleStatusChange(s)}
                 >
-                  <Icon name={DOCSTATUS_CHIP[s as keyof typeof DOCSTATUS_CHIP]} size={20} color={getStatusColor(s)} />
+                  <Icon
+                    name={DocStatusOutMap[s as keyof typeof DocStatusOutMap].icon}
+                    color={DocStatusOutMap[s as keyof typeof DocStatusOutMap].color}
+                    size={20}
+                  />
                   <span
                     style={{
                       ...styles.optionText,
-                      color: getStatusColor(s),
+                      color: DocStatusOutMap[s as keyof typeof DocStatusOutMap].color,
                     }}
                   >
-                    {DOC_STATUS_OUT[s]}
+                    {DocStatusOutMap[s as keyof typeof DocStatusOutMap].nameRus}
                   </span>
                 </button>
               ))

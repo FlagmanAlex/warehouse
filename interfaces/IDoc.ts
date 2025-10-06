@@ -1,42 +1,6 @@
+import type { DocTypeName, DocStatusName } from './Config';
 
-
-
-/** ******************************
- * Тип документа
- * ******************************/
-export type DocType =
-    | 'Order'           // Заказ
-    | 'Incoming'        // Приходные документы
-    | 'Outgoing'        // Расходные документы
-    | 'Transfer'        // Документы перемещения
-// | 'Return'          // Возвратные документы
-// | 'WriteOff'        // Документы списания
-
-/** ******************************
- * Статусы документов для прихода
- * ******************************/
-export type DocStatusIn =
-    //Для прихода
-    | 'Draft'           //Не влияет на остатки и финансы
-    | 'Shipped'         //Просто статус для отслеживания
-    | 'InTransitHub'    //Просто статус для отслеживания
-    | 'InTransitDestination' //Просто статус для отслеживания
-    | 'Delivered'       //Создает партии, увеличивает остаток в Inventory, создает транзакции
-    | 'Completed'       //Статус меняется после создания документа Оплата
-    | 'Canceled'        //Инверсия остатка, проведение дополнительных транзакций
-
-/** ******************************
- * Статусы документов для расхода
- ******************************/
-export type DocStatusOut =
-    //Для расхода
-    | 'Draft'           //Не влияет на остатки и финансы
-    | 'Reserved'        //Уменьшает свободный остаток и увеличивает резерв
-    | 'Shipped'         //Уменьшает остаток в резерве и делает изменения в Transaction, 
-    | 'Completed'       //Статус меняется после создания документа Оплата
-    | 'Canceled'        //Инверсия остатка, проведение дополнительных транзакций
-
-/** ******************************
+/******************************
  * Приоритет заказа
  ******************************/
 export type PriorityOrder =
@@ -44,61 +8,60 @@ export type PriorityOrder =
     | 'Medium'      // Средний приоритет
     | 'High';       // Высокий приоритет
 
-export type DocStatus = DocStatusIn | DocStatusOut;
 
 export interface IDocBase {
     /** ID заказа */
-    _id?: string                                    
+    _id?: string
     /** Входящий номер документа в бумажном носителе */
-    orderNum: string                                
+    orderNum: string
     /** Внутренний Номер документа в базе */
-    docNum: string                                  
+    docNum: string
     /** Дата заказа */
-    docDate: Date   
+    docDate: Date
     /** Вознаграждение */
     bonusRef: number
-    /** Сумма заказа */                                
+    /** Сумма заказа */
     summ: number
     /** ID склада */
-    warehouseId: string                             
+    warehouseId: string
     /** Создатель */
-    userId: string                                  
+    userId: string
     /** Дата создания */
-    createdAt: Date                                 
+    createdAt: Date
     /** Дата обновления */
-    updatedAt: Date                                 
+    updatedAt: Date
     /** Описание */
-    description?: string                            
+    description?: string
     /** ID заказа */
-    docId?: string                                 
-    /** Тип заказа */
-    docType: DocType                               
+    docId?: string
+    /** Тип документа */
+    docType: DocTypeName
     /** Статус */
-    status: DocStatus                         
+    docStatus: DocStatusName
 }
 
 export interface IDocTransfer extends IDocBase {
-    docType: 'Transfer'
+    // docType: 'Transfer'
     fromWarehouseId: string
     toWarehouseId: string
 }
 
 export interface IDocIncoming extends IDocBase {
-    docType: 'Incoming'
+    // docType: 'Incoming'
     vendorCode: string                              //№ отслеживания курьерской службы
     supplierId: string
     /** Курс */
-    exchangeRate: number                            
+    exchangeRate: number
     /** Логистика */
-    expenses: number                                
+    expenses: number
 }
 
 export interface IDocOutgoing extends IDocBase {
-    docType: 'Outgoing'
+    // docType: 'Outgoing'
     customerId: string
 }
 export interface IDocOrder extends IDocBase {
-    docType: 'Order'
+    // docType: 'Order'
     customerId: string
     priority: PriorityOrder
     expenses: number

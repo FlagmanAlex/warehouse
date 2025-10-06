@@ -15,7 +15,7 @@ productRouter.get('/', productController.getProducts);
 productRouter.get('/:id', productController.getProductById);
 
 // Обновление товара
-productRouter.put('/:id', productController.updateProduct);
+productRouter.patch('/:id', productController.updateProduct);
 
 // Архивирование товара
 productRouter.patch('/:id/archive', adminMiddleware, productController.archiveProduct);

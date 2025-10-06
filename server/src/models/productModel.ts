@@ -27,10 +27,10 @@ const productSchema = new Schema<IProductModel>({
     isArchived: { type: Boolean, default: false }, // Поле для архивации
     createdBy: { type: Schema.Types.ObjectId, ref: 'User', immutable: true },
     lastUpdateBy: { type: Schema.Types.ObjectId, ref: 'User' },
-    supplierId: { type: Schema.Types.ObjectId, ref: 'Supplier', required: true },
+    supplierId: { type: Schema.Types.ObjectId, ref: 'Supplier', required: false },
     createdAt: { type: Date, default: () => Date.now() },
     updatedAt: { type: Date, default: () => Date.now() },
-    defaultWarehouseId: { type: Schema.Types.ObjectId, ref: 'Warehouse', required: true },
+    defaultWarehouseId: { type: Schema.Types.ObjectId, ref: 'Warehouse', required: false },
     minStock: { type: Number, default: 0 },
     image: [{ type: String }],
     packagingId: { type: Schema.Types.ObjectId, ref: 'Packaging' }

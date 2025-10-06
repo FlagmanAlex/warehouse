@@ -1,13 +1,14 @@
+/* Общий контейнер */
 .drawer {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 20;
+  z-index: 100;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.3s ease-in-out;
 }
 
 .drawer.open {
@@ -15,60 +16,149 @@
   opacity: 1;
 }
 
+/* Оверлей затемнения */
 .overlay {
-  position: absolute;
+  position: relative;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
   cursor: pointer;
+  transition: background 0.3s ease;
 }
 
+/* Контент меню */
 .content {
   position: absolute;
   top: 0;
   left: 0;
-  width: 280px;
+  width: 220px;
   height: 100%;
-  background: white;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   transform: translateX(-100%);
-  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
   z-index: 30;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* для плавного скролла на iOS */
 }
 
 .drawer.open .content {
   transform: translateX(0);
 }
 
+/* Меню */
 .menu {
   list-style: none;
-  padding: 80px 20px 20px;
+  padding: 90px 10px 40px;
   margin: 0;
   flex: 1;
 }
 
-.menu li {
-  margin-bottom: 15px;
+/* Пункт меню */
+.menuItem {
+  margin-bottom: 8px;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: background 0.2s ease;
 }
 
-.menu a {
+.menuItem:hover {
+  background: rgba(0, 123, 255, 0.04);
+}
+
+/* Ссылка пункта */
+.menuLink {
   text-decoration: none;
-  color: #333;
-  font-size: 18px;
-  display: block;
-  padding: 8px 0;
+  color: #2d3748;
+  font-size: 16px;
+  font-weight: 500;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
   cursor: pointer;
-  transition: color 0.2s ease;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  position: relative;
 }
 
-.menu a:hover {
+.menuLink:hover {
   color: #007bff;
+  background: rgba(0, 123, 255, 0.08);
 }
 
-.menu a:active {
+.menuLink:active {
+  background: rgba(0, 123, 255, 0.12);
+  transform: translateY(1px);
+}
+
+/* Иконка стрелки */
+.arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: #a0aec0;
+  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.arrowOpen {
+  transform: rotate(180deg);
+}
+
+/* Подменю */
+.submenu {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              padding 0.3s ease;
+}
+
+.menuItem:hover .submenu {
+  max-height: 500px;
+}
+
+/* Пункт подменю */
+.submenu li {
+  margin: 0;
+}
+
+.submenuLink {
+  text-decoration: none;
+  color: #4a5568;
+  font-size: 14px;
+  font-weight: 400;
+  display: block;
+  padding: 10px 16px 10px 40px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+}
+
+.submenuLink:hover {
   color: #0056b3;
+  background: rgba(0, 86, 179, 0.05);
+  border-left: 3px solid #0056b3;
+}
+
+.submenuLink:active {
+  background: rgba(0, 86, 179, 0.1);
+}
+
+/* Дополнительно: если хочешь разделитель сверху у подменю */
+.submenu::before {
+  content: '';
+  display: block;
+  height: 1px;
+  background: #e2e8f0;
+  margin: 0 16px;
 }

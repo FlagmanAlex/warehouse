@@ -17,7 +17,7 @@ warehouseRouter.delete('/:id', [
 ], warehouseController.deleteWarehouse);
 
 // Обновление - админ или назначенный менеджер
-warehouseRouter.put('/:id', [
+warehouseRouter.patch('/:id', [
     body('name').optional().trim(),
     body('capacity').optional().isFloat({ gt: 0 })
 ], warehouseController.updateWarehouse);

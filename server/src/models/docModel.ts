@@ -1,7 +1,15 @@
 import mongoose, { Schema } from "mongoose";
 import { IDoc } from "@interfaces";
 
-export interface IDocModel extends Omit<IDoc, '_id' | 'userId' | 'warehouseId'>, mongoose.Document {
+export interface IDocModel extends Omit<IDoc,
+    | '_id'
+    | 'userId'
+    | 'warehouseId'
+    | 'customerId'
+    | 'supplierId'
+    | 'fromWarehouseId'
+    | 'toWarehouseId'
+>, mongoose.Document {
     userId: mongoose.Types.ObjectId,
     warehouseId: mongoose.Types.ObjectId,
     customerId: mongoose.Types.ObjectId,
@@ -17,7 +25,7 @@ export interface IDocModel extends Omit<IDoc, '_id' | 'userId' | 'warehouseId'>,
 const docSchema = new Schema<IDocModel>({
     docNum: { type: String, required: true, unique: true },
     orderNum: { type: String },
-    docDate: { type: Date, default: () =>  Date.now() },
+    docDate: { type: Date, default: () => Date.now() },
     vendorCode: { type: String },
     docType: { type: String, required: true },
     bonusRef: { type: Number },
@@ -33,13 +41,13 @@ const docSchema = new Schema<IDocModel>({
     toWarehouseId: { type: Schema.Types.ObjectId, ref: 'Warehouse', required: () => { return (this as any).docType === 'Transfer' } },
     fromWarehouseId: { type: Schema.Types.ObjectId, ref: 'Warehouse', required: () => { return (this as any).docType === 'Transfer' } },
 
-    warehouseId: { type: Schema.Types.ObjectId, ref: 'Warehouse', required: function (this: any){ return this.docType !== 'Order' } }, //Если docType не равен 'Order', то поле обязательно
+    warehouseId: { type: Schema.Types.ObjectId, ref: 'Warehouse', required: function (this: any) { return this.docType !== 'Order' } }, //Если docType не равен 'Order', то поле обязательно
 
-    status: { type: String, default: 'Draft',   }, 
+    docStatus: { type: String, required: true },
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     description: { type: String },
     docId: { type: Schema.Types.ObjectId, ref: 'Doc', required: false },
-    
+
 });
 
 docSchema.index({ docDate: -1 }); // Сортировка заказов по дате

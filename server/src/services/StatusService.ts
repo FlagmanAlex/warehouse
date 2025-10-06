@@ -1,14 +1,16 @@
 // services/DocService.ts
 
 import { IDocModel, DocModel, DocItemsModel, InventoryModel, TransactionModel, BatchModel, ITransactionModel, AccountModel, IAccountModel } from '@models';
-import { DocStatus, DocStatusIn, DocStatusOut, IDoc, IDocItem } from '@interfaces';
 import { InventoryService } from './InventoryService';
+import { DocStatusInName, DocStatusName, DocStatusOutName } from '@interfaces/config';
+import { IDocItem } from '@interfaces';
 
+type ValidStatusTransition<T extends string> = Record<T, { name: T }[]>
 
 export class DocService {
 
 
-    static async updateStatus(docId: string, newStatus: DocStatus, userId: string): Promise<IDocModel> {
+    static async updateStatus(docId: string, newStatusName: DocStatusName, userId: string): Promise<IDocModel> {
 
         if (!userId) throw new Error('Пользователь не авторизован');
 
@@ -16,24 +18,30 @@ export class DocService {
         const doc: IDocModel | null = await DocModel.findById(docId);
         if (!doc) throw new Error('Документ не найден');
 
-        console.log(doc.docType, doc.status, newStatus);
+        console.log(doc.docType, doc.docStatus, newStatusName);
         if (doc.docType === 'Outgoing') {
-            
-            const validStatusOut: Record<DocStatusOut, DocStatusOut[]> = {
-                'Draft': ['Reserved', 'Canceled'],
-                'Reserved': ['Shipped', 'Canceled'],
-                'Shipped': ['Completed', 'Canceled'],
-                'Completed': ['Canceled'],
-                'Canceled': ['Draft']
+
+            type Status = DocStatusOutName
+
+            const validStatusOut: ValidStatusTransition<Status> = {
+                'Draft': [{ name: 'Reserved' }, { name: 'Canceled' }],
+                'Reserved': [{ name: 'Shipped' }, { name: 'Canceled' }],
+                'Shipped': [{ name: 'Completed' }, { name: 'Canceled' }],
+                'Completed': [{ name: 'Canceled' }],
+                'Canceled': [{ name: 'Draft' }]
             };
 
-            const allowedStatusOut = validStatusOut[doc.status as DocStatusOut] || [];
-            if (!allowedStatusOut.includes(newStatus as DocStatusOut)) {
-                throw new Error(`Переход из статуса "${doc.status}" на "${newStatus}" невозможен`);
+            // Получаем текущий статус как строку
+            const currentStatus = doc.docStatus as Status;
+            const allowedTransitions = validStatusOut[currentStatus] || [];
+            const isAllowed = allowedTransitions.some(t => t.name === newStatusName);
+
+            if (!isAllowed) {
+                throw new Error(`Переход из статуса "${currentStatus}" на "${newStatusName}" невозможен`);
             }
 
             //Логика по новому статусу
-            switch (newStatus) {
+            switch (newStatusName) {
                 case 'Reserved':
                     console.log(`Документ ${docId} переведен в статус "В резерве"`);
                     //await this.reserveItems(docId);
@@ -49,31 +57,37 @@ export class DocService {
                 case 'Canceled':
                     console.log(`Документ ${docId} переведен в статус "Отменен"`);
                     break;
-                }
-                doc.status = newStatus;
+            }
+            doc.docStatus = newStatusName;
         } else if (doc.docType === 'Incoming') {
 
-            const validStatusIn: Record<DocStatusIn, DocStatusIn[]> = {
-                'Draft': ['Shipped', 'Canceled'],
-                'Shipped': ['InTransitHub', 'Canceled'],
-                'InTransitHub': ['InTransitDestination', 'Canceled'],
-                'InTransitDestination': ['Delivered', 'Canceled'],
-                'Delivered': ['Canceled'],
-                'Completed': ['Canceled'],
-                'Canceled': ['Draft']
+            type Status = DocStatusInName
+
+            const validStatusIn: ValidStatusTransition<Status> = {
+                'Draft': [{ name: 'Shipped' }, { name: 'Canceled' }],
+                'Shipped': [{ name: 'TransitHub' }, { name: 'Canceled' }],
+                'TransitHub': [{ name: 'InTransitDestination' }, { name: 'Canceled' }],
+                'InTransitDestination': [{ name: 'Delivered' }, { name: 'Canceled' }],
+                'Delivered': [{ name: 'Canceled' }],
+                'Canceled': [{ name: 'Draft' }]
             };
 
-            const allowedStatusIn = validStatusIn[doc.status as DocStatusIn] || [];
-            if (!allowedStatusIn.includes(newStatus as DocStatusIn)) {
-                throw new Error(`Переход из статуса "${doc.status}" на "${newStatus}" невозможен`);
+            // Получаем текущий статус как строку
+            const currentStatus = doc.docStatus as Status;
+            const allowedTransitions = validStatusIn[currentStatus] || [];
+            const isAllowed = allowedTransitions.some(t => t.name === newStatusName);
+
+            if (!isAllowed) {
+                throw new Error(`Переход из статуса "${currentStatus}" на "${newStatusName}" невозможен`);
             }
 
-            switch (newStatus) {
+            //Логика по новому статусу
+            switch (newStatusName) {
                 case 'Shipped':
                     console.log(`Документ ${docId} переведен в статус "Отгружен"`);
                     //await this.shipItemsIn(docId, userId);
                     break;
-                case 'InTransitHub':
+                case 'TransitHub':
                     console.log(`Документ ${docId} переведен в статус "В транзите (Хаб)"`);
                     //await this.inTransitHub(docId);
                     break;
@@ -105,7 +119,7 @@ export class DocService {
         if (doc.docType !== 'Incoming') throw new Error('Только приходные документы могут быть завершены');
 
         // Логика завершения документа
-        doc.status = 'Completed';
+        doc.docStatus = 'Completed';
         return await doc.save();
     }
 
@@ -119,7 +133,7 @@ export class DocService {
     private static async reserveItems(docId: string): Promise<IDocModel> {
         const doc: IDocModel | null = await DocModel.findById(docId);
         if (!doc) throw new Error('Документ не найден');
-        if (doc.status !== 'Draft') throw new Error('Резервировать можно только документ в статусе "Draft"');
+        if (doc.docStatus !== 'Draft') throw new Error('Резервировать можно только документ в статусе "Draft"');
         if (doc.docType !== 'Outgoing') throw new Error('Резервирование доступно только для документов типа "Outgoing"');
 
         const items: IDocItem[] = await DocItemsModel.find({ docId: doc._id });
@@ -129,7 +143,7 @@ export class DocService {
         }
 
         // Если всё ок — меняем статус
-        doc.status = 'Reserved';
+        doc.docStatus = 'Reserved';
         return await doc.save();
     }
 
@@ -218,9 +232,9 @@ export class DocService {
     static async completeDocOut(docId: string): Promise<IDocModel> {
         const doc = await DocModel.findById(docId);
         if (!doc) throw new Error('Документ не найден');
-        if (doc.status !== 'Shipped') throw new Error('Завершить можно только документ в статусе "Shipped"');
+        if (doc.docStatus !== 'Shipped') throw new Error('Завершить можно только документ в статусе "Shipped"');
 
-        doc.status = 'Completed';
+        doc.docStatus = 'Completed';
         return await doc.save();
     }
 
@@ -231,25 +245,25 @@ export class DocService {
     static async cancelDoc(docId: string): Promise<IDocModel> {
         const doc = await DocModel.findById(docId);
         if (!doc) throw new Error('Документ не найден');
-        if (doc.status === 'Canceled') throw new Error('Документ уже отменён');
+        if (doc.docStatus === 'Canceled') throw new Error('Документ уже отменён');
 
-        if (doc.status === 'Reserved') {
+        if (doc.docStatus === 'Reserved') {
             // Резерв ещё не списан — просто меняем статус
-            doc.status = 'Canceled';
+            doc.docStatus = 'Canceled';
             return await doc.save();
         }
 
-        if (doc.status === 'Shipped' || doc.status === 'Completed') {
+        if (doc.docStatus === 'Shipped' || doc.docStatus === 'Completed') {
             // Нужно распровести (вернуть товары)
             await this.reverseTransactions(docId);
             await this.cleanupBatches(docId);
 
-            doc.status = 'Canceled';
+            doc.docStatus = 'Canceled';
             return await doc.save();
         }
 
-        if (doc.status === 'Draft') {
-            doc.status = 'Canceled';
+        if (doc.docStatus === 'Draft') {
+            doc.docStatus = 'Canceled';
             return await doc.save();
         }
 

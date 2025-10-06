@@ -61,7 +61,7 @@
 /* КНОПКА ОЧИСТКИ */
 .clearButton {
   position: absolute;
-  right: 12px;
+  right: 5px;
   top: 50%;
   transform: translateY(-50%);
   background: none;

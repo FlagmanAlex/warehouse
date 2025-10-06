@@ -1,6 +1,7 @@
 import { Types } from 'mongoose';
 import { DocItemsModel, DocModel, IDocItemsModel } from '@models';
 import { IDocItem } from '@interfaces';
+import { recalculateDocSum } from '../utils/recalculateDocSum';
 
 export class DocItemService {
   // --- CREATE ---
@@ -9,7 +10,7 @@ export class DocItemService {
     const savedItem = await newItem.save();
 
     // ✅ ПЕРЕСЧИТЫВАЕМ СУММУ ДОКУМЕНТА — СИНХРОННО!
-    await this.recalculateDocSum(savedItem.docId);
+    await recalculateDocSum(savedItem.docId);
 
     return savedItem;
   }
@@ -21,7 +22,7 @@ export class DocItemService {
     if (!item) throw new Error('DocItem не найден');
 
     // ✅ ПЕРЕСЧИТЫВАЕМ СУММУ ДОКУМЕНТА — СИНХРОННО!
-    await this.recalculateDocSum(item.docId);
+    await recalculateDocSum(item.docId);
 
     return item;
   }
@@ -33,27 +34,27 @@ export class DocItemService {
     if (!item) throw new Error('DocItem не найден');
 
     // ✅ ПЕРЕСЧИТЫВАЕМ СУММУ ДОКУМЕНТА — СИНХРОННО!
-    await this.recalculateDocSum(item.docId);
+    await recalculateDocSum(item.docId);
   }
 
   // --- УНИВЕРСАЛЬНАЯ ФУНКЦИЯ ПЕРЕСЧЁТА ---
-  private static async recalculateDocSum(docId: string | Types.ObjectId): Promise<void> {
-    try {
-      const docIdObj = typeof docId === 'string' ? new Types.ObjectId(docId) : docId;
+  // private static async recalculateDocSum(docId: string | Types.ObjectId): Promise<void> {
+  //   try {
+  //     const docIdObj = typeof docId === 'string' ? new Types.ObjectId(docId) : docId;
 
-      const items = await DocItemsModel.find({ docId: docIdObj }).lean();
-      const totalAmount = items.reduce((sum, item) => {
-        return sum + (item.quantity ?? 0) * (item.unitPrice ?? 0);
-      }, 0);
+  //     const items = await DocItemsModel.find({ docId: docIdObj }).lean();
+  //     const totalAmount = items.reduce((sum, item) => {
+  //       return sum + (item.quantity ?? 0) * (item.unitPrice ?? 0);
+  //     }, 0);
 
-      await DocModel.updateOne(
-        { _id: docIdObj },
-        { $set: { summ: totalAmount } }
-      );
+  //     await DocModel.updateOne(
+  //       { _id: docIdObj },
+  //       { $set: { summ: totalAmount } }
+  //     );
 
-      console.log(`✅ Сумма документа ${docId} пересчитана: ${totalAmount}`);
-    } catch (err) {
-      console.error(`❌ Ошибка пересчета суммы документа ${docId}:`, (err as Error).message);
-    }
-  }
+  //     console.log(`✅ Сумма документа ${docId} пересчитана: ${totalAmount}`);
+  //   } catch (err) {
+  //     console.error(`❌ Ошибка пересчета суммы документа ${docId}:`, (err as Error).message);
+  //   }
+  // }
 }

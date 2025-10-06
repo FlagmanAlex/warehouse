@@ -2,14 +2,19 @@ import React, { useState } from 'react';
 import styles from './TextField.module.css';
 import { Icon } from '../../Icon';
 
-interface ITextFieldProps {
+// 👇 Добавили 'textarea'
+export type InputType = 'text' | 'email' | 'password' | 'date' | 'number' | 'tel' | 'url' | 'button' | 'textarea';
+
+export interface TextFieldProps {
+  type?: InputType;
   name: string;
-  label: string;
-  value: string;
-  onChange: React.ChangeEventHandler<HTMLInputElement>;
+  placeholder: string;
+  value: any;
+  // 👇 Один обработчик для обоих типов элементов
+  onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 }
 
-export const TextField = ({ name, label, value, onChange }: ITextFieldProps) => {
+export const TextField = ({ type, name, placeholder, value, onChange }: TextFieldProps) => {
   const [focused, setFocused] = useState(false);
 
   const handleFocus = () => {
@@ -23,41 +28,53 @@ export const TextField = ({ name, label, value, onChange }: ITextFieldProps) => 
   };
 
   const handleClear = () => {
+    // 👇 Создаём объект события, совместимый с обоими типами
     const event = {
-      target: { name, value: '' },
-    } as React.ChangeEvent<HTMLInputElement>;
+      target: {
+        name,
+        value: '',
+      },
+    } as React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>; // ✅ Корректная типизация
+
     onChange(event);
     setFocused(false);
+  };
+
+  const renderInput = () => {
+    const commonProps = {
+      name,
+      value: value === undefined || value === null || value === '' ? '' : value,
+      onChange,
+      onFocus: handleFocus,
+      onBlur: handleBlur,
+      className: `${styles.input} ${focused || value ? styles.focused : ''}`,
+      autoComplete: 'off' as const,
+    };
+
+    if (type === 'textarea') {
+      return <textarea {...commonProps} rows={4} />;
+    }
+
+    return <input {...commonProps} type={type || 'text'} />;
   };
 
   return (
     <div className={styles.textField}>
       <label className={`${styles.label} ${focused || value ? styles.focusedLabel : ''}`}>
-        {label}
+        {placeholder}
       </label>
       <div className={styles.inputWrapper}>
-        <input
-          type="text"
-          autoComplete="off"
-          name={name}
-          value={value}
-          onChange={onChange}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          className={`${styles.input} ${focused || value ? styles.focused : ''}`}
-        />
-        {value && (
-          <>
-            <Icon
-              className={styles.clearButton} 
-              name="FaXmark" 
-              size={16} 
-              color="red"
-              onClick={handleClear}
-              aria-label="Очистить поле"
-            />
-          </>
-        )}
+        {renderInput()}
+        {value ? (
+          <Icon
+            className={styles.clearButton}
+            name="FaXmark"
+            size={16}
+            color="red"
+            onClick={handleClear}
+            aria-label="Очистить поле"
+          />
+        ) : null}
       </div>
     </div>
   );

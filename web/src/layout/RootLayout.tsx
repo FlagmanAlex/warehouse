@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { HeaderMenu } from "../component/HeaderMenu";
+import { HeaderMenu } from "../component/Menu";
 import { Drawer } from "../component/Drawer";
 
-const RootLayout = ({ children }: { children: React.ReactNode }) => {
+export const RootLayout = ({ children }: { children: React.ReactNode }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const handleToggleDrawer = () => {
@@ -19,5 +19,3 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
     </div>
   );
 }
-
-export default RootLayout

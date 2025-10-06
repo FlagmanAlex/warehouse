@@ -4,6 +4,12 @@
   padding: 12px 0;
 }
 
+.nameRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .productName {
   font-size: 16px;
   font-weight: 600;
@@ -14,8 +20,8 @@
 .editRow {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  margin-top: 8px;
+  /* gap: 2px; */
+  /* margin-top: 8px; */
 }
 
 .editInput {
@@ -46,4 +52,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+.deleteIcon {
+  cursor: pointer;
 }

@@ -1,4 +1,3 @@
-
 const color = {
     black: '#000',
     red: '#ad0000',
@@ -37,7 +36,3 @@ export const THEME = {
         statusDisabled: color.lightGrey
     }
 }
-
-// export const server = 'http://192.168.50.100:5001'
-export const server = 'https://api.mirvitaminok.ru'
-

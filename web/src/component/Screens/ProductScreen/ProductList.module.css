@@ -6,20 +6,9 @@
 }
 
 .addButton {
-    position: fixed;
-    padding: 15px;
-    bottom: 20px;
-    right: 20px;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    background-color: #28a745;
-    color: white;
-    font-weight: bold;
-    border: none;
-    cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    z-index: 10;
+    position: sticky;
+    padding: 8px 16px;
+    margin: 10px 0;
 }
 
 .searchInput {

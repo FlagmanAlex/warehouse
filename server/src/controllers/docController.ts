@@ -4,8 +4,9 @@ import { Request, Response } from 'express';
 // import { CreateDocDto,  } from '@interfaces/DTO';
 import { DocModel, DocItemsModel, DocNumModel } from '@models';
 import { DocService } from '../services/StatusService';
-import { DocStatus, IDoc, IDocItem } from '@interfaces';
 import { DocItemService } from '@services';
+import { IDoc, IDocItem } from '@interfaces';
+import { DocStatusName } from '@interfaces/config';
 
 // === Дополнительный DTO для обновления статуса (может быть вынесен в DTO)
 
@@ -13,6 +14,14 @@ export class DocController {
     // === Создание документа (только черновик) ===
     static async createDoc(req: Request<{}, {}, { doc: IDoc, items: any[] }>, res: Response) {
         const { doc, items } = req.body;
+
+        const cleanItems = items.map((item) => {
+            const { _id, ...rest } = item;
+            if (item._id && item._id.startsWith('temp_')) {
+                return { ...rest };
+            }
+            return item;
+        });
 
         try {
             // Генерация номера
@@ -41,11 +50,15 @@ export class DocController {
             });
 
             // Создание позиций
-            const newItems = items.map((item) => ({ ...item, docId: newDoc._id }));
-            await newItems.forEach((item) => DocItemService.create(item));
+            if (cleanItems.length > 0) {
+                const newItems = cleanItems.map((item) => ({ ...item, docId: newDoc._id }));
+                await newItems.forEach((item) => DocItemService.create(item));
+                res.status(201).json({ doc: newDoc, items: newItems });
+            } else {
+                res.status(201).json({ doc: newDoc, items: [] });
+            }
             // await DocItemsModel.insertMany(newItems);
 
-            res.status(201).json({ doc: newDoc, items: newItems });
         } catch (error: any) {
             console.error('Ошибка при создании документа:', error);
             console.log(doc, items);
@@ -58,10 +71,13 @@ export class DocController {
         const { id } = req.params;
         const { doc, items } = req.body;
 
+        console.log('Обновление документа:', id, doc, items);
+        
+
         try {
             // 1. Обновляем сам документ
             const updatedDoc = await DocModel.findByIdAndUpdate(id, doc, { new: true });
-            console.log(' Обновленный документ:',updatedDoc);
+            // console.log(' Обновленный документ:',updatedDoc);
             
             
             if (!updatedDoc) {
@@ -71,7 +87,7 @@ export class DocController {
 
             // 2. Удаляем ВСЕ старые позиции
             await DocItemsModel.deleteMany({ docId: id });
-            console.log('Удалены старые позиции документа:', id);
+            // console.log('Удалены старые позиции документа:', id);
 
             // 3. Создаём НОВЫЕ позиции
             if (items && items.length > 0) {
@@ -80,13 +96,13 @@ export class DocController {
                     docId: id, // гарантируем, что docId установлен
                 }));
 
-                console.log('Созданы новые позиции документа:', itemsWithDocId);
+                // console.log('Созданы новые позиции документа:', itemsWithDocId);
                 /**
                  * Можно использовать Promise.all, но в данном случае лучше использовать
                  * forEach, чтобы обрабатывать каждую позицию в цикле.
                  */
                 itemsWithDocId.forEach((item) => {DocItemService.create(item)});
-                console.log('Позиции добавлены в базу:', itemsWithDocId);
+                // console.log('Позиции добавлены в базу:', itemsWithDocId);
                 
                 // 4. Отправляем ответ
                 res.json({
@@ -162,7 +178,7 @@ export class DocController {
     }
 
     // === Обновление статуса документа (основное изменение!) ===
-    static async updateDocStatus(req: Request<{ id: string }, {}, { status: DocStatus }>, res: Response) {
+    static async updateDocStatus(req: Request<{ id: string }, {}, { status: DocStatusName }>, res: Response) {
         const { id } = req.params;
         const { status } = req.body;
 
@@ -190,7 +206,7 @@ export class DocController {
                 return;
             }
 
-            if (doc.status !== 'Draft' && doc.status !== 'Canceled') {
+            if (doc.docStatus !== 'Draft' && doc.docStatus !== 'Canceled') {
                 res.status(400).json({ error: 'Удалить можно только документ в статусе "Draft" или "Canceled"' });
                 return;
             }

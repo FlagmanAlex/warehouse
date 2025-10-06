@@ -2,11 +2,12 @@
   "name": "warehouse",
   "private": true,
   "version": "1.0.0",
-  "description": "",
+  "description": "Система складсколго учета",
   "workspaces": [
     "client",
     "server",
-    "interfaces"
+    "interfaces",
+    "web"
   ],
   "main": "index.js",
   "scripts": {

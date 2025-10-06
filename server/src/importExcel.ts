@@ -8,7 +8,7 @@ import {
     IWarehouse, IExcelImportParams, IDoc,
     IDocItem,
     IDocIncoming,
-    IDocOutgoing
+    IDocOutgoing,
 } from '@interfaces';
 // import { CreateDocDto, CreateProductDto, CreateDocItemDto, CreateSupplierDto, CreateCustomerDto, CreateWarehouseDto, CreateCategoryDto, ResponseWarehouseDto, ResponseSupplierDto, ResponseProductDto, ResponseCustomerDto } from "@interfaces/DTO";
 import {
@@ -16,7 +16,7 @@ import {
     DocModel, BatchModel, InventoryModel,
     DocItemsModel, SupplierModel, CustomerModel,
     CategoryModel, WarehouseModel, TransactionModel, DocNumModel,
-    ITransactionModel
+    ITransactionModel,
 } from '@models';
 
 interface IJournal {
@@ -141,7 +141,7 @@ class ImportExcel {
         await this.getHeadJournal()
         await this.getClient()
         console.log('✅ Импорт закончен', this.headJournal);
-        
+
     }
     private async fetchApi(
         url: string,
@@ -277,6 +277,7 @@ class ImportExcel {
                 accountManager: this.userId
             }))
     }
+
     //-------------------------------------------------------------------
     private async addSuppliers() {
         console.log('Создание коллекции Supplier...');
@@ -544,7 +545,7 @@ class ImportExcel {
                     expenses: item['Логистика RUB'],
                     summ: item['Общий итог iHerb UAH'],
                     description: `Сумма оплаты: ${item['Сумма оплаты факт USD']}`,
-                    status: 'Draft',
+                    docStatus: 'Draft',
                     supplierId: supplierId || '',
                     warehouseId: warehouseId || '',
                     createdAt: new Date(),
@@ -661,7 +662,7 @@ class ImportExcel {
                             docDate: item.docDate,
                             customerId: item.customerId,
                             docType: 'Outgoing',
-                            status: 'Draft',
+                            docStatus: 'Draft',
                             description: '',
                             createdAt: new Date(),
                             updatedAt: new Date(),

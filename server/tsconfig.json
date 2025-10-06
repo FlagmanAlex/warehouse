@@ -30,9 +30,11 @@
     "paths": {
         "@interfaces": ["../interfaces"],
         "@interfaces/DTO": ["../interfaces/DTO"],
+        "@interfaces/config": ["../interfaces/Config"],
         "@models": ["./src/models"],
         "@controllers": ["./src/controllers"],
         "@services": ["./src/services"],
+        "@routers": ["./src/routes"],
     },                                      /* Указать набор записей, которые перенаправляют импорты на дополнительные места поиска. */
     // "rootDirs": [],                                   /* Разрешить обработку нескольких папок как одной при разрешении модулей. */
     // "typeRoots": [],                                  /* Указать несколько папок, которые действуют как './node_modules/@types'. */

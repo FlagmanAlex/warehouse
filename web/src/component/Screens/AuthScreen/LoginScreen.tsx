@@ -1,17 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { fetchApi } from '../../../utils/fetchApi'; // ← путь подправь под свою структуру
-import { useAuth } from '../../Screens'; // ← если используешь контекст
+import { fetchApi } from '../../../api/fetchApi'; // ← путь подправь под свою структуру
+import { useAuth } from '../../Screens/AuthScreen/AuthContext'; // ← если используешь контекст
 import { TextField } from '../../../shared/TextFields';
 import style from './LoginScreen.module.css';
 import { Button } from '../../../shared/Button';
-import { THEME } from '../../../utils/Default';
+import { THEME } from '@warehouse/interfaces/config';
 import type { ResponseUserDto } from '@warehouse/interfaces/DTO';
 
 // Если у тебя есть кастомный Button — импортируй его
 // import { Button } from '../../../shared/Button';
 
-export const LoginScreen = () => {
+const LoginScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { login } = useAuth();
@@ -55,20 +55,21 @@ export const LoginScreen = () => {
       <h1 className={style.loginTitle}>Авторизация</h1>
 
       <TextField
+        type="email"
         name="email"
-        label="Email"
+        placeholder="Email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
       />
 
       <TextField
+        type="password"
         name="password"
-        label="Пароль"
+        placeholder="Пароль"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
 
-      {/* Вариант 1: Простая кнопка */}
       <Button
         onClick={handleLogin}
         bgColor='#28a745'
@@ -85,3 +86,5 @@ export const LoginScreen = () => {
     </div>
   );
 };
+
+export default LoginScreen;

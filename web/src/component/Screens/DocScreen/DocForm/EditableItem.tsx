@@ -1,25 +1,28 @@
 import type { DocItemDto } from "@warehouse/interfaces/DTO";
 import { useState, useEffect } from "react";
 import styles from './EditableItem.module.css';
+import { EntitySelectModal } from "../../../SelectModals";
+import { Icon } from "../../../../shared/Icon";
 
 interface EditableItemProps {
-  item: DocItemDto;
+  docItem: DocItemDto;
   onUpdate: (item: DocItemDto) => void;
+  onDelete: (item: DocItemDto) => void;
 }
 
-export const EditableItem = ({ item, onUpdate }: EditableItemProps) => {
-  const [quantity, setQuantity] = useState(item.quantity.toString());
-  const [price, setPrice] = useState(item.unitPrice.toString());
+const EditableItem = ({ docItem, onUpdate, onDelete }: EditableItemProps) => {
+  const [quantity, setQuantity] = useState(docItem.quantity.toString());
+  const [price, setPrice] = useState<string>(docItem.unitPrice.toString());
   const [bonusStock, setBonusStock] = useState<string>(
-    item.bonusStock?.toString() || ''
+    docItem.bonusStock?.toString() || ''
   );
 
   useEffect(() => {
     const updatedItem: DocItemDto = {
-      ...item,
+      ...docItem,
       quantity: parseFloat(quantity) || 0,
-      unitPrice: parseFloat(price) || 0,
-      bonusStock: bonusStock ? parseFloat(bonusStock) : undefined,
+      unitPrice: price ? parseFloat(price) : 0,
+      bonusStock: bonusStock ? parseFloat(bonusStock) : 0,
     };
     onUpdate(updatedItem);
   }, [quantity, price, bonusStock]);
@@ -37,13 +40,24 @@ export const EditableItem = ({ item, onUpdate }: EditableItemProps) => {
 
   return (
     <div className={styles.itemRow}>
-      <h3 className={styles.productName}>{item.productId.name}</h3>
+      <div className={styles.nameRow}>
+        <EntitySelectModal
+          endpoint="product"
+          onSelect={(item) => onUpdate({ ...docItem, productId: { ...docItem.productId, _id: item._id, name: item.name } })}
+          selectedItem={{ _id: docItem.productId._id!, name: `${docItem.productId.categoryId.name} ${docItem.productId.name}` }}
+          modalTitle="Выберите продукт"
+          buttonText={docItem.productId.name ? `${docItem.productId.categoryId.name} ${docItem.productId.name}` : 'Выберите продукт'}
+        />
+        {/* удалить */}
+        <Icon name="FaXmark" size={20} color="red" onClick={() => onDelete(docItem)} className={styles.deleteIcon} />
+      </div>
+      {/* <h3 className={styles.productName}>{item.productId.name}</h3> */}
       <div className={styles.editRow}>
         <input
           type="text"
           inputMode="decimal"
           className={styles.editInput}
-          value={quantity}
+          value={quantity === '0' ? '' : quantity}
           onChange={(e) => handleNumberChange(e.target.value, setQuantity)}
           placeholder="Кол-во"
         />
@@ -51,7 +65,7 @@ export const EditableItem = ({ item, onUpdate }: EditableItemProps) => {
           type="text"
           inputMode="decimal"
           className={styles.editInput}
-          value={price}
+          value={price === '0' ? '' : price}
           onChange={(e) => handleNumberChange(e.target.value, setPrice)}
           placeholder="Цена"
         />
@@ -59,7 +73,7 @@ export const EditableItem = ({ item, onUpdate }: EditableItemProps) => {
           type="text"
           inputMode="decimal"
           className={styles.editInput}
-          value={bonusStock}
+          value={bonusStock === '0' ? '' : bonusStock || ''}
           onChange={(e) => handleNumberChange(e.target.value, setBonusStock)}
           placeholder="Скидка"
         />
@@ -70,3 +84,5 @@ export const EditableItem = ({ item, onUpdate }: EditableItemProps) => {
     </div>
   );
 };
+
+export default EditableItem;

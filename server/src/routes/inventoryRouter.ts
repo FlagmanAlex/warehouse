@@ -19,4 +19,4 @@ inventoryRouter.get('/warehousenotnull/:warehouseId', InventoryController.getInv
 inventoryRouter.get('/product/:productId', InventoryController.getInventoryByProduct);
 
 // Ручное обновление остатков (инвентаризация)
-inventoryRouter.put('/adjust', InventoryController.updateInventory);
+inventoryRouter.patch('/adjust', InventoryController.updateInventory);

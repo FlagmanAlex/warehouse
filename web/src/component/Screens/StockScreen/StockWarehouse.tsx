@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { fetchApi } from '../../../utils/fetchApi';
+import { fetchApi } from '../../../api/fetchApi';
 import style from './StockWarehouse.module.css';
 
 type ProductBatch = {
@@ -47,7 +47,7 @@ type GroupedProduct = {
     batches: ProductBatch[];
 };
 
-export const StockWarehouse = () => {
+const StockWarehouse = () => {
     const [db, setDb] = useState<ProductBatch[]>([]);
     const [filteredData, setFilteredData] = useState<ProductBatch[]>([]);
     const [productNameFilter, setProductNameFilter] = useState<string>('');
@@ -254,3 +254,5 @@ export const StockWarehouse = () => {
         </div>
     );
 };
+
+export default StockWarehouse;

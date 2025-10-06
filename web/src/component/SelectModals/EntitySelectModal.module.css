@@ -1,0 +1,15 @@
+.selectButton {
+    text-align: start;
+    white-space: normal;
+    /* разрешаем перенос текста */
+    display: -webkit-box;
+    /* для line-clamp */
+    -webkit-line-clamp: 2;
+    /* максимум 2 строки */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-word;
+    /* переносим длинные слова */
+    height: 47px;
+}

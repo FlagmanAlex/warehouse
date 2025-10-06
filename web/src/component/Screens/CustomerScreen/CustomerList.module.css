@@ -1,5 +1,5 @@
-.clientListContainer {
-    padding: 20px;
+.customerListContainer {
+    padding: 10px;
     background-color: #f9f9f9;
     min-height: 100vh;
 }
@@ -39,13 +39,14 @@
     background-color: #0056b3;
 }
 
-.clientsList {
+.customerList {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    margin-top: 10px;
 }
 
-.clientCard {
+.customerCard {
     padding: 16px;
     background: white;
     border: 1px solid #ddd;
@@ -54,29 +55,10 @@
     cursor: pointer;
 }
 
-.clientCard:hover {
+.customerCard:hover {
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
 .floatingButton {
-    position: fixed;
-    right: 24px;
-    bottom: 24px;
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background-color: #28a745;
-    color: white;
-    font-size: 24px;
-    font-weight: bold;
-    border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-
-.floatingButton:hover {
-    background-color: #218838;
+    margin: 10px 0;
 }

@@ -8,30 +8,42 @@ export const customerController = {
     async getAllCustomers (req: Request, res: Response) {
         try {
             if (!req.userId) {
-                res.status(401).json({ error: 'Unauthorized' });
+                res.status(401).json({ error: 'Не авторизован' });
                 return;
             }
             const customers = await CustomerModel.find()
             res.status(200).json(customers);
         } catch (error) {
-            res.status(500).json({ error: 'Failed to fetch customers' });
+            res.status(500).json({ error: 'Ошибка при получении клиентов' });
         }
     },
     // Создать нового клиента
     async createCustomer (req: Request, res: Response) {
+        console.log('Request body:', req.body);
         try {
             if (!req.userId) {
-                res.status(401).json({ error: 'Unauthorized' });
+                res.status(401).json({ error: 'Не авторизован' });
                 return;
             }
+
+            const newCustomer = {
+                ...req.body.customer,
+                accountManager: new Types.ObjectId(req.userId)
+            };
     
-            const newCustomer = new CustomerModel(req.body);
-            newCustomer.accountManager = new Types.ObjectId(req.userId);
-            await newCustomer.save();
+            console.log('New customer:', newCustomer);
+            
+            const createdCustomer = await CustomerModel.create(newCustomer);
+    
+            if (!createdCustomer) {
+                res.status(500).json({ error: 'Ошибка при создании клиента' });
+                return
+            }
+    
             res.status(201).json(newCustomer);
         } catch (error) {
-            console.error('Create customer error:', error);
-            res.status(500).json({ error: 'Failed to create customer' });
+            console.error('Ошибка при создании клиента:', error);
+            res.status(500).json({ error: 'Ошибка при создании клиента' });
         }
     },
     
@@ -42,13 +54,13 @@ export const customerController = {
             const customer = await CustomerModel.findById(id);
     
             if (!customer) {
-                res.status(404).json({ error: 'Customer not found' });
+                res.status(404).json({ error: 'Клиент не найден' });
                 return
             }
     
             res.status(200).json(customer);
         } catch (error) {
-            res.status(500).json({ error: 'Failed to fetch customer by ID' });
+            res.status(500).json({ error: 'Ошибка при получении клиента по ID' });
         }
     },
     
@@ -56,18 +68,18 @@ export const customerController = {
     async updateCustomer  (req: Request, res: Response) {
         try {
             const { id } = req.params;
-            const updatedCustomer = await CustomerModel.findByIdAndUpdate(id, req.body, {
+            const updatedCustomer = await CustomerModel.findByIdAndUpdate(id, req.body.customer, {
                 new: true,
             });
     
             if (!updatedCustomer) {
-                res.status(404).json({ error: 'Customer not found' });
+                res.status(404).json({ error: 'Клиент не найден' });
                 return
             }
     
             res.status(200).json(updatedCustomer);
         } catch (error) {
-            res.status(500).json({ error: 'Failed to update customer' });
+            res.status(500).json({ error: 'Ошибка при обновлении клиента' });
         }
     },
     
@@ -75,16 +87,23 @@ export const customerController = {
     async deleteCustomer  (req: Request, res: Response)  {
         try {
             const { id } = req.params;
-            const deletedCustomer = await CustomerModel.findByIdAndDelete(id);
+            const customer = await CustomerModel.findById(id);
     
-            if (!deletedCustomer) {
-                res.status(404).json({ error: 'Customer not found' });
-                return;
+            if (!customer) {
+                res.status(404).json({ error: 'Клиент не найден' });
+                return
             }
+
+            if (customer.name === '<Клиент не выбран>') {
+                res.status(400).json({ error: 'Нельзя удалить <Клиент не выбран>' });
+                return
+            }
+
+            await CustomerModel.findByIdAndDelete(id);   
     
-            res.status(200).json({ message: 'Customer deleted successfully' });
+            res.status(200).json({ message: 'Клиент удалён' });
         } catch (error) {
-            res.status(500).json({ error: 'Failed to delete customer' });
+            res.status(500).json({ error: 'Ошибка при удалении клиента' });
         }
     }
 };

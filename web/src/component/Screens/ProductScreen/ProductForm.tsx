@@ -1,70 +1,88 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { fetchApi } from '../../../utils/fetchApi';
-import type { IProduct, ICategory } from '@warehouse/interfaces';
+import { useLoaderData, useNavigate } from 'react-router-dom';
+import { fetchApi } from '../../../api/fetchApi';
+import type { IProduct } from '@warehouse/interfaces';
 import style from './ProductForm.module.css';
 import type { ProductDto } from '@warehouse/interfaces/DTO';
+// import { CategorySelectModal, SupplierSelectModal } from '../../SelectModals/index';
+import { Button } from '../../../shared/Button';
+import { THEME } from '@warehouse/interfaces/config';
+import { TextField, type TextFieldProps } from '../../../shared/TextFields/UI/TextField';
+import { EntitySelectModal } from '../../SelectModals/EntitySelectModal';
+
+interface FieldProps {
+    label: string;
+    name: keyof IProduct;
+    type: TextFieldProps['type'];
+}
+
+/*
+    +article: string
+    +name: string                //Наименование
+    +description?: string        //Описание продукции
+    +categoryId: string          //Id категории
+    +unitOfMeasurement?: ProductUnit;    //Единицы измерения
+    +price: number               //Цена
+    +minStock?: number            //Минимальный запас
+    isArchived: boolean         //Архивация позиции в справочнике (вместо удаления)
+    createdBy: string           //Создатель
+    lastUpdateBy: string        //Обновил
+    +supplierId?: string          //Поставщик
+    createdAt?: Date             //Дата создания
+    updatedAt?: Date             //Дата последнего обновления
+    +defaultWarehouseId: string  //Id склада по умолчанию
+    image?: string[]             //Изображения
+    +packagingId?: string           //Упаковка
 
 
-export const ProductForm = () => {
-    const { productId } = useParams();
-    
+*/
+
+const fields: FieldProps[] = [
+    { label: 'Артикул', name: 'article', type: 'text' },
+    { label: 'Наименование продукта', name: 'name', type: 'textarea' },
+    { label: 'Цена по умолчанию', name: 'price', type: 'number' },
+    { label: 'Единицы измерения', name: 'unitOfMeasurement', type: 'text' },
+    { label: 'Минимальный запас', name: 'minStock', type: 'number' },
+    // { label: 'Поставщик', name: 'supplierId', type: 'text' },
+    // { label: 'Склад по умолчанию', name: 'defaultWarehouseId', type: 'text' },
+    // { label: 'Упаковка', name: 'packagingId', type: 'text' },
+    { label: 'Описание продукта', name: 'description', type: 'textarea' },
+];
+
+interface LoaderData {
+    product: ProductDto;
+}
+const localStorageKey = 'productForm';
+
+const ProductForm = () => {
+    const { product: initialProduct } = useLoaderData<LoaderData>()
     const navigate = useNavigate();
 
-    const [product, setProduct] = useState<Partial<IProduct>>({
-        name: '',
-        article: '',
-        categoryId: '',
-        unitOfMeasurement: 'шт',
-        price: 0,
-        isArchived: false,
+    const [product, setProduct] = useState<ProductDto>(() => {
+        // Если это новый продукт (нет _id) — можно брать из localStorage
+        if (!initialProduct._id) {
+            const savedProduct = localStorage.getItem(localStorageKey);
+            return savedProduct ? JSON.parse(savedProduct) : initialProduct;
+        }
+
+        // Если это редактирование — всегда используем данные из loader'а
+        return initialProduct;
     });
 
-    const [categories, setCategories] = useState<ICategory[]>([]);
-    const [loadingCategories, setLoadingCategories] = useState(true);
+    useEffect(() => {
+        if (initialProduct._id) {
+            // Это редактирование — удаляем старый кэш
+            localStorage.removeItem(localStorageKey);
+        }
+    }, [initialProduct._id]);
 
     useEffect(() => {
-        const loadCategories = async () => {
-            try {
-                const response = await fetchApi('category', 'GET');
-                setCategories(Array.isArray(response) ? response : []);
-            } catch (error) {
-                console.error('Error fetching categories:', error);
-                alert('Не удалось загрузить категории');
-            } finally {
-                setLoadingCategories(false);
-            }
-        };
-
-        loadCategories();
-
-        if (productId) {
-            fetchProduct(productId);
-        } else {
-            setProduct({
-                name: '',
-                article: '',
-                categoryId: '',
-                unitOfMeasurement: 'шт',
-                price: 0,
-                isArchived: false,
-            });
+        // Сохраняем в localStorage только если это новый продукт
+        if (!product._id) {
+            localStorage.setItem(localStorageKey, JSON.stringify(product));
         }
-    }, [productId]);
+    }, [product]);
 
-    const fetchProduct = async (id: string) => {
-        try {
-            const response: ProductDto = await fetchApi(`product/${id}`, 'GET');
-            setProduct({
-                ...response,
-                categoryId: response.categoryId._id,
-            });
-        } catch (error) {
-            console.error('Error fetching product:', error);
-            alert('Не удалось загрузить товар');
-            navigate(-1);
-        }
-    };
 
     const handleSubmit = async () => {
         if (!product.name || !product.article || product.price == null || product.price < 0) {
@@ -82,6 +100,7 @@ export const ProductForm = () => {
                 isArchived: false,
             };
             await fetchApi('product', 'POST', createProduct);
+            localStorage.removeItem(localStorageKey);
             navigate(-1);
         } catch (error) {
             alert('Не удалось создать товар');
@@ -95,7 +114,8 @@ export const ProductForm = () => {
         }
 
         try {
-            await fetchApi(`product/${product._id}`, 'PUT', product as Omit<IProduct, '_id'>);
+            await fetchApi(`product/${product._id}`, 'PATCH', product);
+            localStorage.removeItem(localStorageKey);
             navigate(-1);
         } catch (error) {
             alert('Не удалось обновить товар');
@@ -103,11 +123,11 @@ export const ProductForm = () => {
     };
 
     const handleDelete = async () => {
-        if (!productId) return;
+        if (!product) return;
 
         if (window.confirm('Вы уверены, что хотите удалить этот товар?')) {
             try {
-                await fetchApi(`product/${productId}`, 'DELETE');
+                await fetchApi(`product/${product._id}`, 'DELETE');
                 navigate(-1);
             } catch (error) {
                 console.error('Error deleting product:', error);
@@ -118,85 +138,58 @@ export const ProductForm = () => {
 
     return (
         <div className={style.productFormContainer}>
-            <h2>{productId ? 'Редактировать товар' : 'Создать товар'}</h2>
+            <h2>{product._id ? 'Редактировать товар' : 'Создать товар'}</h2>
 
             {/* Категория */}
-            <label className={style.formLabel}>Категория</label>
-            {loadingCategories ? (
-                <p>Загрузка категорий...</p>
-            ) : (
-                <select
-                    className={style.formSelect}
-                    value={product.categoryId || ''}
-                    onChange={(e) => setProduct({ ...product, categoryId: e.target.value })}
-                >
-                    <option value="">Выберите категорию</option>
-                    {categories.map((cat) => (
-                        <option key={cat._id} value={cat._id}>
-                            {cat.name}
-                        </option>
-                    ))}
-                </select>
-            )}
-
-            {/* Название */}
-            <label className={style.formLabel}>Название</label>
-            <textarea
-                className={style.formInput}
-                placeholder="Введите название товара"
-                value={product.name || ''}
-                onChange={(e) => setProduct({ ...product, name: e.target.value })}
-                rows={3}
+            <EntitySelectModal
+                endpoint='category'
+                selectedItem={product.categoryId?._id ? product.categoryId : null} // Используем _id для сравнения, если необходимо
+                onSelect={category => setProduct({ ...product, categoryId: { _id: category._id, name: category.name } })}
+                modalTitle='Выберите категорию'
+                buttonText={product.categoryId?.name || 'Категория'}
             />
-
-            {/* Артикул */}
-            <label className={style.formLabel}>Артикул</label>
-            <input
-                type="text"
-                className={style.formInput}
-                placeholder="Введите артикул"
-                value={product.article || ''}
-                onChange={(e) => setProduct({ ...product, article: e.target.value })}
+            <EntitySelectModal
+                endpoint='supplier'
+                selectedItem={product.supplierId?._id ? product.supplierId : null} // Используем _id для сравнения, если необходимо
+                onSelect={supplier => setProduct({ ...product, supplierId: { _id: supplier._id, name: supplier.name } })}
+                modalTitle='Выберите поставщика'
+                buttonText={product.supplierId?.name || 'Поставщик'}
             />
-
-            {/* Цена */}
-            <label className={style.formLabel}>Цена</label>
-            <input
-                type="number"
-                className={style.formInput}
-                placeholder="Введите цену"
-                value={product.price || ''}
-                onChange={(e) =>
-                    setProduct({
-                        ...product,
-                        price: isNaN(parseFloat(e.target.value)) ? 0 : parseFloat(e.target.value),
-                    })
-                }
-                min="0"
-                step="0.01"
-            />
+            {/* Поля формы */}
+            {fields.map((field) => (
+                <TextField
+                    name={field.name}
+                    key={field.name}
+                    placeholder={field.label}
+                    type={field.type}
+                    value={product[field.name as keyof IProduct] === 0 ? undefined : product[field.name as keyof IProduct]}
+                    onChange={(e) => setProduct({ ...product, [field.name]: e.target.value })}
+                />
+            ))}
 
             {/* Кнопки */}
             <div className={style.formButtons}>
-                {productId ? (
+                {product._id ? (
                     <>
-                        <button className={`${style.btn} ${style.btnPrimary}`} onClick={handleUpdate}>
-                            Обновить товар
-                        </button>
-                        <button className={`${style.btn} ${style.btnDanger}`} onClick={handleDelete}>
-                            Удалить товар
-                        </button>
+                        <Button text="Обновить" textColor='#fff' bgColor={THEME.button.apply} onClick={handleUpdate} />
+                        <Button text="Удалить" textColor='#fff' bgColor={THEME.button.delete} onClick={handleDelete} />
                     </>
                 ) : (
-                    <button className={`${style.btn} ${style.btnSuccess}`} onClick={handleSubmit}>
-                        Создать товар
-                    </button>
+                    <>
+                        <Button text="Создать" textColor='#fff' bgColor={THEME.button.apply} onClick={handleSubmit} />
+                        <Button text="Очистить" textColor='#fff' bgColor={THEME.button.statusDisabled} onClick={() => {
+                            setProduct(initialProduct);
+                            localStorage.removeItem(localStorageKey);
+                        }} />
+                    </>
                 )}
-                <button className={`${style.btn} ${style.btnSecondary}`} onClick={() => navigate(-1)}>
-                    Назад
-                </button>
+                <Button text="Назад" textColor='#fff' bgColor={THEME.button.cancel} onClick={() => {
+                    navigate(-1);
+                }} />
             </div>
 
         </div>
     );
 };
+
+export default ProductForm;

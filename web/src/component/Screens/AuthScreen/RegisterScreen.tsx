@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { fetchApi } from '../../../utils/fetchApi'; // ← Убедись, что путь правильный
+import { fetchApi } from '../../../api/fetchApi'; // ← Убедись, что путь правильный
 import { TextField } from '../../../shared/TextFields';
 import style from './RegisterScreen.module.css';
 import { Button } from '../../../shared/Button';
-import { THEME } from '../../../utils/Default';
+import { THEME } from '@warehouse/interfaces/config';
 
 // Типизация данных формы (опционально, если используешь TypeScript)
 interface RegisterData {
@@ -13,7 +13,7 @@ interface RegisterData {
   password: string;
 }
 
-export const RegisterScreen = () => {
+const RegisterScreen = () => {
   const [user, setUser] = useState<RegisterData>({
     username: '',
     email: '',
@@ -48,21 +48,21 @@ export const RegisterScreen = () => {
 
 
       <TextField
-        label="Email"
+        placeholder="Email"
         name="email"
         value={user?.email || ''}
         onChange={(e) => setUser({ ...user, email: e.target.value })}
       />
 
       <TextField
-        label="Пароль"
+        placeholder="Пароль"
         name="password"
         value={user?.password || ''}
         onChange={(e) => setUser({ ...user, password: e.target.value })}
       />
 
       <TextField
-        label="Пароль"
+        placeholder="Пароль"
         name="password"
         value={user?.password || ''}
         onChange={(e) => setUser({ ...user, password: e.target.value })}
@@ -85,3 +85,5 @@ export const RegisterScreen = () => {
     </div>
   );
 };
+
+export default RegisterScreen;

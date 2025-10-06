@@ -1,18 +1,22 @@
-import { useState } from 'react';
-import { useLoaderData, useNavigate, useSearchParams } from 'react-router-dom';
-import { FaAngleDown, FaAngleUp, FaPlus } from 'react-icons/fa6';
+// DocScreen.tsx
+import { useEffect } from 'react';
+import {
+  Form,
+  useLoaderData,
+  useLocation,
+  useNavigate,
+  useRevalidator,
+  useSearchParams,
+} from 'react-router-dom';
 import { Button } from '../../../shared/Button';
 import { StatusIcon } from './StatusIcon';
-import { DOC_TYPE, DOCSTATUS_CHIP, DOCTYPE_CHIP } from '../../../utils/statusLabels';
 import type { DocDto } from '@warehouse/interfaces/DTO';
-import { THEME } from '../../../utils/Default';
-
-import styles from './DocScreen.module.css'; // ← CSS-файл ниже
-import { getStatusColor } from '../../../utils/iconName';
-import type { DocStatus } from '@warehouse/interfaces';
+import { THEME } from '@warehouse/interfaces/config';
+import styles from './DocScreen.module.css';
 import { Icon } from '../../../shared/Icon';
 import { TextField } from '../../../shared/TextFields';
 import { formatDate } from '../../../utils/formatDate';
+import { DocStatusInMap, DocStatusOutMap, DocTypeMap } from '@warehouse/interfaces/config';
 
 export interface LoaderData {
   docs: DocDto[];
@@ -22,21 +26,21 @@ export interface LoaderData {
     docType: string | null;
     docStatus: string | null;
     search: string;
+    filterShow: boolean;
   };
 }
 
-
-
-
-export const DocScreen = () => {
+export default () => {
   const navigate = useNavigate();
+  const location = useLocation(); // ✅ Получаем location
+  const revalidator = useRevalidator(); // ✅ revalidator в DocScreen
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [filterShow, setFilterShow] = useState(false);
-  const { docs, filters } = useLoaderData() as LoaderData
-
+  const { docs, filters } = useLoaderData() as LoaderData;
+  
+  const filterShow: boolean = filters.filterShow || false;
   const startDateStr: string = filters.startDate;
-  const endDateStr: string = filters.endDate
+  const endDateStr: string = filters.endDate;
   const selectedDocType = filters.docType || null;
   const selectedStatus = filters.docStatus || null;
   const search = filters.search || '';
@@ -44,19 +48,21 @@ export const DocScreen = () => {
   const startDate = new Date(startDateStr);
   const endDate = new Date(endDateStr);
 
+
   //Обновляем URL при изменении фильтров
-  const updateFilters = (newParams: Record<string, string | null>) => {
+  const updateFilters = (newParams: Record<string, string | boolean | null>) => {
     const params = new URLSearchParams(searchParams.toString());
     Object.keys(newParams).forEach((key) => {
       const value = newParams[key];
       if (value === null) {
         params.delete(key);
       } else {
-        params.set(key, value);
+        params.set(key, value as string);
       }
     });
     setSearchParams(params, { replace: true });
-  }
+  };
+
 
   // Фильтрация документов
   const filteredDocs = docs.filter((item) => {
@@ -66,7 +72,7 @@ export const DocScreen = () => {
     if (itemDate < start || itemDate > end) return false;
 
     if (selectedDocType && item.docType !== selectedDocType) return false;
-    if (selectedStatus && item.status !== selectedStatus) return false;
+    if (selectedStatus && item.docStatus !== selectedStatus) return false;
 
     if (search) {
       const query = search.toLowerCase();
@@ -80,12 +86,18 @@ export const DocScreen = () => {
     return true;
   });
 
+  // ✅ Обновляем данные при монтировании, если пришли с формы
+  useEffect(() => {
+    revalidator.revalidate();
+  }, [location.pathname]);
+
+
   // Рендер одного документа
   const renderDocItem = (item: DocDto) => (
     <div key={item._id} className={styles.docItem}>
       <div
         className={styles.docHeader}
-        onClick={() => navigate(`/doc-form/${item._id}`, { state: { docId: item._id!, docType: item.docType } })}
+        onClick={() => navigate(`/doc/${item._id}`)}
       >
         <div className={styles.docRow}>
           <span className={styles.subtitle}>№{item.docNum}</span>
@@ -95,30 +107,45 @@ export const DocScreen = () => {
               color: item.docType === 'Outgoing' ? '#008000' : '#ff0000',
             }}
           >
-            {DOC_TYPE[item.docType]}
+            {DocTypeMap[item.docType].nameRus}
           </span>
           <span className={styles.subtitle}>
             Дата: {new Date(item.docDate).toLocaleDateString()}
           </span>
 
           <StatusIcon
-            status={item.status}
+            status={item.docStatus}
             docId={item._id!}
           />
         </div>
-
         {item.docType === 'Incoming' && (
           <span className={styles.subtitle}>Поставщик: {item.supplierId?.name}</span>
         )}
-        {item.docType === 'Outgoing' && (
+        {(item.docType === 'Outgoing' || item.docType === 'Order') && (
           <span className={styles.subtitle}>Клиент: {item.customerId?.name}</span>
         )}
 
-        <span className={styles.docId}>ID документа: {item._id}</span>
+        {/* <span className={styles.docId}>ID документа: {item._id}</span> */}
       </div>
 
       <div className={styles.summContainer}>
-        <span className={styles.docSumm}>Сумма: {item.summ.toFixed(2)} руб.</span>
+        <span className={styles.docSumm}>Сумма: <strong>{item.summ.toFixed(2)}</strong> руб.</span>
+        {/* Удалить */}
+        <Form method='post' action='/doc'>
+          <input type="hidden" name="id" value={item._id!} />
+          <input type="hidden" name="doc" value={JSON.stringify(item)} />
+          <input type="hidden" name="items" value={JSON.stringify({})} />
+          <Button
+            type='submit'
+            icon='FaXmark'
+            name='_method'
+            value='DELETE'
+            bgColor={THEME.color.white}
+            textColor={THEME.color.red}
+            className={styles.deleteIcon}
+            onClick={(e) => {window.confirm('Вы действительно хотите удалить документ?') ? true : e.preventDefault(); }}
+          />
+        </Form>
       </div>
     </div>
   );
@@ -139,13 +166,12 @@ export const DocScreen = () => {
           />
 
           <Button
-            onClick={() => setFilterShow(!filterShow)}
+            onClick={() => updateFilters({ filterShow: !filterShow })}
             bgColor={filterShow ? '#f0f0f0' : '#fff'}
             textColor="#007bff"
             bdColor='#007bff'
-            text={filterShow ? <FaAngleUp size={24} /> : <FaAngleDown size={24} />}
+            icon={filterShow ? "FaAngleUp" : "FaAngleDown"}
           />
-
 
           <input
             type="date"
@@ -162,57 +188,77 @@ export const DocScreen = () => {
           <>
             {/* Фильтр по типу документа */}
             <div className={styles.filterRow}>
-              {Object.keys(DOCTYPE_CHIP).map((type) => (
-                <Icon
-                  size={24}
-                  key={type}
-                  name={DOCTYPE_CHIP[type as keyof typeof DOCTYPE_CHIP]}
-                  color="#333"
-                  onClick={() => updateFilters({ docType: selectedDocType === type ? null : type })}
-                  className={`${styles.chip} ${selectedDocType === type ? styles.chipSelected : ''}`}
-                />
+              {Object.keys(DocTypeMap).map((type) => (
+                <div key={type} className={styles.filterRow}>
+                  <Icon
+                    size={24}
+                    key={type}
+                    name={DocTypeMap[type as keyof typeof DocTypeMap].icon}
+                    color={DocTypeMap[type as keyof typeof DocTypeMap].color}
+                    onClick={() => updateFilters({ docType: selectedDocType === type ? null : type })}
+                    className={`${styles.chip} ${selectedDocType === type ? styles.chipSelected : ''}`}
+                  />
+                  {type === 'Order' && <hr/>}
+                </div>
               ))}
             </div>
 
-            {/* Фильтр по статусу */}
-            <div className={styles.filterRow}>
-              {Object.keys(DOCSTATUS_CHIP).map((status) => (
-                <Icon
-                  size={24}
-                  key={status}
-                  name={DOCSTATUS_CHIP[status as keyof typeof DOCSTATUS_CHIP]}
-                  color={getStatusColor(status as DocStatus)}
-                  onClick={() => updateFilters({ docStatus: selectedStatus === status ? null : status })}
-                  className={styles.chip + ` ${selectedStatus === status ? styles.chipSelected : ''}`}
-                />
-              ))}
-            </div>
+            {/* Фильтр по статусам расхода если docType === 'Outgoing' */}
+            {selectedDocType === 'Outgoing' && (
+              <div className={styles.filterRow}>
+                {Object.keys(DocStatusOutMap).map((status) => (
+                  <Icon
+                    size={24}
+                    key={status}
+                    name={DocStatusOutMap[status as keyof typeof DocStatusOutMap].icon}
+                    color={DocStatusOutMap[status as keyof typeof DocStatusOutMap].color}
+                    onClick={() => updateFilters({ docStatus: selectedStatus === status ? null : status })}
+                    className={styles.chip + ` ${selectedStatus === status ? styles.chipSelected : ''}`}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Фильтр по статусам прихода если docType === 'Incoming' */}
+            {selectedDocType === 'Incoming' && (
+              <div className={styles.filterRow}>
+                {Object.keys(DocStatusInMap).map((status) => (
+                  <Icon
+                    size={24}
+                    key={status}
+                    name={DocStatusInMap[status as keyof typeof DocStatusInMap].icon}
+                    color={DocStatusInMap[status as keyof typeof DocStatusInMap].color}
+                    onClick={() => updateFilters({ docStatus: selectedStatus === status ? null : status })}
+                    className={styles.chip + ` ${selectedStatus === status ? styles.chipSelected : ''}`}
+                  />
+                ))}
+              </div>
+            )}
 
             {/* Поиск */}
             <div className={styles.searchContainer}>
               <TextField
                 name='search'
-                label="Поиск по клиенту или поставщику"
+                placeholder="Поиск по клиенту или поставщику"
                 value={search}
                 onChange={(e) => updateFilters({ search: e.target.value })}
-              // className="search-input"
               />
             </div>
 
             {/* Кнопка создания */}
-            <Button
-              bgColor={THEME.button.add}
-              textColor={THEME.color.white}
-              onClick={() =>
-                navigate(`/doc-form`)
-              }
-              text={<FaPlus color='#fff' />}
-              bdColor='#007bff'
-            />
+            {selectedDocType === 'Order' && (
+              <Button
+                // className={styles.addButton}
+                bgColor={THEME.button.add}
+                textColor={THEME.color.white}
+                onClick={() => navigate('/doc')}
+                icon={"FaPlus"}
+                bdColor='#007bff'
+              />
+            )}
           </>
         )}
       </div>
-
 
       <div className={styles.docList}>
         {filteredDocs.length > 0 ? (
@@ -224,5 +270,3 @@ export const DocScreen = () => {
     </div>
   );
 };
-
-export default DocScreen;

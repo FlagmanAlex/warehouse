@@ -18,7 +18,7 @@ export async function recalculateDocSum(docId: string | mongoose.Types.ObjectId)
 
     // Считаем сумму: quantity * unitPrice
     const totalAmount = items.reduce((sum, item) => {
-      return sum + (item.quantity ?? 0) * (item.unitPrice ?? 0);
+      return sum + (item.quantity ?? 0) * ((item.unitPrice ?? 0) - (item.bonusStock ?? 0));
     }, 0);
 
     // Обновляем документ Doc — строго типизированное обновление

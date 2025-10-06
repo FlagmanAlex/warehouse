@@ -1,125 +1,190 @@
-import { useState } from 'react';
-import { useLoaderData, useNavigate, useRevalidator } from 'react-router-dom';
-import { fetchApi } from '../../../../utils/fetchApi';
-import type{ DocDto, DocItemDto } from '@warehouse/interfaces/DTO';
-import { EditableItem } from './EditableItem';
+// DocForm.tsx
+import { useEffect, useState } from 'react';
+import { Form, useLoaderData, useNavigate, useActionData } from 'react-router-dom';
+import type { DocAndItemsDto, DocDto, DocItemDto } from '@warehouse/interfaces/DTO';
+import EditableItem from './EditableItem';
 import HeaderForm from './HeaderForm';
 import styles from './DocForm.module.css';
+import { Button } from '../../../../shared/Button';
 
 export type LoaderData = {
-    doc: DocDto;
-    items: DocItemDto[];
-    isNew: boolean;
+  doc: DocDto;
+  items: DocItemDto[];
+  isNew: boolean;
 };
 
-
-export const DocForm = () => {
+const DocForm = () => {
   const navigate = useNavigate();
-
-  const revalidator = useRevalidator();
-
+  const actionData = useActionData();
   const { doc: initialDoc, items: initialItems } = useLoaderData() as LoaderData;
 
-  const [doc, setDoc] = useState<DocDto>(initialDoc);
-  const [items, setItems] = useState<DocItemDto[]>(initialItems);
+  // const [doc, setDoc] = useState<DocDto>(initialDoc);
+  // const [items, setItems] = useState<DocItemDto[]>(initialItems);
+  const [totalSum, setTotalSum] = useState(0);
 
-  // Режим редактирования
-  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState<DocAndItemsDto>({
+    doc: initialDoc,
+    items: initialItems,
+  });
 
-  const handleSave = async () => {
-    try {
-      await fetchApi(`doc/${doc._id}`, 'PUT', { doc, items });
-      setIsEditing(false);
+  // ✅ Установить isEditing в true по умолчанию
+  const [isEditing, setIsEditing] = useState(true);
 
-      revalidator.revalidate();
+  const generateTempId = () => `temp_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 
-      setTimeout(() => {
-        navigate(-1);
-      }, 100);
+  const newDocItem: DocItemDto = {
+    _id: generateTempId(), // ✅ Обязательно!
+    docId: formData.doc._id || '',
+    productId: {
+      article: '',
+      price: 0,
+      isArchived: false,
+      name: '',
+      categoryId: { _id: '', name: '' },
+      unitOfMeasurement: 'шт',
 
-    } catch (err: any) {
-      alert(`Ошибка: ${err.message}`);
-    }
-  };
-
-  const handleDelete = () => {
-    if (!confirm('Удалить документ? Это действие нельзя отменить.')) return;
-
-    fetchApi(`doc/${doc._id}`, 'DELETE')
-      .then(() => {
-        navigate(-1);
-        alert('Документ удалён');
-      })
-      .catch((err: any) => {
-        alert(`Ошибка: ${err.message}`);
-      });
-  };
+    },
+    quantity: 0,
+    unitPrice: 0,
+    bonusStock: 0,
+    description: '',
+  }
 
   const renderFooter = () => {
-    const totalQty = items.reduce((sum, i) => sum + i.quantity, 0);
-    const totalSum = items.reduce(
-      (sum, i) => sum + i.quantity * (i.unitPrice - (i.bonusStock || 0)),
-      0
-    );
+    const totalSKU = formData.items.length;
+    console.log(formData.items);
 
     return (
       <div className={styles.footer}>
         <p className={styles.total}>
-          Всего: {totalQty} шт. Сумма: {totalSum.toFixed(0)} ₽
+          Всего: {totalSKU} шт. Сумма: {totalSum.toFixed(0)} ₽
         </p>
       </div>
     );
   };
 
-  return (
-    <div className={styles.content}>
-      <HeaderForm
-        doc={doc}
-        isEditing={isEditing}
-        setIsEditing={setIsEditing}
-        handleDelete={handleDelete}
-        setDoc={setDoc}
-        handleSave={handleSave}
-      />
+  useEffect(() => {
+    setTotalSum(formData.items.reduce((sum, i) => sum + i.quantity * (i.unitPrice - (i.bonusStock || 0)), 0));
+  }, [formData.items]);
 
-      {items.length === 0 ? (
-        <p className={styles.empty}>Нет позиций</p>
-      ) : (
-        <ul className={styles.itemsList}>
-          {items.map((item) => (
-            <li key={item._id} className={styles.item}>
-              {isEditing ? (
+  return (
+    <Form method="post" action='/doc'>
+      <input type="hidden" name="id" value={formData.doc._id || ''} />
+      <input type="hidden" name="doc" value={JSON.stringify(formData.doc)} />
+      <input type="hidden" name="items" value={JSON.stringify(formData.items)} />
+
+      {actionData?.error && <p style={{ color: 'red' }}>{actionData.error}</p>}
+
+      <div className={styles.content}>
+        <HeaderForm
+          docAndItems={{ doc: formData.doc, items: formData.items }}
+          isEditing={isEditing}
+          setIsEditing={setIsEditing} // Теперь можно изменить, если нужно
+          setDocAndItems={setFormData}
+          cancel={() => navigate(-1)}
+        />
+        {/* Сумма документа */}
+        {renderFooter()}
+
+        {/* Кнопка "Добавить позицию" (только в режиме редактирования) */}
+        {isEditing && (
+          <div className={styles.actions}>
+            <Button
+              bgColor="#28a745"
+              textColor="#fff"
+              onClick={() => setFormData(prev => ({ ...prev, items: ([newDocItem, ...prev.items]) }))}
+              text="Добавить позицию"
+            />
+          </div>
+        )}
+
+        {formData.items.length === 0 ? (
+          <p className={styles.empty}>Нет позиций</p>
+        ) : (
+          <ul className={styles.itemsList}>
+            {formData.items.map((item) => (
+              <li key={item._id} className={styles.item}>
+                {/* ✅ Всегда показываем EditableItem, т.к. isEditing === true */}
                 <EditableItem
-                  item={item}
+                  key={item._id}
+                  docItem={item}
                   onUpdate={(updated) =>
-                    setItems(items.map((i) => (i._id === item._id ? updated : i)))
+                    setFormData(prev => ({
+                      ...prev,
+                      items: prev.items.map(i => i._id === updated._id ? updated : i)
+                    }))
+                  }
+                  onDelete={(deleted) =>
+                    setFormData(prev => ({
+                      ...prev,
+                      items: prev.items.filter((i) => i._id !== deleted._id)
+                    }))
                   }
                 />
-              ) : (
-                <div>
-                  <h3 className={styles.productName}>{item.productId.name}</h3>
-                  <div className={styles.detailsRow}>
-                    <span>Кол-во: {item.quantity}</span>
-                    <span>Цена: {item.unitPrice.toFixed(0)} ₽</span>
-                    <span>Скидка: {item.bonusStock?.toFixed(0)} ₽</span>
-                    <span>
-                      Сумма:{' '}
-                      {(
-                        item.quantity *
-                        (item.unitPrice - (item.bonusStock || 0))
-                      ).toFixed(0)}{' '}
-                      ₽
-                    </span>
-                  </div>
-                </div>
-              )}
-              <hr className={styles.separator} />
-            </li>
-          ))}
-        </ul>
-      )}
+                <hr className={styles.separator} />
+              </li>
+            ))}
+          </ul>
+        )}
 
-      {renderFooter()}
-    </div>
+      </div>
+      {/* Кнопки управления */}
+      <div className={styles.actions}>
+        { formData.doc._id ? (
+          <div className={styles.buttonGroup}>
+            <Button
+              type="submit" // ✅ Кнопка отправки формы
+              name='_method'
+              value='PATCH'
+              className={styles.button}
+              // onClick={handleSave} // ✅ Передаём функцию, не вызываем
+              bgColor="#007bff"
+              textColor="#fff"
+              icon="FaRegFloppyDisk"
+            />
+            <Button
+              className={styles.button}
+              onClick={() => navigate(-1)}
+              bgColor="#grey"
+              textColor="#fff"
+              icon="FaBackwardStep"
+            />
+            <Button
+              type="submit"
+              name='_method'
+              value='DELETE'
+              className={styles.button}
+              onClick={(e) => { window.confirm('Вы уверены, что хотите удалить документ?') ? true : e.preventDefault() }}
+              bgColor="#d32f2f"
+              textColor="#fff"
+              icon="FaTrash"
+            />
+          </div>
+        ) : (
+          <div className={styles.buttonGroup}>
+            <Button
+              className={styles.button}
+              type="submit" // ✅ Кнопка отправки формы
+              name='_method'
+              value='POST'
+              // onClick={handleSave} // ✅ Передаём функцию, не вызываем
+              bgColor="#28a745"
+              textColor="#fff"
+              icon="FaRegFloppyDisk"
+            />
+            <Button
+              className={styles.button}
+              onClick={() => navigate(-1)}
+              bgColor="#6c757d"
+              textColor="#fff"
+              icon="FaBackwardStep"
+            />
+          </div>
+        )}
+      </div>
+
+    </Form>
   );
 };
+
+export default DocForm;

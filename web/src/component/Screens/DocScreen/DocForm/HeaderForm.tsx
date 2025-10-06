@@ -1,55 +1,37 @@
+// HeaderForm.tsx
 import styles from './HeaderForm.module.css';
-import { Button } from '../../../../shared/Button';
 import { Field } from './Field';
-import type { DocStatusIn, DocStatusOut, DocType } from '@warehouse/interfaces';
-import { DOC_STATUS_IN, DOC_STATUS_OUT, DOC_TYPE } from '../../../../utils/statusLabels';
-import type { DocDto, DocIncomingDto, DocOrderDto, DocOutgoingDto, DocTransferDto } from '@warehouse/interfaces/DTO';
+import type { DocAndItemsDto, DocIncomingDto, DocOrderDto, DocOutgoingDto, DocTransferDto } from '@warehouse/interfaces/DTO';
+import { EntitySelectModal } from '../../../SelectModals';
+import { DocStatusInMap, DocStatusMap, DocStatusOutMap, DocTypeMap, type DocStatusInName, type DocStatusName, type DocStatusOutName, type DocTypeName } from '@warehouse/interfaces/config';
 
 type HeaderFormProps = {
-    doc: DocDto;
+    docAndItems: DocAndItemsDto;
     isEditing: boolean;
     setIsEditing: (editing: boolean) => void;
-    handleDelete: () => void;
-    setDoc: (doc: DocDto) => void;
-    handleSave: () => void;
+    setDocAndItems: (docAndItems: DocAndItemsDto) => void;
+    cancel: () => void;
 };
 
 export const HeaderForm = ({
-    doc,
+    docAndItems: { doc, items },
     isEditing,
-    setIsEditing,
-    handleDelete,
-    setDoc,
-    handleSave,
+    setDocAndItems,
 }: HeaderFormProps) => {
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'Completed':
-            case 'Delivered':
-                return '#2e7d32';
-            case 'Canceled':
-                return '#c62828';
-            case 'Reserved':
-                return '#f57c00';
-            default:
-                return '#1976d2';
-        }
-    };
 
-    // ✅ ОПРЕДЕЛЕНИЕ ФУНКЦИИ handleChange
-    const handleChange = (val: DocType) => {
+    const handleChange = (val: DocTypeName) => {
         switch (val) {
             case 'Incoming':
-                setDoc({ ...doc, docType: 'Incoming' } as DocIncomingDto);
+                setDocAndItems({ doc: { ...doc, docType: 'Incoming' } as DocIncomingDto, items });
                 break;
             case 'Outgoing':
-                setDoc({ ...doc, docType: 'Outgoing' } as DocOutgoingDto);
+                setDocAndItems({ doc: { ...doc, docType: 'Outgoing' } as DocOutgoingDto, items });
                 break;
             case 'Order':
-                setDoc({ ...doc, docType: 'Order' } as DocOrderDto);
+                setDocAndItems({ doc: { ...doc, docType: 'Order' } as DocOrderDto, items });
                 break;
             case 'Transfer':
-                setDoc({ ...doc, docType: 'Transfer' } as DocTransferDto);
+                setDocAndItems({ doc: { ...doc, docType: 'Transfer' } as DocTransferDto, items });
                 break;
             default:
                 console.warn('Неизвестный тип документа:', val);
@@ -66,9 +48,12 @@ export const HeaderForm = ({
                             value={isEditing ? doc.priority : doc.priority}
                             editable={isEditing}
                             onChange={(val) =>
-                                setDoc({
-                                    ...doc,
-                                    priority: val as 'Low' | 'Medium' | 'High',
+                                setDocAndItems({
+                                    doc: {
+                                        ...doc,
+                                        priority: val as 'Low' | 'Medium' | 'High',
+                                    },
+                                    items,
                                 })
                             }
                             options={[
@@ -77,7 +62,14 @@ export const HeaderForm = ({
                                 { label: 'Высокий', value: 'High' },
                             ]}
                         />
-                        <Field label="Клиент" value={doc.customerId?.name} editable={false} />
+                        <EntitySelectModal
+                            endpoint="customer"
+                            selectedItem={doc.customerId?._id ? doc.customerId : null}
+                            onSelect={(item) => setDocAndItems({ doc: { ...doc, customerId: item }, items })}
+                            modalTitle="Выберите клиента"
+                            buttonText={doc.customerId?.name || 'Выберите клиента'}
+                        />
+
                     </>
                 );
 
@@ -87,16 +79,23 @@ export const HeaderForm = ({
                         <Field
                             label="Статус"
                             value={
-                                isEditing ? doc.status : DOC_STATUS_OUT[doc.status as DocStatusOut]
+                                isEditing ? doc.docStatus : DocStatusOutMap[doc.docStatus as DocStatusOutName].nameRus
                             }
                             editable={isEditing}
-                            onChange={(val) => setDoc({ ...doc, status: val as DocStatusOut })}
-                            options={Object.keys(DOC_STATUS_OUT).map((key) => ({
-                                label: DOC_STATUS_OUT[key as DocStatusOut],
+                            onChange={(val) => setDocAndItems({ doc: { ...doc, docStatus: val as DocStatusOutName }, items }) }
+                            options={Object.keys(DocStatusOutMap).map((key) => ({
+                                label: DocStatusOutMap[key as DocStatusOutName].name,
                                 value: key,
                             }))}
                         />
                         <Field label="Клиент" value={doc.customerId?.name} editable={false} />
+                        <EntitySelectModal
+                            endpoint="customer"
+                            selectedItem={doc.customerId?._id ? doc.customerId : null}
+                            onSelect={(item) => setDocAndItems({ doc: { ...doc, customerId: item }, items })}
+                            modalTitle="Выберите клиента"
+                            buttonText={doc.customerId?.name || 'Выберите клиента'}
+                        />
                     </>
                 );
 
@@ -106,12 +105,12 @@ export const HeaderForm = ({
                         <Field
                             label="Статус"
                             value={
-                                isEditing ? doc.status : DOC_STATUS_IN[doc.status as DocStatusIn]
+                                isEditing ? doc.docStatus : DocStatusInMap[doc.docStatus as DocStatusInName].nameRus
                             }
                             editable={isEditing}
-                            onChange={(val) => setDoc({ ...doc, status: val as DocStatusIn })}
-                            options={Object.keys(DOC_STATUS_IN).map((key) => ({
-                                label: DOC_STATUS_IN[key as DocStatusIn],
+                            onChange={(val) => setDocAndItems({ doc: { ...doc, docStatus: val as DocStatusInName }, items }) }
+                            options={Object.keys(DocStatusInMap).map((key) => ({
+                                label: DocStatusInMap[key as DocStatusInName].name,
                                 value: key,
                             }))}
                         />
@@ -134,88 +133,46 @@ export const HeaderForm = ({
 
     return (
         <div className={styles.container}>
-            {/* Кнопки управления */}
-            <div className={styles.actions}>
-                {!isEditing ? (
-                    <div className={styles.buttonGroup}>
-                        <Button
-                            onClick={() => setIsEditing(true)}
-                            bgColor="#007bff"
-                            textColor="#fff"
-                            text="Редактировать"
-                        />
-                        <Button
-                            onClick={handleDelete}
-                            bgColor="#d32f2f"
-                            textColor="#fff"
-                            text="Удалить"
-                        />
-                    </div>
-                ) : (
-                    <div className={styles.buttonGroup}>
-                        <Button
-                            onClick={handleSave}
-                            bgColor="#28a745"
-                            textColor="#fff"
-                            text="Сохранить"
-                        />
-                        <Button
-                            onClick={() => setIsEditing(false)}
-                            bgColor="#6c757d"
-                            textColor="#fff"
-                            text="Отмена"
-                        />
-                    </div>
-                )}
-            </div>
 
             {/* Заголовок */}
-            <h2 className={styles.title}>Документ №{doc.docNum}</h2>
-
-            {/* Шапка: дата + статус */}
-            <div className={styles.header}>
-                <Field
-                    label="Дата"
-                    value={doc.docDate}
-                    editable={isEditing}
-                    type="date"
-                    onChange={(val) => setDoc({ ...doc, docDate: new Date(val) })}
-                />
-                <span
-                    className={styles.statusBadge}
-                    style={{ backgroundColor: getStatusColor(doc.status) }}
-                >
-                    {doc.status}
-                </span>
-            </div>
-
-            {/* Карточка с полями */}
             <div className={styles.card}>
-                {/* ✅ ВЫЗОВ handleChange — ЗДЕСЬ! */}
-                <Field
-                    label="Тип"
-                    value={isEditing ? doc.docType : DOC_TYPE[doc.docType]}
-                    editable={isEditing}
-                    onChange={(val) => handleChange(val as DocType)}  // ← ЭТОТ ВЫЗОВ ИСПОЛЬЗУЕТ handleChange!
-                    options={Object.keys(DOC_TYPE).map((key) => ({
-                        label: DOC_TYPE[key as DocType],
-                        value: key,
-                    }))}
-                />
+                <div>
+                    <h2 className={styles.title}>Документ №{doc.docNum}</h2>
+
+                    <span
+                        className={styles.statusBadge}
+                        style={{ backgroundColor: DocStatusMap[doc.docStatus as DocStatusName].color }}
+                    >
+                        {DocStatusMap[doc.docStatus as DocStatusName].nameRus}
+                    </span>
+                </div>
+
+                {/* Шапка: дата + статус */}
+                <div className={styles.header}>
+                    <Field
+                        label="Дата"
+                        value={new Date(doc.docDate)}
+                        editable={isEditing}
+                        type="date"
+                        onChange={(val) => setDocAndItems({ doc: { ...doc, docDate: new Date(val) }, items }) }
+                    />
+                </div>
+                {/* Карточка с полями */}
+                {doc.docType !== 'Order' && (
+                    <Field
+                        label="Тип"
+                        value={isEditing ? doc.docType : DocTypeMap[doc.docType].nameRus}
+                        editable={isEditing}
+                        onChange={(val) => handleChange(val as DocTypeName)}
+                        options={Object.keys(DocTypeMap).map((key) => ({
+                            label: DocTypeMap[key as DocTypeName].nameRus,
+                            value: key,
+                        }))}
+                    />
+                )}
                 {renderTypeSpecificFields()}
             </div>
 
-            {/* Кнопка "Добавить позицию" (только в режиме редактирования) */}
-            {isEditing && (
-                <div className={styles.actions}>
-                    <Button
-                        bgColor="#28a745"
-                        textColor="#fff"
-                        onClick={() => alert('Добавить позицию')}
-                        text="Добавить позицию"
-                    />
-                </div>
-            )}
         </div>
     );
 };

@@ -33,9 +33,55 @@ export function SelectModal<T extends EntityConstraint>({
   const listRef = useRef<HTMLUListElement>(null);
 
   // Фильтрация по name
-  const filteredItems = items.filter((item) =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // function isFuzzyMatch(needle: string, haystack: string): boolean {
+  //   const cleanNeedle = needle.toLowerCase().replace(/[^a-zа-яё0-9]/g, '');
+  //   const cleanHaystack = haystack.toLowerCase().replace(/[^a-zа-яё0-9]/g, '');
+
+  //   if (cleanNeedle === '') return true;
+
+  //   let i = 0;
+  //   for (let j = 0; j < cleanHaystack.length && i < cleanNeedle.length; j++) {
+  //     if (cleanHaystack[j] === cleanNeedle[i]) {
+  //       i++;
+  //     }
+  //   }
+  //   return i === cleanNeedle.length;
+  // }
+
+  function matchesFuzzyWords(query: string, text: string): boolean {
+    if (!query.trim()) return true;
+
+    // Очистка: оставляем только буквы и цифры, приводим к нижнему регистру
+    const clean = (s: string) => s.toLowerCase().replace(/[^a-zа-яё0-9]/g, '');
+
+    const queryParts = query
+      .split(/\s+/)
+      .map(part => clean(part))
+      .filter(part => part.length > 0);
+
+    if (queryParts.length === 0) return true;
+
+    const words = text.split(/\s+/).map(word => clean(word));
+
+    // Каждая часть запроса должна быть найдена хотя бы в одном слове
+    return queryParts.every(queryPart =>
+      words.some(word => word.includes(queryPart))
+    );
+  }
+
+
+  // В компоненте:
+  const filteredItems = items.filter((item) => matchesFuzzyWords(searchTerm, item.name));
+
+  // //Старая фильтрация
+  // const filteredItems = items.filter((item) =>
+  //   item.name.toLowerCase().includes(searchTerm.toLowerCase())
+  // );
+
+
+
+  //Установка фокуса на TextField
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isOpen && selectedItem && !loading && listRef.current) {
@@ -47,7 +93,6 @@ export function SelectModal<T extends EntityConstraint>({
         const selectedItemEl = listRef.current?.querySelector(
           `[data-id="${selectedItem._id}"]`
         ) as HTMLElement | null;
-
         if (selectedItemEl) {
           selectedItemEl.scrollIntoView({
             behavior: 'smooth',
@@ -65,6 +110,16 @@ export function SelectModal<T extends EntityConstraint>({
     if (!isOpen) setSearchTerm("");
   }, [isOpen]);
 
+  // Фокус на TextField при открытии модалки
+  useEffect(() => {
+    if (isOpen) {
+      const timer = setTimeout(() => {
+        inputRef.current?.focus();
+        inputRef.current?.select();
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
 
   // Закрытие по Escape
   useEffect(() => {
@@ -100,6 +155,7 @@ export function SelectModal<T extends EntityConstraint>({
 
         <div className={styles.searchBox}>
           <TextField
+            inputRef={inputRef}
             name="search"
             placeholder="Поиск"
             value={searchTerm}

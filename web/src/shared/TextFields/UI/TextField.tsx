@@ -10,11 +10,13 @@ export interface TextFieldProps {
   name: string;
   placeholder: string;
   value: any;
+  // 👇 Новый пропс для передачи рефа
+  inputRef?: React.Ref<HTMLInputElement | HTMLTextAreaElement>;
   // 👇 Один обработчик для обоих типов элементов
   onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 }
 
-export const TextField = ({ type, name, placeholder, value, onChange }: TextFieldProps) => {
+export const TextField = (({ type, name, placeholder, value, onChange, inputRef }: TextFieldProps) => {
   const [focused, setFocused] = useState(false);
 
   const handleFocus = () => {
@@ -52,10 +54,10 @@ export const TextField = ({ type, name, placeholder, value, onChange }: TextFiel
     };
 
     if (type === 'textarea') {
-      return <textarea {...commonProps} rows={4} />;
+      return <textarea ref={inputRef as React.Ref<HTMLTextAreaElement>} {...commonProps} rows={4} />;
     }
 
-    return <input {...commonProps} type={type || 'text'} />;
+    return <input ref={inputRef as React.Ref<HTMLInputElement>} {...commonProps} type={type || 'text'} />;
   };
 
   return (
@@ -78,6 +80,6 @@ export const TextField = ({ type, name, placeholder, value, onChange }: TextFiel
       </div>
     </div>
   );
-};
+});
 
 export default TextField;

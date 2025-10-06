@@ -1,0 +1,13 @@
+# Унифицировать окончания строк
+* text=auto eol=lf
+
+# Явно указать, что JSON, JS, TS и подобные — текстовые файлы с LF
+*.json text eol=lf
+*.js text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf

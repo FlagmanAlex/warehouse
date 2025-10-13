@@ -7,7 +7,7 @@ export const docLoader = async ({ request } : { request: Request }) => {
     const url = new URL(request.url);
     const searchParams = url.searchParams
 
-    const startDate = searchParams.get('startDate') || formatDate(new Date(new Date().getFullYear(), new Date().getMonth(), 1)).toString()
+    const startDate = searchParams.get('startDate') || formatDate(new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate())).toString()
     const endDate = searchParams.get('endDate') || formatDate(new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() + 1)).toString()
 
     try {

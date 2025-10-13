@@ -27,6 +27,7 @@ const DocForm = () => {
     items: initialItems,
   });
 
+
   // ✅ Установить isEditing в true по умолчанию
   const [isEditing, setIsEditing] = useState(true);
 
@@ -52,7 +53,7 @@ const DocForm = () => {
 
   const renderFooter = () => {
     const totalSKU = formData.items.length;
-    console.log(formData.items);
+    console.log(formData);
 
     return (
       <div className={styles.footer}>

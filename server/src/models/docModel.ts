@@ -41,8 +41,8 @@ const docSchema = new Schema<IDocModel>({
     toWarehouseId: { type: Schema.Types.ObjectId, ref: 'Warehouse', required: () => { return (this as any).docType === 'Transfer' } },
     fromWarehouseId: { type: Schema.Types.ObjectId, ref: 'Warehouse', required: () => { return (this as any).docType === 'Transfer' } },
 
-    warehouseId: { type: Schema.Types.ObjectId, ref: 'Warehouse', required: function (this: any) { return this.docType !== 'Order' } }, //Если docType не равен 'Order', то поле обязательно
-
+    warehouseId: { type: Schema.Types.ObjectId, ref: 'Warehouse', required: function (this: any) { return this.docType !== 'OrderOut' } }, //Если docType не равен 'OrderOut', то поле обязательно
+    priority: { type: String },
     docStatus: { type: String, required: true },
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     description: { type: String },

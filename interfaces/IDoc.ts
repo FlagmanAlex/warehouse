@@ -34,6 +34,8 @@ export interface IDocBase {
     description?: string
     /** ID заказа */
     docId?: string
+    //** Приоритет */
+    priority?: PriorityOrder
     /** Тип документа */
     docType: DocTypeName
     /** Статус */
@@ -60,11 +62,15 @@ export interface IDocOutgoing extends IDocBase {
     // docType: 'Outgoing'
     customerId: string
 }
-export interface IDocOrder extends IDocBase {
+export interface IDocOrderIn extends IDocBase {
+    // docType: 'Order'
+    supplierId: string
+    expenses: number
+}
+export interface IDocOrderOut extends IDocBase {
     // docType: 'Order'
     customerId: string
-    priority: PriorityOrder
     expenses: number
 }
 
-export type IDoc = IDocIncoming | IDocOutgoing | IDocOrder | IDocTransfer;
+export type IDoc = IDocIncoming | IDocOutgoing | IDocOrderOut | IDocOrderIn | IDocTransfer;

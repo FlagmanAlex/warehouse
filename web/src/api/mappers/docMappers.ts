@@ -1,11 +1,12 @@
 // src/api/mappers/docMappers.ts
 
-import type { IDoc, IDocIncoming, IDocItem, IDocOrder, IDocOutgoing, IDocTransfer } from "@warehouse/interfaces";
-import type { DocDto, DocIncomingDto, DocItemDto, DocOrderDto, DocOutgoingDto, DocTransferDto } from "@warehouse/interfaces/DTO";
+import type { IDoc, IDocIncoming, IDocItem, IDocOrderOut, IDocOutgoing, IDocTransfer } from "@warehouse/interfaces";
+import type { DocDto, DocIncomingDto, DocItemDto, DocOrderInDto, DocOrderOutDto, DocOutgoingDto, DocTransferDto } from "@warehouse/interfaces/DTO";
 
 
 // DTO -> Domain
 export const dtoToDoc = (dto: DocDto): IDoc => {
+  console.log('dtoToDoc', dto);
   const base = {
     _id: dto._id,
     orderNum: dto.orderNum,
@@ -21,14 +22,23 @@ export const dtoToDoc = (dto: DocDto): IDoc => {
   };
 
   switch (dto.docType) {
-    case 'Order': {
-      const orderDto = dto as DocOrderDto;
+    case 'OrderIn': {
+      const orderDto = dto as DocOrderInDto;
+      return {
+        ...base,
+        customerId: orderDto.supplierId?._id || '',
+        priority: orderDto.priority,
+        expenses: orderDto.expenses,
+      } as IDocOrderOut;
+    }
+    case 'OrderOut': {
+      const orderDto = dto as DocOrderOutDto;
       return {
         ...base,
         customerId: orderDto.customerId?._id || '',
         priority: orderDto.priority,
         expenses: orderDto.expenses,
-      } as IDocOrder;
+      } as IDocOrderOut;
     }
 
     case 'Transfer': {

@@ -2,6 +2,7 @@ import { redirect } from "react-router-dom";
 import { fetchApi } from "../../api/fetchApi";
 import { dtoItemToDocItem, dtoToDoc } from "../../api/mappers/docMappers";
 import type { DocFormData } from "../../types/forms/DocForm";
+import { formatDate } from "../../utils/formatDate";
 
 export const docAction = async ({ request }: { request: Request }) => {
   const formData : any = await request.formData();
@@ -12,8 +13,6 @@ export const docAction = async ({ request }: { request: Request }) => {
   const id = formData.get('id');
   const _method = formData.get('_method');
 
-  console.log(_method, id, docStr, itemsStr);
-  
 
   if (typeof docStr !== 'string') {
     return { error: 'Не правильные данные документа' };
@@ -33,9 +32,12 @@ export const docAction = async ({ request }: { request: Request }) => {
   }
 
   const docFormData: DocFormData = {
-    doc: docData,
+    doc: { ...docData, docDate: formatDate(new Date(docData.docDate))},
     items: itemsData,
   };
+
+  console.log(docFormData);
+  
 
   try {
 
@@ -53,8 +55,8 @@ export const docAction = async ({ request }: { request: Request }) => {
       case 'POST':
           await fetchApi('doc', 'POST', { doc: domainDoc, items: domainItems });
           return redirect('/docs');
-      default:
-        return { error: 'Неверный метод' };
+      // default:
+      //   return { error: 'Неверный метод' };
       }
   } catch (error) {
     console.error('Ошибка при сохранении документа:', error);

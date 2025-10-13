@@ -8,6 +8,8 @@ export const docRouter = express.Router();
 docRouter.get('/', DocController.getAllDocs);
 // Получение заказа по ID
 docRouter.get('/:id', DocController.getDocById);
+// Получение заказов по статусу документа
+docRouter.get('/status/:status', DocController.getDocsByStatus);
 // Создание нового заказа
 docRouter.post('/', DocController.createDoc);
 //Изменение статуса заказа

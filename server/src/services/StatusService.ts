@@ -1,8 +1,18 @@
 // services/DocService.ts
 
-import { IDocModel, DocModel, DocItemsModel, InventoryModel, TransactionModel, BatchModel, ITransactionModel, AccountModel, IAccountModel } from '@models';
+import {
+    IDocModel,
+    DocModel,
+    DocItemsModel,
+    InventoryModel,
+    TransactionModel,
+    BatchModel,
+    ITransactionModel,
+    IAccountModel,
+    AccountModel,
+} from '@models';
 import { InventoryService } from './InventoryService';
-import { DocStatusInName, DocStatusName, DocStatusOutName } from '@interfaces/config';
+import { DocStatusInName, DocStatusName, DocStatusOrderName, DocStatusOutName, DocStatusTransferName, STATUS_TRANSITIONS_INCOMING, STATUS_TRANSITIONS_ORDER, STATUS_TRANSITIONS_OUTGOING, STATUS_TRANSITIONS_TRANSFER } from '@interfaces/config';
 import { IDocItem } from '@interfaces';
 
 type ValidStatusTransition<T extends string> = Record<T, { name: T }[]>
@@ -18,100 +28,88 @@ export class DocService {
         const doc: IDocModel | null = await DocModel.findById(docId);
         if (!doc) throw new Error('Документ не найден');
 
-        console.log(doc.docType, doc.docStatus, newStatusName);
-        if (doc.docType === 'Outgoing') {
+        const currentStatus = doc.docStatus;
+        if (currentStatus === newStatusName) {
+            console.log(`Документ ${docId} уже в статусе "${newStatusName}"`);
+            return doc;
+        }
+        const docType = doc.docType;
 
-            type Status = DocStatusOutName
+        //1. Определяем какие переходы документа разрешены
+        let allowedNextStatuses: string[] = [];
 
-            const validStatusOut: ValidStatusTransition<Status> = {
-                'Draft': [{ name: 'Reserved' }, { name: 'Canceled' }],
-                'Reserved': [{ name: 'Shipped' }, { name: 'Canceled' }],
-                'Shipped': [{ name: 'Completed' }, { name: 'Canceled' }],
-                'Completed': [{ name: 'Canceled' }],
-                'Canceled': [{ name: 'Draft' }]
-            };
-
-            // Получаем текущий статус как строку
-            const currentStatus = doc.docStatus as Status;
-            const allowedTransitions = validStatusOut[currentStatus] || [];
-            const isAllowed = allowedTransitions.some(t => t.name === newStatusName);
-
-            if (!isAllowed) {
-                throw new Error(`Переход из статуса "${currentStatus}" на "${newStatusName}" невозможен`);
-            }
-
-            //Логика по новому статусу
-            switch (newStatusName) {
-                case 'Reserved':
-                    console.log(`Документ ${docId} переведен в статус "В резерве"`);
-                    //await this.reserveItems(docId);
-                    break;
-                case 'Shipped':
-                    console.log(`Документ ${docId} переведен в статус "Отгружен"`);
-                    //await this.shipItemsOut(docId, userId);
-                    break;
-                case 'Completed':
-                    console.log(`Документ ${docId} переведен в статус "Завершен"`);
-                    //await this.completeDocOut(docId);
-                    break;
-                case 'Canceled':
-                    console.log(`Документ ${docId} переведен в статус "Отменен"`);
-                    break;
-            }
-            doc.docStatus = newStatusName;
-        } else if (doc.docType === 'Incoming') {
-
-            type Status = DocStatusInName
-
-            const validStatusIn: ValidStatusTransition<Status> = {
-                'Draft': [{ name: 'Shipped' }, { name: 'Canceled' }],
-                'Shipped': [{ name: 'TransitHub' }, { name: 'Canceled' }],
-                'TransitHub': [{ name: 'InTransitDestination' }, { name: 'Canceled' }],
-                'InTransitDestination': [{ name: 'Delivered' }, { name: 'Canceled' }],
-                'Delivered': [{ name: 'Canceled' }],
-                'Canceled': [{ name: 'Draft' }]
-            };
-
-            // Получаем текущий статус как строку
-            const currentStatus = doc.docStatus as Status;
-            const allowedTransitions = validStatusIn[currentStatus] || [];
-            const isAllowed = allowedTransitions.some(t => t.name === newStatusName);
-
-            if (!isAllowed) {
-                throw new Error(`Переход из статуса "${currentStatus}" на "${newStatusName}" невозможен`);
-            }
-
-            //Логика по новому статусу
-            switch (newStatusName) {
-                case 'Shipped':
-                    console.log(`Документ ${docId} переведен в статус "Отгружен"`);
-                    //await this.shipItemsIn(docId, userId);
-                    break;
-                case 'TransitHub':
-                    console.log(`Документ ${docId} переведен в статус "В транзите (Хаб)"`);
-                    //await this.inTransitHub(docId);
-                    break;
-                case 'InTransitDestination':
-                    console.log(`Документ ${docId} переведен в статус "В транзите (Пункт назначения)"`);
-                    //await this.inTransitDestination(docId);
-                    break;
-                case 'Delivered':
-                    console.log(`Документ ${docId} переведен в статус "Доставлен"`);
-                    //await this.deliverItems(docId);
-                    break;
-                case 'Completed':
-                    console.log(`Документ ${docId} переведен в статус "Завершен"`);
-                    //await this.completeDocIn(docId);
-                    break;
-                case 'Canceled':
-                    console.log(`Документ ${docId} переведен в статус "Отменен"`);
-                    break;
-            }
-
+        if (docType === 'Outgoing') {
+            allowedNextStatuses = STATUS_TRANSITIONS_OUTGOING[currentStatus as DocStatusOutName] || [];
+        } else if (docType === 'Incoming') {
+            allowedNextStatuses = STATUS_TRANSITIONS_INCOMING[currentStatus as DocStatusInName] || [];
+        } else if (docType === 'Transfer') {
+            allowedNextStatuses = STATUS_TRANSITIONS_TRANSFER[currentStatus as DocStatusTransferName] || [];
+        } else if (docType === 'OrderOut' || docType === 'OrderIn') {
+            allowedNextStatuses = STATUS_TRANSITIONS_ORDER[currentStatus as DocStatusOrderName] || [];
+        } else {
+            throw new Error(`Неизвестный тип документа: ${docType}`);
         }
 
-        return await doc.save();
+        //2. Проверяем, что новый статус разрешен
+        if (!allowedNextStatuses.includes(newStatusName)) {
+            throw new Error(`Переход из статуса "${currentStatus}" на "${newStatusName}" запрещен для документа типа "${docType}"`);
+        }
+
+        //3. Выполняем переход
+        switch (docType) {
+            case 'Outgoing':
+                await this.handleOutgoingStatusChange(doc, newStatusName, userId);
+                break;
+            case 'Incoming':
+                await this.handleIncomingStatusChange(doc, newStatusName, userId);
+                break;
+            case 'Transfer':
+                await this.handleTransferStatusChange(doc, newStatusName, userId);
+                break;
+            case 'OrderOut':
+                await this.handleOrderOutStatusChange(doc, newStatusName, userId);
+                break;
+            case 'OrderIn':
+                await this.handleOrderInStatusChange(doc, newStatusName, userId);
+                break;
+            default:
+                throw new Error(`Неизвестный тип документа: ${docType}`);}
+
+        await doc.save();
+        return doc;
     }
+
+    private static async handleOutgoingStatusChange(doc: IDocModel, newStatusName: DocStatusName, userId: string) {
+        console.log('handleOutgoingStatusChange', doc, newStatusName, userId);
+        // Логика обработки изменения статуса для исходящих документов
+        doc.docStatus = newStatusName;
+    }
+
+    private static async handleIncomingStatusChange(doc: IDocModel, newStatusName: DocStatusName, userId: string) {
+        console.log('handleIncomingStatusChange', doc, newStatusName, userId);
+        // Логика обработки изменения статуса для входящих документов
+        doc.docStatus = newStatusName;
+    }
+
+    private static async handleTransferStatusChange(doc: IDocModel, newStatusName: DocStatusName, userId: string) {
+        console.log('handleTransferStatusChange', doc, newStatusName, userId);
+        // Логика обработки изменения статуса для переводов документов
+        doc.docStatus = newStatusName;
+    }
+
+    private static async handleOrderOutStatusChange(doc: IDocModel, newStatusName: DocStatusName, userId: string) {
+        console.log('handleOrderOutStatusChange', doc, newStatusName, userId);
+        // Логика обработки изменения статуса для исходящих заказов
+        doc.docStatus = newStatusName;
+    }
+
+    private static async handleOrderInStatusChange(doc: IDocModel, newStatusName: DocStatusName, userId: string) {
+        console.log('handleOrderInStatusChange', doc, newStatusName, userId);
+        // Логика обработки изменения статуса для входящих заказов
+        doc.docStatus = newStatusName;
+    }
+
+
 
     static async completeDocIn(docId: string): Promise<IDocModel> {
         const doc: IDocModel | null = await DocModel.findById(docId);

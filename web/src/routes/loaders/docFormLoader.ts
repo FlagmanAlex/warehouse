@@ -1,6 +1,6 @@
 // src/component/screens/DocForm/docFormLoader.ts
 import { fetchApi } from '../../api/fetchApi';
-import type { DocDto, DocItemDto, DocOrderDto } from '@warehouse/interfaces/DTO';
+import type { DocDto, DocItemDto, DocOrderOutDto } from '@warehouse/interfaces/DTO';
 
 
 export const docFormLoader = async ({ params }: { params: { id?: string } }) => {
@@ -20,11 +20,11 @@ export const docFormLoader = async ({ params }: { params: { id?: string } }) => 
         summ: 0,
         orderNum: '',
         priority: 'Low',
-        docType: 'Order', // ← можно передать через searchParams, если нужно
+        docType: 'OrderOut', // ← можно передать через searchParams, если нужно
         docStatus: 'Draft',
         customerId: { _id: '', name: '' },
         description: '',
-      } as unknown as DocOrderDto,
+      } as unknown as DocOrderOutDto,
       items: [],
       isNew: true,
     };

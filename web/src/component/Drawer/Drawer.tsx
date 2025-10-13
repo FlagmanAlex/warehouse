@@ -20,10 +20,13 @@ export const Drawer = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
         { label: 'Продукция', path: '/products' },
       ],
     },
-    // {
-    //   label: 'Остатки по складу',
-    //   path: '/stock-warehouse',
-    // },
+    {
+      label: 'Отчеты',
+      path: '',
+      children: [
+        { label: 'В работе', path: '/inprogress-report' },
+      ],
+    }
   ];
 
 

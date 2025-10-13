@@ -20,6 +20,8 @@ import StockWarehouse from "../component/Screens/StockScreen/StockWarehouse";
 import { customerLoader } from "./loaders/customerLoader";
 import { docAction } from "./actions/docAction";
 import { customerAction } from "./actions/customerAction";
+import { InProgressReport } from "../pages/Reports";
+import { inProgressReportLoader } from "./loaders/inProgressReportLoader";
 
 
 export const routeConfig: RouteObject[] = [
@@ -103,6 +105,11 @@ export const routeConfig: RouteObject[] = [
                 element: <ProductForm />,
                 loader: protectedLoader(productFormLoader),
                 errorElement: <ErrorPage />
+            },
+            {
+                path: 'inprogress-report',
+                element: <InProgressReport />,
+                loader: protectedLoader(inProgressReportLoader)
             },
             { path: '/stock-product/:productId', element: <StockProduct /> },
             { path: '/stock-warehouse', element: <StockWarehouse /> },

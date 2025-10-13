@@ -1,7 +1,9 @@
-import { server } from "@warehouse/interfaces/config";
+// import { server } from "@warehouse/interfaces/config";
 
 import type { NavigateFunction } from "react-router-dom";
 
+
+const server = import.meta.env.VITE_SERVER
 let navigate: NavigateFunction | null = null;
 // let authContext: { logout: () => Promise<void> };
 

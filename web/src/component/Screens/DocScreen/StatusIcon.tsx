@@ -2,32 +2,29 @@
 
 import { useState } from 'react';
 import { fetchApi } from '../../../api/fetchApi';
-import { DocStatusOutMap, type DocStatusName, type DocStatusOutName } from '@warehouse/interfaces/config';
+import { DocStatusMap, STATUS_TRANSITIONS_INCOMING, STATUS_TRANSITIONS_ORDER, STATUS_TRANSITIONS_OUTGOING, STATUS_TRANSITIONS_TRANSFER, type DocStatusInName, type DocStatusName, type DocStatusOrderName, type DocStatusOutName, type DocStatusTransferName, type DocTypeName } from '@warehouse/interfaces/config';
 import { Icon } from '../../../shared/Icon';
 import { useRevalidator } from 'react-router-dom';
 
-// Допустимые переходы между статусами
-const STATUS_TRANSITIONS: Record<DocStatusOutName, DocStatusOutName[]> = {
-  Draft: ['Reserved', 'Canceled'],
-  Reserved: ['Shipped', 'Canceled'],
-  Shipped: ['Completed', 'Canceled'],
-  Completed: [],
-  Canceled: [],
-};
 
 type StatusIconProps = {
+  docType: DocTypeName;
   status: DocStatusName;
   docId: string;
-  // onStatusChange: (newStatus: DocStatus) => void; // Колбэк для обновления в родителе
+  onStatusChange?: (newStatus: DocStatusName) => void; // Колбэк для обновления в родителе
 };
 
-export const StatusIcon = ({ status, docId }: StatusIconProps) => {
+export const StatusIcon = ({ docType, status, docId, onStatusChange }: StatusIconProps) => {
   const [modalVisible, setModalVisible] = useState(false);
 
   const revalidator = useRevalidator();
 
-  const availableStatuses = STATUS_TRANSITIONS[status as DocStatusOutName] || [];
-
+  const availableStatuses = 
+    docType === 'Outgoing' && STATUS_TRANSITIONS_OUTGOING[status as DocStatusOutName] ||
+    docType === 'Incoming' && STATUS_TRANSITIONS_INCOMING[status as DocStatusInName] ||
+    docType === 'Transfer' && STATUS_TRANSITIONS_TRANSFER[status as DocStatusTransferName] ||
+    (docType === 'OrderOut' || docType === 'OrderIn') && STATUS_TRANSITIONS_ORDER[status as DocStatusOrderName] ||
+    [];
   const handleStatusChange = async (newStatus: DocStatusName) => {
     try {
       await fetchApi(`doc/${docId}/status`, 'PATCH', {
@@ -35,7 +32,7 @@ export const StatusIcon = ({ status, docId }: StatusIconProps) => {
       });
 
       revalidator.revalidate();
-      // onStatusChange(newStatus); // Обновляем в UI
+      if (onStatusChange) onStatusChange(newStatus);
       setModalVisible(false);
     } catch (error) {
       window.alert('Ошибка! Не удалось изменить статус');
@@ -57,8 +54,8 @@ export const StatusIcon = ({ status, docId }: StatusIconProps) => {
         aria-label="Изменить статус"
       >
         <Icon
-          name={DocStatusOutMap[status as keyof typeof DocStatusOutMap].icon}
-          color={DocStatusOutMap[status as keyof typeof DocStatusOutMap].color}
+          name={DocStatusMap[status as keyof typeof DocStatusMap].icon}
+          color={DocStatusMap[status as keyof typeof DocStatusMap].color}
           size={30}
         />
       </button>
@@ -75,7 +72,7 @@ export const StatusIcon = ({ status, docId }: StatusIconProps) => {
             {availableStatuses.length === 0 ? (
               <p style={styles.noOptions}>Нет доступных действий</p>
             ) : (
-              availableStatuses.map((s: DocStatusOutName) => (
+              availableStatuses.map((s: DocStatusName) => (
                 <button
                   key={s}
                   style={{
@@ -85,17 +82,17 @@ export const StatusIcon = ({ status, docId }: StatusIconProps) => {
                   onClick={() => handleStatusChange(s)}
                 >
                   <Icon
-                    name={DocStatusOutMap[s as keyof typeof DocStatusOutMap].icon}
-                    color={DocStatusOutMap[s as keyof typeof DocStatusOutMap].color}
+                    name={DocStatusMap[s as keyof typeof DocStatusMap].icon}
+                    color={DocStatusMap[s as keyof typeof DocStatusMap].color}
                     size={20}
                   />
                   <span
                     style={{
                       ...styles.optionText,
-                      color: DocStatusOutMap[s as keyof typeof DocStatusOutMap].color,
+                      color: DocStatusMap[s as keyof typeof DocStatusMap].color,
                     }}
                   >
-                    {DocStatusOutMap[s as keyof typeof DocStatusOutMap].nameRus}
+                    {DocStatusMap[s as keyof typeof DocStatusMap].nameRus}
                   </span>
                 </button>
               ))

@@ -15,6 +15,12 @@
   margin: 10px 0;
 }
 
+.titleWrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .header {
   display: flex;
   justify-content: space-between;
@@ -25,6 +31,7 @@
 }
 
 .statusBadge {
+  /* display: block; */
   padding: 6px 12px;
   border-radius: 8px;
   font-size: 12px;

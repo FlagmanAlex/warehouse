@@ -70,37 +70,46 @@ export default () => {
     }, [customers, searchQuery]);
 
 
-    const customerCards = filteredCustomers.map((item) => (
-        <div
-            key={item._id}
-            className={style.customerCard}
-            onClick={() => navigate(`/customer/${item._id}`)}
-        >
-            <h3>{item.name}</h3>
-            <p>
-                <strong>Телефон:</strong>
-                {item.phone ? (
-                    <a
-                        href={`tel:${item.phone}`}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        {item.phone}
-                    </a>
-                ) : (
-                    <span>Не указан</span>
-                )}
-            </p>
-            <p>
-                <strong>Адрес:</strong>
-                {item.gps ?
-                    <a
-                        href={`geo:${item.gps}`}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        {item.address}
-                    </a> : item.address}</p>
-        </div>
-    ));
+const customerCards = filteredCustomers.map((item) => (
+    <div
+        key={item._id}
+        className={style.customerCard}
+        onClick={() => navigate(`/customer/${item._id}`)}
+    >
+        <h3 className={style.customerName}>{item.name}</h3>
+        {item.description && (
+            <p className={style.customerDescription}>{item.description}</p>
+        )}
+        <p className={style.customerDetail}>
+            <strong>Телефон:</strong>
+            {item.phone ? (
+                <a
+                    href={`tel:${item.phone}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className={style.contactLink}
+                >
+                    {item.phone}
+                </a>
+            ) : (
+                <span className={style.muted}>Не указан</span>
+            )}
+        </p>
+        <p className={style.customerDetail}>
+            <strong>Адрес:</strong>
+            {item.gps ? (
+                <a
+                    href={`geo:${item.gps}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className={style.contactLink}
+                >
+                    {item.address}
+                </a>
+            ) : (
+                item.address || <span className={style.muted}>Не указан</span>
+            )}
+        </p>
+    </div>
+));
 
     return (
         <>
@@ -119,13 +128,13 @@ export default () => {
                     icon={'FaPlus'}
                     className={style.floatingButton}
                 />
-                <div className={style.customerList}>
-                    {filteredCustomers.length > 0 ? (
-                        customerCards
-                    ) : (
-                        <p>Клиенты не найдены</p>
-                    )}
-                </div>
+            </div>
+            <div className={style.customerList}>
+                {filteredCustomers.length > 0 ? (
+                    customerCards
+                ) : (
+                    <p className={style.emptyList}>Клиенты не найдены</p>
+                )}
             </div>
         </>
     );

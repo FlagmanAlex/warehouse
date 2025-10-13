@@ -2,11 +2,12 @@
 
 import { Request, Response } from 'express';
 // import { CreateDocDto,  } from '@interfaces/DTO';
-import { DocModel, DocItemsModel, DocNumModel } from '@models';
+import { DocModel, DocItemsModel, DocNumModel, IDocModel } from '@models';
 import { DocService } from '../services/StatusService';
 import { DocItemService } from '@services';
 import { IDoc, IDocItem } from '@interfaces';
 import { DocStatusName } from '@interfaces/config';
+import { DocDto, DocOrderOutDto } from '@interfaces/DTO';
 
 // === Дополнительный DTO для обновления статуса (может быть вынесен в DTO)
 
@@ -25,7 +26,7 @@ export class DocController {
 
         try {
             // Генерация номера
-            const prefixMap: Record<string, string> = { Order: 'ЗК', Incoming: 'ПР', Outgoing: 'РС', Transfer: 'ПМ' };
+            const prefixMap: Record<string, string> = { OrderOut: 'ЗК', OrderIn: 'ЗП', Incoming: 'ПР', Outgoing: 'РС', Transfer: 'ПМ' };
             const prefix = prefixMap[doc.docType];
             if (!prefix) {
                 res.status(400).json({ error: 'Неверный тип документа' });
@@ -70,9 +71,6 @@ export class DocController {
     static async updateDoc(req: Request<{ id: string }, {}, { doc: IDoc, items: IDocItem[] }>, res: Response) {
         const { id } = req.params;
         const { doc, items } = req.body;
-
-        console.log('Обновление документа:', id, doc, items);
-        
 
         try {
             // 1. Обновляем сам документ
@@ -140,7 +138,6 @@ export class DocController {
                 // .populate('customerId', 'name phone')
                 // .populate('userId', 'username')
                 .sort({ docDate: 1 });
-
 
             res.json(docs);
         } catch (error: any) {
@@ -220,4 +217,88 @@ export class DocController {
             res.status(500).json({ error: error.message });
         }
     }
-}
+static async getDocsByStatus(req: Request, res: Response) {
+    try {
+      const { status } = req.params;
+
+      // Найдём все документы с заданным статусом и типом OrderOut (если нужно)
+      const docs = await DocModel.find({ 
+        docStatus: status,
+        docType: 'OrderOut' // раскомментируйте, если нужно фильтровать по типу
+      })
+        .populate('customerId') // только имя клиента
+        .lean(); // для производительности
+
+      if (!docs.length) {
+        return res.json([]);
+      }
+
+      // Получаем все docId
+      const docIds = docs.map(doc => doc._id);
+
+      // Получаем все DocItems для этих документов
+      const docItems = await DocItemsModel.find({ docId: { $in: docIds } })
+        .populate('productId', 'name') // опционально: имя и артикул
+        .lean();
+
+      // Маппинг: docId -> массив позиций
+      const itemsByDocId = docItems.reduce((acc, item) => {
+        if (!acc[item.docId.toString()]) {
+          acc[item.docId.toString()] = [];
+        }
+        acc[item.docId.toString()].push(item);
+        return acc;
+      }, {} as Record<string, typeof docItems>);
+
+      // Группируем документы по customerId
+      const groupedByCustomer = docs.reduce((acc, doc) => {
+        const customerId = doc.customerId?._id?.toString() || 'unknown';
+        const customerName = (doc.customerId as any)?.name || 'Не указан';
+
+        if (!acc[customerId]) {
+          acc[customerId] = {
+            customerId,
+            customerName,
+            docs: [],
+            totalPositions: 0,
+            totalSum: 0,
+          };
+        }
+
+        // Получаем позиции для этого документа
+        const items = itemsByDocId[doc._id.toString()] || [];
+        
+        // Считаем сумму и количество для документа
+        let docTotalSum = 0;
+        let docTotalQty = 0;
+        for (const item of items) {
+          const qty = item.quantity || 0;
+          const price = item.unitPrice || 0;
+          docTotalSum += qty * price;
+          docTotalQty += qty;
+        }
+
+        // Добавляем документ в группу
+        acc[customerId].docs.push({
+          ...doc,
+          items, // добавляем позиции
+          docTotalQty,
+          docTotalSum,
+        });
+
+        // Обновляем итоги по клиенту
+        acc[customerId].totalPositions += docTotalQty;
+        acc[customerId].totalSum += docTotalSum;
+
+        return acc;
+      }, {} as Record<string, any>);
+
+      // Преобразуем объект в массив
+      const result = Object.values(groupedByCustomer);
+
+      res.json(result);
+    } catch (error: any) {
+      console.error('Ошибка при получении документов по статусу:', error);
+      res.status(500).json({ error: error.message });
+    }
+  }}

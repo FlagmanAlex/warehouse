@@ -34,9 +34,7 @@ const EditableItem = ({ docItem, onUpdate, onDelete }: EditableItemProps) => {
     }
   };
 
-  const total = (parseFloat(quantity) || 0) * (
-    (parseFloat(price) || 0) - (parseFloat(bonusStock) || 0)
-  );
+  const total = (parseFloat(quantity) || 0) * ((parseFloat(price) || 0) - (parseFloat(bonusStock) || 0));
 
   return (
     <div className={styles.itemRow}>

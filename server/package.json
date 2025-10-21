@@ -7,8 +7,10 @@
     "start:build": "tsc-watch --onSuccess 'tsc-alias'",
     "start:nodemon": "nodemon ./dist/server/src/server.js",
     "import": "node ./dist/server/src/importExcel.js",
+    "sinc": "node ./dist/server/src/sincExcel.js",
     "dev": "concurrently \"npm run start:build\" \"npm run start:nodemon\"",
-    "server": "node ./dist/server/src/server.js"
+    "server": "node ./dist/server/src/server.js",
+    "restruct": "node ./dist/server/src/restruct.js"
   },
   "keywords": [],
   "author": "",

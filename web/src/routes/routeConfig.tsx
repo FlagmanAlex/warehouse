@@ -18,8 +18,8 @@ import ProductForm from "../component/Screens/ProductScreen/ProductForm";
 import StockProduct from "../component/Screens/StockScreen/StockProduct";
 import StockWarehouse from "../component/Screens/StockScreen/StockWarehouse";
 import { customerLoader } from "./loaders/customerLoader";
-import { docAction } from "./actions/docAction";
-import { customerAction } from "./actions/customerAction";
+import { docAction } from "./actions/docFormAction";
+import { customerAction } from "./actions/customerFormAction";
 import { InProgressReport } from "../pages/Reports";
 import { inProgressReportLoader } from "./loaders/inProgressReportLoader";
 

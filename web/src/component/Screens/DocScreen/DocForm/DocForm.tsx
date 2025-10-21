@@ -10,7 +10,6 @@ import { Button } from '../../../../shared/Button';
 export type LoaderData = {
   doc: DocDto;
   items: DocItemDto[];
-  isNew: boolean;
 };
 
 const DocForm = () => {
@@ -18,8 +17,6 @@ const DocForm = () => {
   const actionData = useActionData();
   const { doc: initialDoc, items: initialItems } = useLoaderData() as LoaderData;
 
-  // const [doc, setDoc] = useState<DocDto>(initialDoc);
-  // const [items, setItems] = useState<DocItemDto[]>(initialItems);
   const [totalSum, setTotalSum] = useState(0);
 
   const [formData, setFormData] = useState<DocAndItemsDto>({

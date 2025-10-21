@@ -7,7 +7,7 @@ export const docFormLoader = async ({ params }: { params: { id?: string } }) => 
   const { id: docId } = params;
 
   console.log('docId', docId);
-  
+
 
   if (!docId) {
     return {
@@ -19,7 +19,7 @@ export const docFormLoader = async ({ params }: { params: { id?: string } }) => 
         itemCount: 0,
         summ: 0,
         orderNum: '',
-        priority: 'Low',
+        priority: '',
         docType: 'OrderOut', // ← можно передать через searchParams, если нужно
         docStatus: 'Draft',
         customerId: { _id: '', name: '' },
@@ -32,10 +32,14 @@ export const docFormLoader = async ({ params }: { params: { id?: string } }) => 
 
   try {
     const data: { doc: DocDto; items: DocItemDto[] } = await fetchApi(`doc/${docId}`, 'GET');
+    if (!data) {
+      throw new Error('Документ не найден');
+    }
     return {
       doc: data.doc,
       items: data.items,
     };
+
   } catch (error) {
     throw new Error((error as Error).message || 'Не удалось загрузить документ');
   }

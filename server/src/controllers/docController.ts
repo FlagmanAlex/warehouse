@@ -15,6 +15,8 @@ export class DocController {
     // === Создание документа (только черновик) ===
     static async createDoc(req: Request<{}, {}, { doc: IDoc, items: any[] }>, res: Response) {
         const { doc, items } = req.body;
+        console.log("doc", doc);
+        
 
         const cleanItems = items.map((item) => {
             const { _id, ...rest } = item;
@@ -134,7 +136,7 @@ export class DocController {
             }
 
             const docs = await DocModel.find(filter)
-                .populate('supplierId warehouseId customerId userId')
+                .populate('supplierId warehouseId customerId userId addressId')
                 // .populate('customerId', 'name phone')
                 // .populate('userId', 'username')
                 .sort({ docDate: 1 });
@@ -150,7 +152,7 @@ export class DocController {
     static async getDocById(req: Request, res: Response) {
         try {
             const doc = await DocModel.findById(req.params.id)
-                .populate('customerId supplierId warehouseId');
+                .populate('customerId supplierId warehouseId addressId userId');
 
             if (!doc) {
                 res.status(404).json({ error: 'Документ не найден' });

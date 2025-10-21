@@ -1,3 +1,4 @@
+
 export interface ICustomer {
     _id?: string;               // _id - клиента
     name: string;               // Имя

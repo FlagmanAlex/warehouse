@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
-import { CustomerModel } from '@models';
+import { AddressModel, CustomerModel, DocModel } from '@models';
 import { Types } from 'mongoose';
+import { IAddress, ICustomer } from '@interfaces';
 
 
 export const customerController = {
@@ -11,8 +12,16 @@ export const customerController = {
                 res.status(401).json({ error: 'Не авторизован' });
                 return;
             }
-            const customers = await CustomerModel.find()
-            res.status(200).json(customers);
+            const customers = await CustomerModel.find().lean();
+            const addresses = await AddressModel.find().lean();
+            const customersWithAddresses = customers.map((customer) => {
+                const customerAddresses = addresses.filter((address) => address.customerId.toString() === customer._id!.toString());
+                return {
+                    ...customer,
+                    addresses: customerAddresses
+                };
+            })
+            res.status(200).json(customersWithAddresses);
         } catch (error) {
             res.status(500).json({ error: 'Ошибка при получении клиентов' });
         }
@@ -40,7 +49,7 @@ export const customerController = {
                 return
             }
     
-            res.status(201).json(newCustomer);
+            res.status(201).json(createdCustomer);
         } catch (error) {
             console.error('Ошибка при создании клиента:', error);
             res.status(500).json({ error: 'Ошибка при создании клиента' });
@@ -91,6 +100,11 @@ export const customerController = {
     
             if (!customer) {
                 res.status(404).json({ error: 'Клиент не найден' });
+                return
+            }
+            const documents = await DocModel.find({ customerId: customer._id });
+            if (documents.length > 0) {
+                res.status(400).json({ error: 'Нельзя удалить клиента с документами' });
                 return
             }
 

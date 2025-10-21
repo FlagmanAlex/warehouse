@@ -12,11 +12,13 @@ import {
     docItemssRouter, 
     priceHistoryRouter, 
     supplierRouter, 
-    transactionRouter, 
+    transactionRouter,
+    addressRouter, 
 } from '@routers';
 
 export const mainRouter = Router()
 
+mainRouter.use('/address', authMiddleware, addressRouter);
 mainRouter.use('/category', authMiddleware, categoryRouter);
 mainRouter.use('/product', authMiddleware, productRouter);
 mainRouter.use('/auth', userRouter)

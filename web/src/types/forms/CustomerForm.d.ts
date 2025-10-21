@@ -1,5 +1,10 @@
+interface ICustomerAndAddress {
+    customer: ICustomer
+    addresses: IAddress[]
+    
+}
 interface CustomerFormProps {
-    initialData?: ICustomer
-    onSubmit: (data: ICustomer) => void
+    initialData?: ICustomerAndAddress
+    onSubmit: (data: ICustomerAndAddress) => void
     isSubmitting: boolean
 }

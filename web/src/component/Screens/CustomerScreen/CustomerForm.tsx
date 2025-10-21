@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Form, useActionData, useLoaderData, useNavigation, useParams } from 'react-router-dom';
 import style from './CustomerForm.module.css';
-import type { ICustomer } from '@warehouse/interfaces';
+import type { IAddress, ICustomer } from '@warehouse/interfaces';
 import { TextField, type InputType } from '../../../shared/TextFields/UI/TextField';
 import { Button } from '../../../shared/Button';
 import { THEME } from '@warehouse/interfaces/config';
+import AddressManager from './AddressManager';
 
 interface FieldProps {
   label: string;
@@ -16,8 +17,8 @@ const fields: FieldProps[] = [
   { label: 'Имя', name: 'name', type: 'text' },
   { label: 'Телефон', name: 'phone', type: 'tel' },
   { label: 'Email', name: 'email', type: 'email' },
-  { label: 'Адрес доставки', name: 'address', type: 'text' },
-  { label: 'GPS', name: 'gps', type: 'text' },
+  // { label: 'Адрес доставки', name: 'address', type: 'text' },
+  // { label: 'GPS', name: 'gps', type: 'text' },
   { label: 'Контактное лицо', name: 'contactPerson', type: 'text' },
   { label: 'Телефон контактного лица', name: 'contactPersonPhone', type: 'tel' },
   { label: 'Описание', name: 'description', type: 'textarea',  },
@@ -26,14 +27,16 @@ const fields: FieldProps[] = [
 
 export default function CustomerForm() {
   const { customerId: id } = useParams<{ customerId?: string }>();
-  const { customer } = useLoaderData<{ customer: ICustomer }>();
+  const { customer, addresses } = useLoaderData<{ customer: ICustomer, addresses: IAddress[] }>();
   const actionData = useActionData<{ error?: string }>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
 
   // Синхронизируем состояние с данными из loader (для редактирования)
-  const [formData, setFormData] = useState<ICustomer>(customer);
+  const [formData, setFormData] = useState<ICustomerAndAddress>({ customer, addresses: addresses || [] });
 
+  console.log(formData);
+  
   // Если форма отправлена успешно — можно сбросить или перейти назад
   // (но обычно переход делает redirect из action)
 
@@ -43,14 +46,15 @@ export default function CustomerForm() {
     const { name, value, type } = event.target;
     // Для числовых полей преобразуем в число
     const newValue = type === 'number' ? (value === '' ? '' : Number(value)) : value;
-    setFormData((prev) => ({ ...prev, [name]: newValue }));
+    setFormData((prev) => ({ ...prev, customer: { ...prev.customer, [name]: newValue } }));
   };
 
   return (
     <Form method="post" action={`/customer`} className={style.clientFormContainer}>
       {/* Скрытые поля для передачи данных в action */}
       {id && <input type="hidden" name="id" value={id} />}
-      <input type="hidden" name="customer" value={JSON.stringify(formData)} />
+      <input type="hidden" name="customer" value={JSON.stringify(formData.customer)} />
+      <input type="hidden" name="addresses" value={JSON.stringify(formData.addresses)} />
 
       <h2>{id ? 'Редактировать клиента' : 'Создать клиента'}</h2>
 
@@ -63,7 +67,7 @@ export default function CustomerForm() {
           <TextField
             type={field.type}
             name={field.name}
-            value={formData[field.name] ?? ''}
+            value={formData.customer[field.name] ?? ''}
             onChange={handleChange}
             placeholder={field.label}
             // Отключаем при отправке
@@ -71,6 +75,9 @@ export default function CustomerForm() {
           />
         </div>
       ))}
+
+      {/* Управление адресами */}
+      <AddressManager customerId={id} addresses={formData.addresses} onSave={(addresses) => setFormData((prev) => ({ ...prev, addresses }))} />
 
       <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
         <Button

@@ -35,7 +35,6 @@ export default () => {
   const location = useLocation(); // ✅ Получаем location
   const revalidator = useRevalidator(); // ✅ revalidator в DocScreen
   const [searchParams, setSearchParams] = useSearchParams();
-
   const { docs, filters } = useLoaderData() as LoaderData;
 
   const filterShow: boolean = filters.filterShow || false;
@@ -91,8 +90,7 @@ export default () => {
     revalidator.revalidate();
   }, [location.pathname]);
 
-  
-  
+ 
   // Рендер одного документа
   const renderDocItem = (item: DocDto) => (
     console.log('renderDocItem', item),
@@ -126,8 +124,8 @@ export default () => {
             <a href={`tel:${item.customerId?.phone}`} onClick={(e) => e.stopPropagation()}>
               <span className={styles.docChip}>тел.: {item.customerId?.phone}</span>
             </a>
-            <a href={`geo:${item.customerId?.gps}`} onClick={(e) => e.stopPropagation()}>
-              <span className={styles.docChip}>Адрес: {item.customerId?.address} </span>
+            <a href={`geo:${item.addressId?.gps}`} onClick={(e) => e.stopPropagation()}>
+              <span className={styles.docChip}>Адрес: {item.addressId?.address} </span>
             </a>
             <span className={styles.description}>{item.description}</span>
           </div>

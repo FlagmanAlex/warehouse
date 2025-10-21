@@ -10,3 +10,4 @@ export * from './supplierController';
 export * from './transactionController';
 export * from './userController';
 export * from './warehouseController';
+export * from './addressController'

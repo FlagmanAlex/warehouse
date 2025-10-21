@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { IDoc } from "@interfaces";
+import { IAddress, IDoc } from "@interfaces";
 
 export interface IDocModel extends Omit<IDoc,
     | '_id'
@@ -18,8 +18,8 @@ export interface IDocModel extends Omit<IDoc,
     toWarehouseId: mongoose.Types.ObjectId,
     vendorCode?: string
     exchangeRate?: number,
-    expenses?: number
-
+    expenses?: number,
+    addressId?: IAddress
 }
 // Схема для заказов
 const docSchema = new Schema<IDocModel>({
@@ -37,17 +37,18 @@ const docSchema = new Schema<IDocModel>({
     // payment: { type: Number },
     customerId: { type: Schema.Types.ObjectId, ref: 'Customer', required: () => { return (this as any).docType === 'Incoming' } }, // Ссылка на клиента
     supplierId: { type: Schema.Types.ObjectId, ref: 'Supplier', required: () => { return (this as any).docType === 'Outgoing' } }, // Ссылка на поставщика
-
+    
     toWarehouseId: { type: Schema.Types.ObjectId, ref: 'Warehouse', required: () => { return (this as any).docType === 'Transfer' } },
     fromWarehouseId: { type: Schema.Types.ObjectId, ref: 'Warehouse', required: () => { return (this as any).docType === 'Transfer' } },
-
+    
     warehouseId: { type: Schema.Types.ObjectId, ref: 'Warehouse', required: function (this: any) { return this.docType !== 'OrderOut' } }, //Если docType не равен 'OrderOut', то поле обязательно
     priority: { type: String },
     docStatus: { type: String, required: true },
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     description: { type: String },
     docId: { type: Schema.Types.ObjectId, ref: 'Doc', required: false },
-
+    addressId: { type: Schema.Types.ObjectId, ref: 'Address', required: false },
+    
 });
 
 docSchema.index({ docDate: -1 }); // Сортировка заказов по дате

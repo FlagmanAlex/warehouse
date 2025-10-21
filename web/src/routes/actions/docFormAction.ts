@@ -48,6 +48,8 @@ export const docAction = async ({ request }: { request: Request }) => {
     const domainDoc = dtoToDoc(docFormData.doc);
     const domainItems = docFormData.items.map(dtoItemToDocItem);
 
+    console.log("domainDoc", domainDoc);
+    
     switch (_method) {
       case 'PATCH':
           await fetchApi(`doc/${id}`, 'PATCH', { doc: domainDoc, items: domainItems });

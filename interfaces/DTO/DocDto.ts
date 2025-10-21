@@ -1,3 +1,4 @@
+import type { IAddress } from '../IAddress';
 import type { ICategory } from '../ICategory';
 import type { IDocIncoming, IDocOrderIn, IDocOrderOut, IDocOutgoing, IDocTransfer } from '../IDoc';
 import type { IDocItem } from '../IDocItem'
@@ -17,10 +18,12 @@ export interface DocOrderInDto extends Omit<IDocOrderIn, 'supplierId' | 'userId'
     itemCount: number
     summ: number
 }
-export interface DocOrderOutDto extends Omit<IDocOrderOut, 'customerId' | 'userId' | 'createdAt' | 'updatedAt' | 'docType' | 'warehouseId'> {
+export interface DocOrderOutDto extends Omit<IDocOrderOut, 'customerId' | 'userId' | 'createdAt' | 'updatedAt' | 'docType' | 'warehouseId' | 'deliveryAddress' | 'deliveryGps'> {
     docType: 'OrderOut'
-    customerId?: { _id: string, name: string, phone: string, address: string, gps: string }
+    customerId?: { _id: string, name: string, phone: string, address: string, gps: string,  }
     itemCount: number
+    deliveryAddress?: string
+    deliveryGps?: string
     summ: number
 }
 export interface DocTransferDto extends Omit<IDocTransfer, 'fromWarehouseId' | 'toWarehouseId' | 'warehouseId'> {
@@ -45,6 +48,7 @@ export interface DocOutgoingDto extends Omit<IDocOutgoing, 'customerId' | 'wareh
     customerId?: { _id: string, name: string, phone: string, address: string, gps: string }
     warehouseId?: { _id: string, name: string }
     itemCount: number
+    addressId: IAddress
     summ: number
 }
 

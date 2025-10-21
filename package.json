@@ -14,7 +14,9 @@
     "server": "cd server && npm run dev",
     "client": "cd client && npm run client",
     "web": "cd web && npm run dev",
-    "import": "cd server && npm run import"
+    "import": "cd server && npm run import",
+    "sinc": "cd server && npm run sinc",
+    "restruct": "cd server && npm run restruct"
   },
   "repository": {
     "type": "git",

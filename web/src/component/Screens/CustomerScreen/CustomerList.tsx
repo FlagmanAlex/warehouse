@@ -1,13 +1,14 @@
 import { useState, useMemo, useEffect } from 'react'; // <-- добавили useEffect
 import { useNavigate, useLoaderData, useSearchParams } from 'react-router-dom';
 import style from './CustomerList.module.css';
-import type { ICustomer } from '@warehouse/interfaces';
+import type { IAddress, ICustomer } from '@warehouse/interfaces';
 import { TextField } from '../../../shared/TextFields';
 import { Button } from '../../../shared/Button';
 import { THEME } from '../../../../../interfaces/Config/Color';
 
+type customerwithAddress = ICustomer & { addresses: IAddress[] };
 export interface LoaderData {
-    customers: ICustomer[];
+    customers: customerwithAddress[];
     filters: {
         search: string;
     };
@@ -70,46 +71,49 @@ export default () => {
     }, [customers, searchQuery]);
 
 
-const customerCards = filteredCustomers.map((item) => (
-    <div
-        key={item._id}
-        className={style.customerCard}
-        onClick={() => navigate(`/customer/${item._id}`)}
-    >
-        <h3 className={style.customerName}>{item.name}</h3>
-        {item.description && (
-            <p className={style.customerDescription}>{item.description}</p>
-        )}
-        <p className={style.customerDetail}>
-            <strong>Телефон:</strong>
-            {item.phone ? (
-                <a
-                    href={`tel:${item.phone}`}
-                    onClick={(e) => e.stopPropagation()}
-                    className={style.contactLink}
-                >
-                    {item.phone}
-                </a>
-            ) : (
-                <span className={style.muted}>Не указан</span>
-            )}
-        </p>
-        <p className={style.customerDetail}>
-            <strong>Адрес:</strong>
-            {item.gps ? (
-                <a
-                    href={`geo:${item.gps}`}
-                    onClick={(e) => e.stopPropagation()}
-                    className={style.contactLink}
-                >
-                    {item.address}
-                </a>
-            ) : (
-                item.address || <span className={style.muted}>Не указан</span>
-            )}
-        </p>
-    </div>
-));
+    const customerCards = filteredCustomers.map((item) => {
+        const address = item.addresses.find((address) => address.main === true);
+        return (
+            <div
+                key={item._id}
+                className={style.customerCard}
+                onClick={() => navigate(`/customer/${item._id}`)}
+            >
+                <h3 className={style.customerName}>{item.name}</h3>
+                {item.description && (
+                    <p className={style.customerDescription}>{item.description}</p>
+                )}
+                <p className={style.customerDetail}>
+                    <strong>Телефон:</strong>
+                    {item.phone ? (
+                        <a
+                            href={`tel:${item.phone}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className={style.contactLink}
+                        >
+                            {item.phone}
+                        </a>
+                    ) : (
+                        <span className={style.muted}>Не указан</span>
+                    )}
+                </p>
+                <p className={style.customerDetail}>
+                    <strong>Адрес:</strong>
+                    {address?.gps ? (
+                        <a
+                            href={`geo:${address.gps}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className={style.contactLink}
+                        >
+                            {address.address}
+                        </a>
+                    ) : (
+                        address?.address || <span className={style.muted}> Не указан</span>
+                    )}
+                </p>
+            </div>
+        );
+    });
 
     return (
         <>

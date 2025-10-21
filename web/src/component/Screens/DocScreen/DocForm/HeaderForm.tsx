@@ -6,6 +6,9 @@ import { EntitySelectModal } from '../../../SelectModals';
 import { DocStatusInMap, DocStatusOutMap, DocTypeMap, type DocStatusInName, type DocStatusOutName, type DocTypeName } from '@warehouse/interfaces/config';
 import { TextField } from '../../../../shared/TextFields';
 import { StatusIcon } from '../StatusIcon';
+import type { IAddress, ICustomer } from '@warehouse/interfaces';
+import { useEffect, useState } from 'react';
+import { fetchApi } from '../../../../api/fetchApi';
 
 type HeaderFormProps = {
     docAndItems: DocAndItemsDto;
@@ -20,6 +23,47 @@ export const HeaderForm = ({
     isEditing,
     setDocAndItems,
 }: HeaderFormProps) => {
+
+
+    const [addresses, setAddresses] = useState<IAddress[]>([]);
+    const [selectedAddress, setSelectedAddress] = useState<IAddress | undefined>(undefined);
+
+    const handleUpdateCustomer = async (customer: ICustomer) => {
+        const response: IAddress[] = await fetchApi(`address/${customer._id}`, 'GET');
+        setAddresses(response);
+        const addressMain = response.find(addr => addr.main === true) || response[0];
+        setSelectedAddress(addressMain);
+        if (doc.docType === 'OrderOut' || doc.docType === 'Outgoing') {
+            setDocAndItems({
+                doc: {
+                    ...doc, 
+                    customerId: { _id: customer._id, name: customer.name } as any,
+                    addressId: addressMain
+                },
+                items
+            })
+        }
+    };
+
+    useEffect(() => {
+        const fetchAddress = async () => {
+            if (doc.docType === 'OrderOut' || doc.docType === 'Outgoing') {
+                if (doc.customerId) {
+                    const response: IAddress[] = await fetchApi(`address/${doc.customerId._id}`, 'GET');
+                    setAddresses(response);
+                    const selectAddress = response.find(addr => addr._id === doc.addressId);
+                    setSelectedAddress(selectAddress);
+                    console.log(selectAddress);
+                } else {
+                    setAddresses([]);
+                }
+            }
+        }
+        fetchAddress();
+    }, [])
+
+
+    // Обработчик выбора клиента
 
     const handleChange = (val: DocTypeName) => {
         switch (val) {
@@ -39,6 +83,7 @@ export const HeaderForm = ({
                 console.warn('Неизвестный тип документа:', val);
         }
     };
+
 
     const renderTypeSpecificFields = () => {
         switch (doc.docType) {
@@ -67,11 +112,33 @@ export const HeaderForm = ({
                         <EntitySelectModal
                             endpoint="customer"
                             selectedItem={doc.customerId?._id ? doc.customerId : null}
-                            onSelect={(item) => setDocAndItems({ doc: { ...doc, customerId: { _id: item._id, name: item.name } as any }, items })}
+                            onSelect={(item) => {
+                                handleUpdateCustomer(item as ICustomer);
+                            }}
                             modalTitle="Выберите клиента"
                             buttonText={doc.customerId?.name || 'Выберите клиента'}
                         />
 
+                        {/* Селект адреса доставки */}
+                        <select
+                            className={styles.addressSelect}
+                            disabled={!isEditing}
+                            value={selectedAddress?._id}
+                            onChange={
+                                (e) => {
+                                    const addr = addresses.find(addr => String(addr._id) === e.target.value);
+                                    if (!addr) return;
+                                    setDocAndItems({ doc: { ...doc, addressId: addr }, items });
+                                    setSelectedAddress(addr);
+                                }
+                            }>
+                            <option value="">Адрес не выбран</option>
+                            {addresses && addresses.map((item) => (
+                                <option key={item._id} value={String(item._id)}>
+                                    {item.address}
+                                </option>
+                            ))}
+                        </select>
                     </>
                 );
 
@@ -143,15 +210,8 @@ export const HeaderForm = ({
                         docType={doc.docType}
                         status={doc.docStatus}
                         docId={doc._id}
-                        onStatusChange = {(newStatus) => setDocAndItems({ doc: { ...doc, docStatus: newStatus }, items })}
+                        onStatusChange={(newStatus) => setDocAndItems({ doc: { ...doc, docStatus: newStatus }, items })}
                     />}
-
-                    {/* <span
-                        className={styles.statusBadge}
-                        style={{ backgroundColor: DocStatusMap[doc.docStatus as DocStatusName].color }}
-                        >
-                        {DocStatusMap[doc.docStatus as DocStatusName].nameRus}
-                    </span> */}
                 </div>
 
                 {/* Шапка: дата + статус */}
@@ -180,11 +240,11 @@ export const HeaderForm = ({
                 {renderTypeSpecificFields()}
                 <TextField
                     name="description"
-                    type='textarea'
+                    type='text'
                     placeholder='Комментарии'
                     value={isEditing ? doc.description : doc.description}
                     // editable={isEditing}
-                    onChange={(val) => {setDocAndItems({ doc: { ...doc, description: val.target.value }, items })}}
+                    onChange={(val) => { setDocAndItems({ doc: { ...doc, description: val.target.value }, items }) }}
                 />
 
             </div>

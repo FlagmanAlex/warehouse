@@ -18,7 +18,6 @@ export const dtoToDoc = (dto: DocDto): IDoc => {
     description: dto.description,
     docType: dto.docType,
     docStatus: dto.docStatus,
-
   };
 
   switch (dto.docType) {
@@ -38,6 +37,7 @@ export const dtoToDoc = (dto: DocDto): IDoc => {
         customerId: orderDto.customerId?._id || '',
         priority: orderDto.priority,
         expenses: orderDto.expenses,
+        addressId: orderDto.addressId,
       } as IDocOrderOut;
     }
 
@@ -69,6 +69,7 @@ export const dtoToDoc = (dto: DocDto): IDoc => {
         ...base,
         warehouseId: dto.warehouseId?._id || '',
         customerId: outgoingDto.customerId?._id || '',
+        addressId: outgoingDto.addressId,
       } as IDocOutgoing;
     }
 

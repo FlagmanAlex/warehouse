@@ -6,6 +6,7 @@ export * from './ISupplier'                     //Поставщики
 export * from './IUser'                         //Пользователи
 export * from './IWarehouse'                    //Склады
 export * from './ICustomer'                     //Клиенты
+export * from "./IAddress"                      //Адрес
 
 //Изменение статусов
 export * from './IBatch'                        //Партии

@@ -13,3 +13,4 @@ export * from './userModel';
 export * from './warehouseModel';
 export * from './paymentModel';
 export * from './accountModel';
+export * from "./addressModel"

@@ -1,19 +1,20 @@
 import { fetchApi } from "../../api/fetchApi";
-import type { ICustomer } from "@warehouse/interfaces";
+import type { IAddress, ICustomer } from "@warehouse/interfaces";
 
+type customersWithAddresses = ICustomer & { addresses: IAddress[] };
 
-export const customerLoader = async ({ request } : { request: Request }): Promise<{ customers: ICustomer[], filters: { search: string } }> => {
+export const customerLoader = async ({ request } : { request: Request }): Promise<{ customers: customersWithAddresses[], filters: { search: string } }> => {
     const url = new URL(request.url);
     const searchParams = url.searchParams
 
     try {
-        const customers: ICustomer[] = await fetchApi(
+        const customers: customersWithAddresses[] = await fetchApi(
             `customer`,
             'GET'
         )
 
         return {
-            customers,
+            customers: customers,
             filters: {
                 search: searchParams.get('search') || ''
             }

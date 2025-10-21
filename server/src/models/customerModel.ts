@@ -3,6 +3,7 @@ import { ICustomer } from "@interfaces";
 
 interface ICustomerModel extends Omit<ICustomer, '_id'| 'accountManager'>, mongoose.Document {
     accountManager: mongoose.Types.ObjectId
+    addresses: mongoose.Types.Array<mongoose.Types.ObjectId>
  }
 
 // Схема для клиентов
@@ -19,6 +20,7 @@ const customerSchema = new Schema<ICustomerModel>({
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
     description: String
+
 });
 
 export const CustomerModel = mongoose.model<ICustomerModel>('Customer', customerSchema, 'Customer');

@@ -1,4 +1,5 @@
 import type { DocTypeName, DocStatusName } from './Config';
+import type { IAddress } from '@warehouse/interfaces';
 
 /******************************
  * Приоритет заказа
@@ -61,6 +62,7 @@ export interface IDocIncoming extends IDocBase {
 export interface IDocOutgoing extends IDocBase {
     // docType: 'Outgoing'
     customerId: string
+    addressId?: IAddress
 }
 export interface IDocOrderIn extends IDocBase {
     // docType: 'Order'
@@ -71,6 +73,7 @@ export interface IDocOrderOut extends IDocBase {
     // docType: 'Order'
     customerId: string
     expenses: number
+    addressId?: IAddress
 }
 
 export type IDoc = IDocIncoming | IDocOutgoing | IDocOrderOut | IDocOrderIn | IDocTransfer;

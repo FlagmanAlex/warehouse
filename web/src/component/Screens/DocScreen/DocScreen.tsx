@@ -76,7 +76,7 @@ export default () => {
     if (search) {
       const query = search.toLowerCase();
       const customerMatch =
-        item.docType === 'Outgoing' && item.customerId?.name.toLowerCase().includes(query);
+        (item.docType === 'Outgoing' || item.docType === 'OrderOut') && item.customerId?.name.toLowerCase().includes(query);
       const supplierMatch =
         item.docType === 'Incoming' && item.supplierId?.name.toLowerCase().includes(query);
       if (!customerMatch && !supplierMatch) return false;
@@ -160,7 +160,7 @@ export default () => {
       </div>
 
       <div className={styles.footer}>
-        <span className={styles.docSumm}>Сумма: <strong>{item.summ.toFixed(2)}</strong> руб.</span>
+        <span className={styles.docSumm}>Кол-во: <strong>{item.itemCount}</strong> шт. Сумма: <strong>{item.summ.toFixed(2)}</strong> руб.</span>
       </div>
     </div>
   );

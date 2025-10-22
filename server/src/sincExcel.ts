@@ -539,6 +539,7 @@ class ImportExcel {
                     exchangeRate: item['Курс'],
                     bonusRef: -item['Вознаграждение UAH'],
                     expenses: item['Логистика RUB'],
+                    itemCount: 1,
                     summ: item['Общий итог iHerb UAH'],
                     description: `Сумма оплаты: ${item['Сумма оплаты факт USD']}`,
                     docStatus: 'Draft',
@@ -665,6 +666,7 @@ class ImportExcel {
                             userId: this.userId,
                             bonusRef: 0,
                             // expenses: 0,
+                            itemCount: 0,
                             summ: 0,
                             orderNum: '',
                             docNum: '',
@@ -746,6 +748,223 @@ class ImportExcel {
             console.error('Ошибка при удалении расходных заказов:', error);
         }
     }
+private async syncCategory() {
+    try {
+        console.log('Синхронизация категорий из Excel...');
+
+        // 1. Получаем все существующие категории
+        const existingCategories: ICategory[] = await this.fetchApi('category', 'GET', this.token, {});
+        const existingNames = new Set(existingCategories.map(cat => cat.name));
+
+        // 2. Находим или создаём корневую категорию
+        const rootCategoryName = 'Категории товаров';
+        let rootId: string;
+
+        const existingRoot = existingCategories.find(cat => cat.name === rootCategoryName);
+        if (existingRoot && existingRoot._id) {
+            rootId = existingRoot._id;
+            console.log(`✅ Корневая категория уже существует: ${rootId}`);
+        } else {
+            console.log('Создание корневой категории...');
+            const rootResponse = await this.fetchApi('category', 'POST', this.token, { name: rootCategoryName });
+            if (!rootResponse._id) {
+                throw new Error('API не вернул _id для корневой категории');
+            }
+            rootId = rootResponse._id;
+            // Добавляем в Set, чтобы не пытаться создать её снова
+            existingNames.add(rootCategoryName);
+        }
+
+        // 3. Извлекаем уникальные бренды из Excel (поле "Бренд")
+        const brandNamesFromExcel = Array.from(
+            new Set(this.journal.map(item => item['Бренд']?.toString().trim()))
+        ).filter(name => name && name.length > 0);
+
+        // 4. Фильтруем только те, которых нет в базе
+        const categoriesToCreate = brandNamesFromExcel
+            .filter(name => !existingNames.has(name))
+            .map(name => ({
+                name,
+                parentCategory: rootId
+            }));
+
+        console.log(`Всего брендов в Excel: ${brandNamesFromExcel.length}`);
+        console.log(`Уже в базе: ${brandNamesFromExcel.length - categoriesToCreate.length}`);
+        console.log(`К созданию: ${categoriesToCreate.length}`);
+
+        if (categoriesToCreate.length === 0) {
+            console.log('✅ Все категории уже существуют. Ничего создавать не нужно.');
+            return;
+        }
+
+        // 5. Создаём отсутствующие категории
+        const errors: string[] = [];
+        let createdCount = 0;
+
+        for (const [index, category] of categoriesToCreate.entries()) {
+            try {
+                await this.fetchApi('category', 'POST', this.token, category);
+                createdCount++;
+                const progress = Math.round(((index + 1) / categoriesToCreate.length) * 100);
+                process.stdout.write(`\r 🔄 Прогресс: ${index + 1}/${categoriesToCreate.length} (${progress}%)`);
+            } catch (error) {
+                console.error(`\n❌ Ошибка при создании категории "${category.name}":`, (error as Error).message);
+                errors.push(category.name);
+            }
+        }
+
+        console.log(`\n✅ Создано категорий: ${createdCount}`);
+        if (errors.length > 0) {
+            console.log(`❌ Не удалось создать ${errors.length} категорий:`, errors);
+        } else {
+            console.log('✅ Все новые категории успешно созданы.');
+        }
+
+    } catch (error) {
+        console.error('❌ Критическая ошибка в addCategory:', error);
+        throw error; // или обработайте по необходимости
+    }
+}
+    private async compareAndCreateProducts() {
+        try {
+            console.log('Начало сравнения и создания продуктов...');
+
+            // 1. Получаем справочники
+            const [warehouses, categories, suppliers, productsFromDb] = await Promise.all([
+                this.fetchApi('warehouse', 'GET', this.token, {}),
+                this.fetchApi('category', 'GET', this.token, {}),
+                this.fetchApi('supplier', 'GET', this.token, {}),
+                this.fetchApi('product', 'GET', this.token, {})
+            ]);
+
+            // 2. Строим маппинги
+            this.warehouseMap = new Map(
+                warehouses.map((item: IWarehouse) => {
+                    if (!item._id || !item.name) {
+                        throw new Error(`Некорректный склад: ${JSON.stringify(item)}`);
+                    }
+                    return [item.name, item._id] as const;
+                })
+            )
+            this.categoryMap = new Map(
+                categories.map((item: ICategory) => {
+                    if (!item._id || !item.name) {
+                        throw new Error(`Некорректная категория: ${JSON.stringify(item)}`);
+                    }
+                    return [item.name, item._id] as const;
+                })
+            );
+
+            this.supplierMap = new Map(
+                suppliers.map((item: ISupplier) => {
+                    if (!item._id || !item.name) {
+                        throw new Error(`Некорректный поставщик: ${JSON.stringify(item)}`);
+                    }
+                    return [item.name, item._id] as const;
+                })
+            );
+
+            // 3. Формируем уникальные продукты из Excel
+            const seen = new Set<string>();
+            const uniqueProducts: IProduct[] = [];
+
+            for (const journal of this.journal) {
+                const { Бренд, Артикул, Наименование, Поставщик, Группа } = journal;
+
+                if (!Бренд || !Артикул || !Наименование || !Поставщик || !Группа) {
+                    throw new Error('Недостаточно данных в строке журнала: ' + JSON.stringify(journal));
+                }
+
+                const categoryId = this.categoryMap.get(Бренд);
+                const supplierId = this.supplierMap.get(Поставщик);
+                const defaultWarehouseId = this.warehouseMap.get(Группа);
+
+                if (!categoryId) throw new Error(`Не найдена категория: ${Бренд}`);
+                if (!supplierId) throw new Error(`Не найден поставщик: ${Поставщик}`);
+                if (!defaultWarehouseId) throw new Error(`Не найден склад для группы: ${Группа}`);
+
+                const key = `${Артикул}`;
+                if (seen.has(key)) continue;
+                seen.add(key);
+
+                uniqueProducts.push({
+                    article: Артикул.toString(),
+                    name: Наименование,
+                    categoryId,
+                    supplierId,
+                    defaultWarehouseId,
+                    unitOfMeasurement: 'шт',
+                    price: 0,
+                    createdBy: this.userId,
+                    lastUpdateBy: this.userId,
+                    isArchived: false
+                });
+            }
+
+            // 4. Строим Set ключей из базы для быстрого поиска
+            const existingProductKeys = new Set<string>();
+            for (const p of productsFromDb) {
+                if (p.article != null && p.name != null) {
+                    existingProductKeys.add(`${p.article}`);
+                }
+            }
+
+            // 5. Фильтруем только отсутствующие в БД
+            const productsToCreate = uniqueProducts.filter(p => {
+                const key = `${p.article}`;
+                return !existingProductKeys.has(key);
+            });
+
+            console.log(`Всего уникальных из Excel: ${uniqueProducts.length}`);
+            console.log(`Уже в БД: ${uniqueProducts.length - productsToCreate.length}`);
+            console.log(`К созданию: ${productsToCreate.length}`);
+
+            if (productsToCreate.length === 0) {
+                console.log('✅ Нет новых продуктов для создания.');
+                return { total: uniqueProducts.length, success: 0, errors: 0, errorProducts: [] };
+            }
+
+            // 6. Создаём отсутствующие продукты с прогрессом
+            const errorProducts: IProduct[] = [];
+            const total = productsToCreate.length;
+            let processed = 0;
+
+            for (const [index, product] of productsToCreate.entries()) {
+                try {
+                    await this.fetchApi('product', 'POST', this.token, product);
+
+                    processed++;
+                    const progress = Math.round((processed / total) * 100);
+                    process.stdout.write(`\r 🔄 Прогресс: ${processed}/${total} (${progress}%)`);
+
+                } catch (error) {
+                    console.error(`\n❌ Ошибка при создании продукта "${product.name}" (${product.article}):`, (error as Error).message);
+                    errorProducts.push(product);
+                }
+            }
+
+            // 7. Сохраняем ошибки в Excel, если есть
+            if (errorProducts.length > 0) {
+                console.log(`\nЗаписываем ${errorProducts.length} ошибок в Excel...`);
+                await writeExcel(errorProducts, `${this.fileName}_errors.xlsx`, performance.now().toString());
+                console.log('✅ Файл с ошибками сохранён.');
+            } else {
+                console.log('\n✅ Все новые продукты успешно созданы.');
+            }
+
+            return {
+                total: uniqueProducts.length,
+                success: productsToCreate.length - errorProducts.length,
+                errors: errorProducts.length,
+                errorProducts
+            };
+
+        } catch (error) {
+            console.error('❌ Критическая ошибка в compareAndCreateProducts:', error);
+            throw error;
+        }
+    }
+
     public Main = async () => {
         const db = new Database()
         try {
@@ -753,6 +972,8 @@ class ImportExcel {
             await db.connect()
 
             await this.init()
+            await this.syncCategory()
+            await this.compareAndCreateProducts()
             // await this.addSuppliers()
             // await this.addCustomers()
             // await this.addWarehouse()

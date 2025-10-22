@@ -32,6 +32,7 @@ const docSchema = new Schema<IDocModel>({
     expenses: { type: Number },
     exchangeRate: { type: Number },
     summ: { type: Number, required: true },
+    itemCount: { type: Number, required: true },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
     // payment: { type: Number },

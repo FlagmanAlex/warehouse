@@ -543,6 +543,7 @@ class ImportExcel {
                     exchangeRate: item['Курс'],
                     bonusRef: -item['Вознаграждение UAH'],
                     expenses: item['Логистика RUB'],
+                    itemCount: 1,
                     summ: item['Общий итог iHerb UAH'],
                     description: `Сумма оплаты: ${item['Сумма оплаты факт USD']}`,
                     docStatus: 'Draft',
@@ -551,6 +552,7 @@ class ImportExcel {
                     createdAt: new Date(),
                     updatedAt: new Date(),
                     userId: this.userId
+
                 }
                 // console.log('получаем массив orderItems по номеру заказа');
                 type IDocItemNew = Omit<IDocItem, 'docId' | 'batchId'>;
@@ -669,6 +671,7 @@ class ImportExcel {
                             userId: this.userId,
                             bonusRef: 0,
                             // expenses: 0,
+                            itemCount: 0,
                             summ: 0,
                             orderNum: '',
                             docNum: '',

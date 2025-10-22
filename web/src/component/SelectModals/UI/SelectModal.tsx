@@ -32,22 +32,6 @@ export function SelectModal<T extends EntityConstraint>({
   // Внутри SelectModal, после объявления modalRef
   const listRef = useRef<HTMLUListElement>(null);
 
-  // Фильтрация по name
-  // function isFuzzyMatch(needle: string, haystack: string): boolean {
-  //   const cleanNeedle = needle.toLowerCase().replace(/[^a-zа-яё0-9]/g, '');
-  //   const cleanHaystack = haystack.toLowerCase().replace(/[^a-zа-яё0-9]/g, '');
-
-  //   if (cleanNeedle === '') return true;
-
-  //   let i = 0;
-  //   for (let j = 0; j < cleanHaystack.length && i < cleanNeedle.length; j++) {
-  //     if (cleanHaystack[j] === cleanNeedle[i]) {
-  //       i++;
-  //     }
-  //   }
-  //   return i === cleanNeedle.length;
-  // }
-
   function matchesFuzzyWords(query: string, text: string): boolean {
     if (!query.trim()) return true;
 

@@ -21,10 +21,14 @@ export async function recalculateDocSum(docId: string | mongoose.Types.ObjectId)
       return sum + (item.quantity ?? 0) * ((item.unitPrice ?? 0) - (item.bonusStock ?? 0));
     }, 0);
 
+    const countEntities = items.reduce((sum, item) => {
+      return sum + (item.quantity ?? 0);
+    }, 0)
+
     // Обновляем документ Doc — строго типизированное обновление
     const result = await DocModel.updateOne(
       { _id: docIdObj },
-      { $set: { summ: totalAmount } }
+      { $set: { summ: totalAmount, itemCount: countEntities } }
     );
 
     if (result.matchedCount === 0) {

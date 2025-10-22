@@ -8,6 +8,7 @@ import { DocItemService } from '@services';
 import { IDoc, IDocItem } from '@interfaces';
 import { DocStatusName } from '@interfaces/config';
 import { DocDto, DocOrderOutDto } from '@interfaces/DTO';
+import { recalculateDocSum } from 'src/utils/recalculateDocSum';
 
 // === Дополнительный DTO для обновления статуса (может быть вынесен в DTO)
 
@@ -16,7 +17,7 @@ export class DocController {
     static async createDoc(req: Request<{}, {}, { doc: IDoc, items: any[] }>, res: Response) {
         const { doc, items } = req.body;
         console.log("doc", doc);
-        
+
 
         const cleanItems = items.map((item) => {
             const { _id, ...rest } = item;
@@ -78,17 +79,17 @@ export class DocController {
             // 1. Обновляем сам документ
             const updatedDoc = await DocModel.findByIdAndUpdate(id, doc, { new: true });
             // console.log(' Обновленный документ:',updatedDoc);
-            
-            
+
+
             if (!updatedDoc) {
                 res.status(404).json({ error: 'Документ не найден' });
-                return 
+                return
             }
 
             // 2. Удаляем ВСЕ старые позиции
             await DocItemsModel.deleteMany({ docId: id });
             // console.log('Удалены старые позиции документа:', id);
-
+            
             // 3. Создаём НОВЫЕ позиции
             if (items && items.length > 0) {
                 const itemsWithDocId = items.map(item => ({
@@ -101,9 +102,10 @@ export class DocController {
                  * Можно использовать Promise.all, но в данном случае лучше использовать
                  * forEach, чтобы обрабатывать каждую позицию в цикле.
                  */
-                itemsWithDocId.forEach((item) => {DocItemService.create(item)});
+                itemsWithDocId.forEach((item) => { DocItemService.create(item) });
                 // console.log('Позиции добавлены в базу:', itemsWithDocId);
-                
+
+
                 // 4. Отправляем ответ
                 res.json({
                     doc: updatedDoc,
@@ -219,88 +221,89 @@ export class DocController {
             res.status(500).json({ error: error.message });
         }
     }
-static async getDocsByStatus(req: Request, res: Response) {
-    try {
-      const { status } = req.params;
+    static async getDocsByStatus(req: Request, res: Response) {
+        try {
+            const { status } = req.params;
 
-      // Найдём все документы с заданным статусом и типом OrderOut (если нужно)
-      const docs = await DocModel.find({ 
-        docStatus: status,
-        docType: 'OrderOut' // раскомментируйте, если нужно фильтровать по типу
-      })
-        .populate('customerId') // только имя клиента
-        .lean(); // для производительности
+            // Найдём все документы с заданным статусом и типом OrderOut (если нужно)
+            const docs = await DocModel.find({
+                docStatus: status,
+                docType: 'OrderOut' // раскомментируйте, если нужно фильтровать по типу
+            })
+                .populate('customerId') // только имя клиента
+                .lean(); // для производительности
 
-      if (!docs.length) {
-        return res.json([]);
-      }
+            if (!docs.length) {
+                return res.json([]);
+            }
 
-      // Получаем все docId
-      const docIds = docs.map(doc => doc._id);
+            // Получаем все docId
+            const docIds = docs.map(doc => doc._id);
 
-      // Получаем все DocItems для этих документов
-      const docItems = await DocItemsModel.find({ docId: { $in: docIds } })
-        .populate('productId', 'name') // опционально: имя и артикул
-        .lean();
+            // Получаем все DocItems для этих документов
+            const docItems = await DocItemsModel.find({ docId: { $in: docIds } })
+                .populate('productId', 'name') // опционально: имя и артикул
+                .lean();
 
-      // Маппинг: docId -> массив позиций
-      const itemsByDocId = docItems.reduce((acc, item) => {
-        if (!acc[item.docId.toString()]) {
-          acc[item.docId.toString()] = [];
+            // Маппинг: docId -> массив позиций
+            const itemsByDocId = docItems.reduce((acc, item) => {
+                if (!acc[item.docId.toString()]) {
+                    acc[item.docId.toString()] = [];
+                }
+                acc[item.docId.toString()].push(item);
+                return acc;
+            }, {} as Record<string, typeof docItems>);
+
+            // Группируем документы по customerId
+            const groupedByCustomer = docs.reduce((acc, doc) => {
+                const customerId = doc.customerId?._id?.toString() || 'unknown';
+                const customerName = (doc.customerId as any)?.name || 'Не указан';
+
+                if (!acc[customerId]) {
+                    acc[customerId] = {
+                        customerId,
+                        customerName,
+                        docs: [],
+                        totalPositions: 0,
+                        totalSum: 0,
+                    };
+                }
+
+                // Получаем позиции для этого документа
+                const items = itemsByDocId[doc._id.toString()] || [];
+
+                // Считаем сумму и количество для документа
+                let docTotalSum = 0;
+                let docTotalQty = 0;
+                for (const item of items) {
+                    const qty = item.quantity || 0;
+                    const price = item.unitPrice || 0;
+                    docTotalSum += qty * price;
+                    docTotalQty += qty;
+                }
+
+                // Добавляем документ в группу
+                acc[customerId].docs.push({
+                    ...doc,
+                    items, // добавляем позиции
+                    docTotalQty,
+                    docTotalSum,
+                });
+
+                // Обновляем итоги по клиенту
+                acc[customerId].totalPositions += docTotalQty;
+                acc[customerId].totalSum += docTotalSum;
+
+                return acc;
+            }, {} as Record<string, any>);
+
+            // Преобразуем объект в массив
+            const result = Object.values(groupedByCustomer);
+
+            res.json(result);
+        } catch (error: any) {
+            console.error('Ошибка при получении документов по статусу:', error);
+            res.status(500).json({ error: error.message });
         }
-        acc[item.docId.toString()].push(item);
-        return acc;
-      }, {} as Record<string, typeof docItems>);
-
-      // Группируем документы по customerId
-      const groupedByCustomer = docs.reduce((acc, doc) => {
-        const customerId = doc.customerId?._id?.toString() || 'unknown';
-        const customerName = (doc.customerId as any)?.name || 'Не указан';
-
-        if (!acc[customerId]) {
-          acc[customerId] = {
-            customerId,
-            customerName,
-            docs: [],
-            totalPositions: 0,
-            totalSum: 0,
-          };
-        }
-
-        // Получаем позиции для этого документа
-        const items = itemsByDocId[doc._id.toString()] || [];
-        
-        // Считаем сумму и количество для документа
-        let docTotalSum = 0;
-        let docTotalQty = 0;
-        for (const item of items) {
-          const qty = item.quantity || 0;
-          const price = item.unitPrice || 0;
-          docTotalSum += qty * price;
-          docTotalQty += qty;
-        }
-
-        // Добавляем документ в группу
-        acc[customerId].docs.push({
-          ...doc,
-          items, // добавляем позиции
-          docTotalQty,
-          docTotalSum,
-        });
-
-        // Обновляем итоги по клиенту
-        acc[customerId].totalPositions += docTotalQty;
-        acc[customerId].totalSum += docTotalSum;
-
-        return acc;
-      }, {} as Record<string, any>);
-
-      // Преобразуем объект в массив
-      const result = Object.values(groupedByCustomer);
-
-      res.json(result);
-    } catch (error: any) {
-      console.error('Ошибка при получении документов по статусу:', error);
-      res.status(500).json({ error: error.message });
     }
-  }}
+}

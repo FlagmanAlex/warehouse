@@ -21,6 +21,8 @@ export interface IDocBase {
     docDate: Date
     /** Вознаграждение */
     bonusRef: number
+    /** Количество позиций */
+    itemCount: number
     /** Сумма заказа */
     summ: number
     /** ID склада */

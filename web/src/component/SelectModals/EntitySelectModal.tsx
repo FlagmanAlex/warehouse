@@ -56,7 +56,7 @@ export function EntitySelectModal({
                 isOpen={isOpen}
                 onClose={closeModal}
                 onSelect={handleEntitySelect}
-                items={items}
+                items={items.sort((a, b) => a.name.localeCompare(b.name))}
                 title={modalTitle}
                 loading={isLoading}
                 error={error?.message}

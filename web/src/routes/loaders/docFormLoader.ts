@@ -6,8 +6,6 @@ import type { DocDto, DocItemDto, DocOrderOutDto } from '@warehouse/interfaces/D
 export const docFormLoader = async ({ params }: { params: { id?: string } }) => {
   const { id: docId } = params;
 
-  console.log('docId', docId);
-
 
   if (!docId) {
     return {

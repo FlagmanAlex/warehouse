@@ -188,12 +188,13 @@ hr {
   display: block;
   font-style: italic;
   color: #888;
+  font-weight: 700;
   font-size: 12px;
   margin-top: 4px;
 }
 
 .High {
-  background: #ffddee;
+  background: #ffdddd;
 }
 
 .Low {

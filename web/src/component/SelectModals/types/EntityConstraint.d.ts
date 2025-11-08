@@ -3,4 +3,5 @@
 export interface EntityConstraint {
   _id: string;
   name: string;
+  article?: string;
 }

@@ -32,10 +32,9 @@ export function SelectModal<T extends EntityConstraint>({
   // Внутри SelectModal, после объявления modalRef
   const listRef = useRef<HTMLUListElement>(null);
 
-  function matchesFuzzyWords(query: string, text: string): boolean {
+  function matchesFuzzyWords(query: string, name: string, article?: string): boolean {
     if (!query.trim()) return true;
 
-    // Очистка: оставляем только буквы и цифры, приводим к нижнему регистру
     const clean = (s: string) => s.toLowerCase().replace(/[^a-zа-яё0-9]/g, '');
 
     const queryParts = query
@@ -45,17 +44,21 @@ export function SelectModal<T extends EntityConstraint>({
 
     if (queryParts.length === 0) return true;
 
-    const words = text.split(/\s+/).map(word => clean(word));
+    // Собираем все "текстовые" части для поиска: name и (если есть) article
+    const searchableTexts = [name];
+    if (article) searchableTexts.push(article);
 
-    // Каждая часть запроса должна быть найдена хотя бы в одном слове
+    const allWords = searchableTexts
+      .flatMap(text => text.split(/\s+/))
+      .map(word => clean(word));
+
     return queryParts.every(queryPart =>
-      words.some(word => word.includes(queryPart))
+      allWords.some(word => word.includes(queryPart))
     );
   }
 
-
   // В компоненте:
-  const filteredItems = items.filter((item) => matchesFuzzyWords(searchTerm, item.name));
+  const filteredItems = items.filter((item) => matchesFuzzyWords(searchTerm, item.name, item.article));
 
   // //Старая фильтрация
   // const filteredItems = items.filter((item) =>

@@ -13,6 +13,7 @@ export const dtoToDoc = (dto: DocDto): IDoc => {
     docNum: dto.docNum,
     docDate: new Date(dto.docDate),
     bonusRef: dto.bonusRef,
+    itemCount: dto.itemCount,
     summ: dto.summ,
     updatedAt: new Date(),
     description: dto.description,

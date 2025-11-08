@@ -90,12 +90,22 @@ export default () => {
     revalidator.revalidate();
   }, [location.pathname]);
 
- 
+  // Монтируем позицию скроллнга
+  useEffect(() => {
+    const saveScrollY = sessionStorage.getItem('docScreenScrollY');
+    if (saveScrollY) {
+      window.scrollTo(0, parseInt(saveScrollY, 10));
+      // sessionStorage.removeItem('docScreenScrollY');
+    }
+  }, []);
+
   // Рендер одного документа
   const renderDocItem = (item: DocDto) => (
-    console.log('renderDocItem', item),
     <div key={item._id} className={`${styles.docItem} ${styles[item.priority || '']}`}
-      onClick={() => navigate(`/doc/${item._id}?${searchParams.toString()}`)}
+      onClick={() => {
+        sessionStorage.setItem('docScreenScrollY', window.scrollY.toString());
+        navigate(`/doc/${item._id}?${searchParams.toString()}`)}
+      }
     >
       <div className={styles.header}>
         <span className={styles.subtitle}>№{item.docNum}</span>

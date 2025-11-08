@@ -4,6 +4,7 @@
 export const DOC_STATUS_ORDER = [
     { nameRus: 'Черновик', name: 'Draft', icon: 'FaPenToSquare', color: 'grey' },
     { nameRus: 'В работе', name: 'InProgress', icon: 'FaRegClock', color: '#ffa500' },
+    { nameRus: 'В доставке', name: 'InDelivery', icon: 'FaCarSide', color: '#ffa500' },
     { nameRus: 'Выполнен', name: 'Completed', icon: 'FaCheck', color: '#008000' },
     { nameRus: 'Отменен', name: 'Canceled', icon: 'FaRegFileExcel', color: 'red' },
 ] as const;
@@ -114,7 +115,8 @@ export const STATUS_TRANSITIONS_TRANSFER: Record<DocStatusTransferName, DocStatu
 };
 export const STATUS_TRANSITIONS_ORDER: Record<DocStatusOrderName, DocStatusOrderName[]> = {
   Draft: ['InProgress', 'Completed', 'Canceled'],
-  InProgress: ['Completed', 'Draft', 'Canceled'],
+  InProgress: ['Draft', 'InDelivery', 'Completed', 'Canceled'],
+  InDelivery: ['Draft', 'InProgress', 'Completed', 'Canceled'],
   Completed: ['Draft', 'Canceled'],
   Canceled: ['Draft', 'InProgress'],
 };

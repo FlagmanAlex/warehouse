@@ -12,6 +12,7 @@ export const docAction = async ({ request }: { request: Request }) => {
   const itemsStr = formData.get('items');
   const id = formData.get('id');
   const _method = formData.get('_method');
+  const search = formData.get('search');
 
 
   if (typeof docStr !== 'string') {
@@ -43,7 +44,7 @@ export const docAction = async ({ request }: { request: Request }) => {
 
     if (_method === 'DELETE') {
       await fetchApi(`doc/${id}`, 'DELETE');
-      return redirect('/docs');
+      return redirect(`/docs${search ? `?${search}` : ''}`);
     }
     const domainDoc = dtoToDoc(docFormData.doc);
     const domainItems = docFormData.items.map(dtoItemToDocItem);
@@ -53,10 +54,10 @@ export const docAction = async ({ request }: { request: Request }) => {
     switch (_method) {
       case 'PATCH':
           await fetchApi(`doc/${id}`, 'PATCH', { doc: domainDoc, items: domainItems });
-          return redirect('/docs');
+          return redirect(`/docs${search ? `?${search}` : ''}`);
       case 'POST':
           await fetchApi('doc', 'POST', { doc: domainDoc, items: domainItems });
-          return redirect('/docs');
+          return redirect(`/docs${search ? `?${search}` : ''}`);
       // default:
       //   return { error: 'Неверный метод' };
       }

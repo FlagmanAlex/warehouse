@@ -22,6 +22,7 @@ import { docAction } from "./actions/docFormAction";
 import { customerAction } from "./actions/customerFormAction";
 import { InProgressReport } from "../pages/Reports";
 import { inProgressReportLoader } from "./loaders/inProgressReportLoader";
+import InProgressReportByCustomer from "../pages/Reports/InPtrogressReportByCustomer";
 
 
 export const routeConfig: RouteObject[] = [
@@ -109,6 +110,11 @@ export const routeConfig: RouteObject[] = [
             {
                 path: 'inprogress-report',
                 element: <InProgressReport />,
+                loader: protectedLoader(inProgressReportLoader)
+            },
+            {
+                path: 'inprogress-report-by-customer',
+                element: <InProgressReportByCustomer />,
                 loader: protectedLoader(inProgressReportLoader)
             },
             { path: '/stock-product/:productId', element: <StockProduct /> },

@@ -1,6 +1,6 @@
 // DocForm.tsx
 import { useEffect, useState } from 'react';
-import { Form, useLoaderData, useNavigate, useActionData } from 'react-router-dom';
+import { Form, useLoaderData, useNavigate, useActionData, useLocation } from 'react-router-dom';
 import type { DocAndItemsDto, DocDto, DocItemDto } from '@warehouse/interfaces/DTO';
 import EditableItem from './EditableItem';
 import HeaderForm from './HeaderForm';
@@ -13,6 +13,10 @@ export type LoaderData = {
 };
 
 const DocForm = () => {
+  const location = useLocation();
+  const search = location.search;
+  console.log(search);
+  
   const navigate = useNavigate();
   const actionData = useActionData();
   const { doc: initialDoc, items: initialItems } = useLoaderData() as LoaderData;
@@ -70,6 +74,7 @@ const DocForm = () => {
       <input type="hidden" name="id" value={formData.doc._id || ''} />
       <input type="hidden" name="doc" value={JSON.stringify(formData.doc)} />
       <input type="hidden" name="items" value={JSON.stringify(formData.items)} />
+      <input type="hidden" name="search" value={search} />
 
       {actionData?.error && <p style={{ color: 'red' }}>{actionData.error}</p>}
 

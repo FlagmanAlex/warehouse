@@ -1,11 +1,12 @@
 // InProgressReport.tsx
 import { useLoaderData } from 'react-router-dom';
 import { useState } from 'react';
+import type { IProduct } from '@warehouse/interfaces';
+import { formatCurrency } from '../../utils/formatDate';
 
-// Типы для TypeScript (можно вынести в отдельный файл)
 interface DocItem {
   _id: string;
-  productId: { name: string; vendorCode: string };
+  productId: IProduct
   quantity: number;
   unitPrice: number;
 }
@@ -28,31 +29,20 @@ interface CustomerGroup {
 }
 
 export const InProgressReport = () => {
-  const {response: data} = useLoaderData() as { response: CustomerGroup[] };
+  const { response: data } = useLoaderData() as { response: CustomerGroup[] };
   const [expandedDocs, setExpandedDocs] = useState<Record<string, boolean>>({});
-  const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
 
   const toggleDoc = (docId: string) => {
     setExpandedDocs(prev => ({ ...prev, [docId]: !prev[docId] }));
   };
 
-  const toggleItems = (docId: string) => {
-    setExpandedItems(prev => ({ ...prev, [docId]: !prev[docId] }));
-  };
-
-  // Форматирование даты
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('ru-RU');
   };
 
-  // Форматирование суммы
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('ru-RU', {
-      style: 'currency',
-      currency: 'RUB',
-      minimumFractionDigits: 2,
-    }).format(value);
-  };
+
+  // Общая сумма по всем клиентам
+  const totalReportSum = data.reduce((sum, customer) => sum + customer.totalSum, 0);
 
   if (!data || data.length === 0) {
     return (
@@ -64,7 +54,12 @@ export const InProgressReport = () => {
 
   return (
     <div style={{ padding: '16px', fontFamily: 'Arial, sans-serif' }}>
-      <h2 style={{ marginBottom: '24px', color: '#333' }}>Отчёт: Документы "В работе"</h2>
+      <h2 style={{ marginBottom: '16px', color: '#333' }}>Отчёт: Документы "В работе"</h2>
+
+      {/* Общая сумма отчёта */}
+      <div style={{ marginBottom: '24px', textAlign: 'right', fontSize: '18px', fontWeight: 'bold' }}>
+        Общая сумма: {formatCurrency(totalReportSum)}
+      </div>
 
       {data.map(customer => (
         <div
@@ -77,7 +72,6 @@ export const InProgressReport = () => {
             boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
           }}
         >
-          {/* Заголовок клиента */}
           <div
             style={{
               backgroundColor: '#f5f9ff',
@@ -96,7 +90,6 @@ export const InProgressReport = () => {
             </div>
           </div>
 
-          {/* Документы клиента */}
           <div style={{ padding: '0 16px 16px' }}>
             {customer.docs.map(doc => (
               <div
@@ -108,7 +101,6 @@ export const InProgressReport = () => {
                   overflow: 'hidden',
                 }}
               >
-                {/* Заголовок документа */}
                 <div
                   onClick={() => toggleDoc(doc._id)}
                   style={{
@@ -116,65 +108,48 @@ export const InProgressReport = () => {
                     backgroundColor: '#fafafa',
                     cursor: 'pointer',
                     display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
+                    flexDirection: 'column',
+                    justifyContent: 'space-around',
+                    alignItems: 'flex-start',
                   }}
                 >
                   <div>
                     <strong>Заказ:</strong> {doc.docNum} от {formatDate(doc.docDate)}
                   </div>
                   <div>
-                    Позиций: {doc.docTotalQty} | Сумма: {formatCurrency(doc.docTotalSum)}
+                     {doc.docTotalQty} шт. Сумма: {formatCurrency(doc.docTotalSum)}
                   </div>
                 </div>
 
-                {/* Содержимое документа (разворачивается) */}
+                {/* Сразу показываем позиции при раскрытии */}
                 {expandedDocs[doc._id] && (
                   <div style={{ padding: '12px', backgroundColor: '#fff' }}>
-                    <div style={{ marginBottom: '12px' }}>
-                      <button
-                        onClick={() => toggleItems(doc._id)}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: '#1976d2',
-                          cursor: 'pointer',
-                          fontSize: '14px',
-                        }}
-                      >
-                        {expandedItems[doc._id] ? 'Скрыть позиции' : 'Показать позиции'}
-                      </button>
-                    </div>
-
-                    {/* Таблица позиций */}
-                    {expandedItems[doc._id] && (
-                      <div style={{ overflowX: 'auto' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                          <thead>
-                            <tr>
-                              <th style={tableHeaderStyle}>Артикул</th>
-                              <th style={tableHeaderStyle}>Наименование</th>
-                              <th style={tableHeaderStyle}>Кол-во</th>
-                              <th style={tableHeaderStyle}>Цена</th>
-                              <th style={tableHeaderStyle}>Сумма</th>
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <thead>
+                          <tr>
+                            {/* <th style={tableHeaderStyle}>Артикул</th> */}
+                            <th style={tableHeaderStyle}>Наименование</th>
+                            <th style={tableHeaderStyle}>Кол-во</th>
+                            <th style={tableHeaderStyle}>Цена</th>
+                            {/* <th style={tableHeaderStyle}>Сумма</th> */}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {doc.items.map(item => (
+                            <tr key={item._id} style={{ borderBottom: '1px solid #eee' }}>
+                              {/* <td style={tableCellStyle}>{item.productId.article}</td> */}
+                              <td style={tableCellStyle}>{`${item.productId.article} ${item.productId.name}`}</td>
+                              <td style={tableCellStyle}>{item.quantity}</td>
+                              <td style={tableCellStyle}>{formatCurrency(item.unitPrice)}</td>
+                              <td style={tableCellStyle}>
+                                {/* {formatCurrency(item.quantity * item.unitPrice)} */}
+                              </td>
                             </tr>
-                          </thead>
-                          <tbody>
-                            {doc.items.map(item => (
-                              <tr key={item._id} style={{ borderBottom: '1px solid #eee' }}>
-                                <td style={tableCellStyle}>{item.productId.vendorCode}</td>
-                                <td style={tableCellStyle}>{item.productId.name}</td>
-                                <td style={tableCellStyle}>{item.quantity}</td>
-                                <td style={tableCellStyle}>{formatCurrency(item.unitPrice)}</td>
-                                <td style={tableCellStyle}>
-                                  {formatCurrency(item.quantity * item.unitPrice)}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 )}
               </div>
@@ -186,18 +161,17 @@ export const InProgressReport = () => {
   );
 };
 
-// Стили для таблицы
 const tableHeaderStyle: React.CSSProperties = {
   backgroundColor: '#f0f8ff',
   padding: '10px 12px',
   textAlign: 'left',
-  fontSize: '14px',
+  fontSize: '10px',
   fontWeight: 'bold',
   color: '#333',
 };
 
 const tableCellStyle: React.CSSProperties = {
   padding: '10px 12px',
-  fontSize: '14px',
+  fontSize: '10px',
   color: '#555',
 };

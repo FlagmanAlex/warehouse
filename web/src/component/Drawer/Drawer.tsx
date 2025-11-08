@@ -25,6 +25,8 @@ export const Drawer = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
       path: '',
       children: [
         { label: 'В работе', path: '/inprogress-report' },
+        { label: 'По клиентам', path: '/inprogress-report-by-customer' },
+
       ],
     }
   ];

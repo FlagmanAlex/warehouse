@@ -242,7 +242,7 @@ export class DocController {
 
             // Получаем все DocItems для этих документов
             const docItems = await DocItemsModel.find({ docId: { $in: docIds } })
-                .populate('productId', 'name') // опционально: имя и артикул
+                .populate('productId', 'article name') // опционально: имя и артикул
                 .lean();
 
             // Маппинг: docId -> массив позиций

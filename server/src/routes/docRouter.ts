@@ -4,22 +4,17 @@ import { adminMiddleware } from '../middleware/authMiddleware';
 
 export const docRouter = express.Router();
 
-// Получение списка заказов
-docRouter.get('/', DocController.getAllDocs);
-// Получение заказа по ID
-docRouter.get('/:id', DocController.getDocById);
-// Получение заказов по статусу документа
-docRouter.get('/status/:status', DocController.getDocsByStatus);
-// Создание нового заказа
-docRouter.post('/', DocController.createDoc);
-//Изменение статуса заказа
-docRouter.patch('/:id/status', DocController.updateDocStatus);
-//Обновление заказа
-docRouter.patch('/:id', DocController.updateDoc);
+
+docRouter.get('/', DocController.getAllDocs);                       // Получение списка заказов
+docRouter.get('/:id', DocController.getDocById);                    // Получение заказа по ID
+docRouter.get('/status/:status', DocController.getDocsByStatus);    // Получение заказов по статусу документа
+docRouter.post('/', DocController.createDoc);                       // Создание нового заказа
+docRouter.patch('/:id/status', DocController.updateDocStatus);      // Изменение статуса заказа
+docRouter.patch('/:id', DocController.updateDoc);                   // Обновление заказа
+
 // Проведение заказа
 // docRouter.post('/:id/post', DocController.);
 // Распроведение заказа
 // docRouter.post('/:id/unpost', DocController.unpostDoc);
-// Удаление заказа
 
-docRouter.delete('/:id', adminMiddleware, DocController.deleteDoc);
+docRouter.delete('/:id', adminMiddleware, DocController.deleteDoc); // Удаление заказа

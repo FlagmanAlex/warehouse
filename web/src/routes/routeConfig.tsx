@@ -1,7 +1,7 @@
 import React from "react";
 import { Outlet, type RouteObject } from "react-router-dom";
 import { RootLayout } from "../layout/RootLayout";
-import { docLoader, docFormLoader, productLoader, productFormLoader } from "./loaders";
+import { docLoader, docFormLoader, productLoader, productFormLoader, deliveryNewLoader } from "./loaders";
 import { protectedLoader } from "../utils/auth";
 import { customerFormLoader } from "./loaders/customerFormLoader";
 import { AuthProvider } from "../component/Screens/AuthScreen/AuthContext";
@@ -21,8 +21,14 @@ import { customerLoader } from "./loaders/customerLoader";
 import { docAction } from "./actions/docFormAction";
 import { customerAction } from "./actions/customerFormAction";
 import { InProgressReport } from "../pages/Reports";
-import { inProgressReportLoader } from "./loaders/inProgressReportLoader";
+import { inProgressReportLoader, inDeliveryReportLoader } from "./loaders";
 import InProgressReportByCustomer from "../pages/Reports/InPtrogressReportByCustomer";
+import InDeliveryReportByCustomer from "../pages/Reports/InDeliveryReportByCustomer";
+import { DeliveryList } from "../component/Screens/DeliveryScreen/DeliveryList";
+import { deliveryLoader } from "./loaders/deliveryLoader";
+import { deliveryAction } from "./actions/deliveryAction";
+import { DeliveryNew } from "../component/Screens/DeliveryScreen/DeliveryNew";
+import { DeliveryForm } from "../component/Screens/DeliveryScreen/DeliveryForm";
 
 
 export const routeConfig: RouteObject[] = [
@@ -117,7 +123,29 @@ export const routeConfig: RouteObject[] = [
                 element: <InProgressReportByCustomer />,
                 loader: protectedLoader(inProgressReportLoader)
             },
+            {
+                path: 'indelivery-report-by-customer',
+                element: <InDeliveryReportByCustomer />,
+                loader: protectedLoader(inDeliveryReportLoader)
+            },
+            {
+                path: 'delivery-planning',
+                element: <DeliveryList />,
+                loader: protectedLoader(deliveryLoader),
+                action: deliveryAction
+            },
+            {
+                path: 'delivery-planning/new',
+                element: <DeliveryNew />,
+                loader: protectedLoader(deliveryNewLoader),
+                action: deliveryAction
+            },
             { path: '/stock-product/:productId', element: <StockProduct /> },
+            { path: '/delivery-planning/:id', 
+                element: <DeliveryForm />,
+                action: deliveryAction, 
+                loader: protectedLoader(deliveryLoader),
+            },
             { path: '/stock-warehouse', element: <StockWarehouse /> },
             { path: '*', element: <NotFoundPage /> },
         ]

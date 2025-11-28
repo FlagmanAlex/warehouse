@@ -20,6 +20,10 @@ export * from './IDocNum'                       //Номера документ�
 //DocFormScreen
 export * from './IDocItem'                      //Позиции документа
 
+//DeliveryScreen
+export * from './IDeliveryDoc'                  //Доставка
+export * from './IDeliveryItem'                 //Позиции доставки
+
 export * from './IPayment'                      //Платежи
 
 //Журналы

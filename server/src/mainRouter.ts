@@ -14,6 +14,8 @@ import {
     supplierRouter, 
     transactionRouter,
     addressRouter, 
+    deliveryRouter
+    
 } from '@routers';
 
 export const mainRouter = Router()
@@ -31,3 +33,4 @@ mainRouter.use('/doc-items', authMiddleware, docItemssRouter);
 mainRouter.use('/price-history', authMiddleware, priceHistoryRouter);
 mainRouter.use('/supplier', authMiddleware, supplierRouter);
 mainRouter.use('/transaction', authMiddleware, transactionRouter);
+mainRouter.use('/delivery', authMiddleware, deliveryRouter);

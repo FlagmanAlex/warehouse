@@ -117,6 +117,6 @@ export const STATUS_TRANSITIONS_ORDER: Record<DocStatusOrderName, DocStatusOrder
   Draft: ['InProgress', 'Completed', 'Canceled'],
   InProgress: ['Draft', 'InDelivery', 'Completed', 'Canceled'],
   InDelivery: ['Draft', 'InProgress', 'Completed', 'Canceled'],
-  Completed: ['Draft', 'Canceled'],
+  Completed: ['Draft', 'Canceled', 'InDelivery'],
   Canceled: ['Draft', 'InProgress'],
 };

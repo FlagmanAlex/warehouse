@@ -1,6 +1,7 @@
 import { IAddress, ICustomer, IDeliveryDoc, IDeliveryItem, IDocOrderOut } from "@interfaces";
 import { DeliveryDocDTO, DeliveryDto, DeliveryItemsDTO } from "@interfaces/DTO";
 import { AddressModel, CustomerModel, DeliveryDocModel, DeliveryItemModel, DocModel, IDeliveryDocModel } from "@models";
+import { DocService} from '@services'
 import { Types } from "mongoose";
 
 interface newDelivery {
@@ -8,19 +9,17 @@ interface newDelivery {
     startTime: string
     unloadTime: string,
     timeInProgress: string,
+    totalCountEntity: number,
+    totalCountDoc: number,
+    totalSum: number
     docIds: String[]
 }
 
 
 export class DeliveryService {
     private static readonly stringToTime = (time: string) => time.split(':').map(Number).reduce((acc, curr) => acc * 60 + curr, 0) * 60 * 1000
+    private static readonly dateToTime = (time: Date) => time.getHours() * 60 * 60 * 1000 + time.getMinutes() * 60 * 1000
     static async createDelivery(data: newDelivery) {
-
-        const startTime = new Date(data.date).getTime() + this.stringToTime(data.startTime)
-        const timeInProgress = new Date(data.date).getTime() + this.stringToTime(data.timeInProgress)
-        const unloadTime = new Date(data.date).getTime() + this.stringToTime(data.unloadTime)
-
-        console.log(startTime, timeInProgress, unloadTime);
 
         const docs: IDocOrderOut[] = await DocModel.find({ _id: { $in: data.docIds } })
 
@@ -31,9 +30,9 @@ export class DeliveryService {
 
         const newDeliveryDoc: IDeliveryDoc = {
             date: new Date(data.date),
-            startTime: new Date(startTime),
-            unloadTime: new Date(unloadTime),
-            timeInProgress: new Date(timeInProgress),
+            startTime: new Date(data.startTime),
+            unloadTime: new Date(data.unloadTime),
+            timeInProgress: new Date(data.timeInProgress),
             creatorId: docs[0].userId.toString(),
             totalCountEntity: docs.reduce((acc, curr) => acc + curr.itemCount, 0),
             totalCountDoc: docs.length,
@@ -42,10 +41,15 @@ export class DeliveryService {
 
         const deliveryDoc = await DeliveryDocModel.create(newDeliveryDoc);
 
-        let currentTime = new Date(newDeliveryDoc.startTime).getTime()
+        const startTime = new Date(data.startTime).getTime()
+        const timeInProgress = new Date(data.timeInProgress).getTime()
+        const unloadTime = new Date(data.unloadTime).getTime()
+
+
+        let currentTime = startTime
 
         const newDeliveryItems: IDeliveryItem[] = docs.map(doc => {
-            currentTime = new Date(currentTime).getTime()
+
             const deliveryItem = {
                 deliveryId: deliveryDoc._id ? deliveryDoc._id.toString() : '',
                 docIds: [doc._id?.toString() || ''], // превращаем строку в массив
@@ -53,10 +57,9 @@ export class DeliveryService {
                 customerId: doc.customerId ? doc.customerId.toString() : '',
                 entityCount: doc.itemCount,
                 summ: doc.summ,
-                dTimePlan: new Date(currentTime)
+
             }
 
-            currentTime += unloadTime;
             return deliveryItem;
         })
 
@@ -67,6 +70,7 @@ export class DeliveryService {
                 // Первый элемент для этого addressId
                 acc[addressId] = {
                     ...item
+
                 };
             } else {
                 // Уже есть — агрегируем
@@ -74,18 +78,22 @@ export class DeliveryService {
                 acc[addressId].summ += item.summ;
                 acc[addressId].docIds.push(...item.docIds); // безопасно, т.к. мы контролируем структуру
             }
-
+            acc[addressId].dTimePlan = new Date(currentTime + new Date(timeInProgress).getMinutes() * 60 * 1000);
+            currentTime += new Date(unloadTime).getMinutes() * 60 * 1000;
             return acc;
         }, {});
 
         const deliveryGroupedItems: IDeliveryItem[] = Object.values(groupedItems);
-        const deliveryItems = await DeliveryItemModel.create(deliveryGroupedItems);
-        return { deliveryDoc, deliveryItems };
+        await DeliveryItemModel.create(deliveryGroupedItems);
+        const DeliveryDto: DeliveryDto | null = await this.getDeliveryForId(deliveryDoc._id.toString())
+        console.log(DeliveryDto);
+        
+        return DeliveryDto;
     }
     static async getDocDeliveries(dateStart: Date, dateEnd: Date): Promise<DeliveryDto[]> {
         // 1. Получаем документы доставки
         const deliveries = await DeliveryDocModel
-            .find({ date: { $gte: dateStart, $lte: dateEnd } })
+            .find({ date: { $gte: dateStart.toISOString().slice(0, 10), $lte: dateEnd.toISOString().slice(0, 10) } })
             .lean();
 
         if (deliveries.length === 0) {
@@ -185,12 +193,14 @@ export class DeliveryService {
                 totalSum: deliveryDoc.totalSum,
                 startTime: deliveryDoc.startTime,
                 unloadTime: deliveryDoc.unloadTime,
+                timeInProgress: deliveryDoc.timeInProgress,
                 // creatorId исключён из DTO — по определению Omit<IDeliveryDoc, 'creatorId'>
             };
 
             // 2. Получаем элементы доставки с populate
             const items = await DeliveryItemModel
                 .find({ deliveryId: deliveryDoc._id })
+                .sort({ dTimePlan: 1 })
                 .populate({
                     path: 'addressId',
                     select: '_id address gps', // только нужные поля
@@ -246,5 +256,49 @@ export class DeliveryService {
             console.error('Ошибка при получении доставки по ID:', error);
             return null;
         }
+    }
+    static async updateDelivery(deliveryId: string, data: any, userId: string | undefined) {
+        const { _id, ...deliveryDocUpdate } = data.deliveryDoc;
+
+        // Обновляем DeliveryDoc
+        const deliveryDoc = await DeliveryDocModel.updateOne(
+            { _id: deliveryId },
+            { $set: {
+                ...deliveryDocUpdate,
+                date: new Date(deliveryDocUpdate.date),
+                startTime: new Date(deliveryDocUpdate.startTime),
+                unloadTime: new Date(deliveryDocUpdate.unloadTime),
+                timeInProgress: new Date(deliveryDocUpdate.timeInProgress),
+            } }
+        );
+
+        // Обновляем каждый DeliveryItem по его _id
+        const itemUpdates = data.deliveryItems.map(async (item: any) => {
+            const { _id: itemId, ...itemData } = item;
+            const deliveryItem = await DeliveryItemModel.updateOne(
+                { _id: itemId, deliveryId: deliveryId },
+                {
+                    $set: {
+                        ...itemData,
+                        dTimePlan: new Date(itemData.dTimePlan),
+                        dTimeFact: itemData.dTimeFact ? new Date(itemData.dTimeFact) : null,
+                    }
+                }
+            );
+            item.docIds.map((docId: string) => {
+                if (itemData.dTimeFact) {
+                    DocService.updateStatus(docId, 'Completed', userId);
+                } else {
+                    DocService.updateStatus(docId, 'InDelivery', userId);
+                }
+            })
+            return deliveryItem;
+        });
+
+        
+        // Ожидаем обновления всех DeliveryItem
+        const deliveryItems = await Promise.all(itemUpdates);
+        
+        return { deliveryDoc, deliveryItems };
     }
 }

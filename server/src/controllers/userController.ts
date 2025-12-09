@@ -66,7 +66,7 @@ export const userController = {
       const token = jwt.sign(
         { userId: user._id, role: user.role },
         JWT_SECRET,
-        { expiresIn: '24h' }
+        { expiresIn: '48h' }
       );
 
       res.status(201).json({
@@ -103,7 +103,7 @@ export const userController = {
         const token = jwt.sign(
           { userId: user._id, role: user.role },
           JWT_SECRET,
-          { expiresIn: '24h' }
+          { expiresIn: '48h' }
         );
 
         const resp:ResponseUserDto = {

@@ -15,7 +15,7 @@ import { DocStatusOrderMap, THEME } from '@warehouse/interfaces/config';
 import styles from './DocScreen.module.css';
 import { Icon } from '../../../shared/Icon';
 import { TextField } from '../../../shared/TextFields';
-import { formatDate } from '../../../utils/formatDate';
+import { formatDate } from '../../../utils/formatDateTime';
 import { DocStatusInMap, DocStatusOutMap, DocTypeMap } from '@warehouse/interfaces/config';
 
 export interface LoaderData {

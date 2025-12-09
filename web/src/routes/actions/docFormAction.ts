@@ -2,7 +2,7 @@ import { redirect } from "react-router-dom";
 import { fetchApi } from "../../api/fetchApi";
 import { dtoItemToDocItem, dtoToDoc } from "../../api/mappers/docMappers";
 import type { DocFormData } from "../../types/forms/DocForm";
-import { formatDate } from "../../utils/formatDate";
+import { formatDate } from "../../utils/formatDateTime";
 
 export const docAction = async ({ request }: { request: Request }) => {
   const formData : any = await request.formData();

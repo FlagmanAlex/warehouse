@@ -2,7 +2,7 @@
 import { useLoaderData } from 'react-router-dom';
 import { useState } from 'react';
 import type { IProduct } from '@warehouse/interfaces';
-import { formatCurrency } from '../../utils/formatDate';
+import { formatCurrency } from '../../utils/formatDateTime';
 
 interface DocItem {
   _id: string;

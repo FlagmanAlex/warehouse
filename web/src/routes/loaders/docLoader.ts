@@ -1,5 +1,5 @@
 import type { DocDto } from "@warehouse/interfaces/DTO";
-import { formatDate } from "../../utils/formatDate";
+import { formatDate } from "../../utils/formatDateTime";
 import { fetchApi } from "../../api/fetchApi";
 
 

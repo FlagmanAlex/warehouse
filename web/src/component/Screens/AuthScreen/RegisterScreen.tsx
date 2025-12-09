@@ -11,6 +11,7 @@ interface RegisterData {
   username: string;
   email: string;
   password: string;
+  confirmPassword: string;
 }
 
 const RegisterScreen = () => {
@@ -18,12 +19,18 @@ const RegisterScreen = () => {
     username: '',
     email: '',
     password: '',
+    confirmPassword: '',
   });
   const navigate = useNavigate();
 
   const handleRegister = async () => {
-    if (!user?.username || !user?.email || !user?.password) {
+    if (!user.username || !user.email || !user.password || !user.confirmPassword) {
       alert('Заполните все поля');
+      return;
+    }
+
+    if (user.password !== user.confirmPassword) {
+      alert('Пароли не совпадают');
       return;
     }
 
@@ -32,12 +39,13 @@ const RegisterScreen = () => {
         username: user.username,
         email: user.email,
         password: user.password,
-        role: 'user', // по умолчанию пользователь
+        role: 'user',
       });
 
       alert('Вы успешно зарегистрировались!');
-      navigate('/login'); // Перенаправляем на страницу входа
+      navigate('/login');
     } catch (error) {
+      console.error('Registration error:', error); // ← полезно для отладки
       alert('Не удалось зарегистрироваться. Попробуйте позже.');
     }
   };
@@ -46,9 +54,17 @@ const RegisterScreen = () => {
     <div className={style.registerContainer}>
       <h1 className={style.registerTitle}>Регистрация</h1>
 
+      <TextField
+        placeholder="Имя пользователя"
+        type="text"
+        name="username"
+        value={user?.username || ''}
+        onChange={(e) => setUser({ ...user, username: e.target.value })}
+      />
 
       <TextField
         placeholder="Email"
+        type="email"
         name="email"
         value={user?.email || ''}
         onChange={(e) => setUser({ ...user, email: e.target.value })}
@@ -56,16 +72,18 @@ const RegisterScreen = () => {
 
       <TextField
         placeholder="Пароль"
+        type="password"
         name="password"
         value={user?.password || ''}
         onChange={(e) => setUser({ ...user, password: e.target.value })}
       />
 
       <TextField
-        placeholder="Пароль"
-        name="password"
-        value={user?.password || ''}
-        onChange={(e) => setUser({ ...user, password: e.target.value })}
+        placeholder="Повторите пароль"
+        type="password"
+        name="confirmPassword"
+        value={user?.confirmPassword || ''}
+        onChange={(e) => setUser({ ...user, confirmPassword: e.target.value })}
       />
 
       {/* Вариант 1: Кастомный Button */}

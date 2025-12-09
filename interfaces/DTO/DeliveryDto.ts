@@ -3,7 +3,7 @@ import type { IAddress } from "../IAddress";
 import type { ICustomer } from "../ICustomer";
 import type { IDeliveryDoc } from "../IDeliveryDoc";
 export interface DeliveryDocDTO extends Omit<IDeliveryDoc, 'creatorId'> {
-    _id: string;
+    _id?: string;
     date: Date;
     totalCountEntity: number;
     totalCountDoc: number;

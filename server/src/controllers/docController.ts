@@ -7,8 +7,6 @@ import { DocService } from '../services/StatusService';
 import { DocItemService } from '@services';
 import { IDoc, IDocItem } from '@interfaces';
 import { DocStatusName } from '@interfaces/config';
-import { DocDto, DocOrderOutDto } from '@interfaces/DTO';
-import { recalculateDocSum } from 'src/utils/recalculateDocSum';
 
 // === Дополнительный DTO для обновления статуса (может быть вынесен в DTO)
 

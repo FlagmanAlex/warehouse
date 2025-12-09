@@ -1,7 +1,7 @@
 import React from "react";
 import { Outlet, type RouteObject } from "react-router-dom";
 import { RootLayout } from "../layout/RootLayout";
-import { docLoader, docFormLoader, productLoader, productFormLoader, deliveryNewLoader } from "./loaders";
+import { docLoader, docFormLoader, productLoader, productFormLoader } from "./loaders";
 import { protectedLoader } from "../utils/auth";
 import { customerFormLoader } from "./loaders/customerFormLoader";
 import { AuthProvider } from "../component/Screens/AuthScreen/AuthContext";
@@ -27,20 +27,20 @@ import InDeliveryReportByCustomer from "../pages/Reports/InDeliveryReportByCusto
 import { DeliveryList } from "../component/Screens/DeliveryScreen/DeliveryList";
 import { deliveryLoader } from "./loaders/deliveryLoader";
 import { deliveryAction } from "./actions/deliveryAction";
-import { DeliveryNew } from "../component/Screens/DeliveryScreen/DeliveryNew";
 import { DeliveryForm } from "../component/Screens/DeliveryScreen/DeliveryForm";
+import { deliveryFormLoader } from "./loaders/deliveryFormLoader";
 
 
 export const routeConfig: RouteObject[] = [
     {
         element: (
-            <RootLayout>
-                <AuthProvider>
+            <AuthProvider>
+                <RootLayout>
                     <React.Suspense fallback={<div>Загрузка...</div>}>
                         <Outlet />
                     </React.Suspense>
-                </AuthProvider>
-            </RootLayout>
+                </RootLayout>
+            </AuthProvider>
         ),
         errorElement: <ErrorPage />,
         children: [
@@ -135,17 +135,17 @@ export const routeConfig: RouteObject[] = [
                 action: deliveryAction
             },
             {
-                path: 'delivery-planning/new',
-                element: <DeliveryNew />,
-                loader: protectedLoader(deliveryNewLoader),
-                action: deliveryAction
+                path: 'delivery-form/:id',
+                element: <DeliveryForm />,
+                loader: protectedLoader(deliveryFormLoader),
+            },
+            {
+                path: 'delivery-form',
+                element: <DeliveryForm />,
+                loader: protectedLoader(deliveryFormLoader),
             },
             { path: '/stock-product/:productId', element: <StockProduct /> },
-            { path: '/delivery-planning/:id', 
-                element: <DeliveryForm />,
-                action: deliveryAction, 
-                loader: protectedLoader(deliveryLoader),
-            },
+            { path: '/delivery-planning/:id', action: deliveryAction },
             { path: '/stock-warehouse', element: <StockWarehouse /> },
             { path: '*', element: <NotFoundPage /> },
         ]

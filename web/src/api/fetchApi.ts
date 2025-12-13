@@ -17,30 +17,32 @@ export const getNavigation = () => navigate;
 export const fetchApi = async <T = unknown>(
     url: string,
     method: 'POST' | 'PATCH' | 'GET' | 'DELETE' = 'GET',
-    body?: object,
+    body?: object | FormData,
     headers: Record<string, string> = {}
 ): Promise<T> => {
     const token = localStorage.getItem('@auth_token');
     
     try {
+        const isFormData = body instanceof FormData;
+
         const requestOptions: RequestInit = {
             method,
             headers: {
-                'Content-Type': 'application/json',
+                // Устанавливаем Content-Type ТОЛЬКО если НЕ FormData
+                ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
                 ...(token && { 'Authorization': `Bearer ${token}` }),
                 ...headers
             }
         };
         
         if (body && method !== 'GET') {
-            requestOptions.body = JSON.stringify(body);
+            requestOptions.body = isFormData ? body : JSON.stringify(body);
         }
 
-        const uri = `${server}/api/${url}`
+        const uri = `${server}/api/${url}`;
         console.log(uri);
         const response = await fetch(uri, requestOptions);
 
-        // Если статус 401 — значит, токен просрочен или недействителен
         if (response.status === 401) {
             console.warn('Unauthorized. Redirecting to Login...');
 
@@ -64,6 +66,6 @@ export const fetchApi = async <T = unknown>(
     } catch (error) {
         console.error(`❌ Ошибка выполнения запроса ${url}`, error);
         console.log('Тело запроса:', body);
-        throw (error as Error);
+        throw error as Error;
     }
 };

@@ -304,7 +304,7 @@ export const DeliveryForm = () => {
                     className={style.docChip + ' ' + style.address}
                     onClick={(e) => {
                         e.stopPropagation();
-                        window.open(`https://geo:${deliveryItem.addressId?.gps}`)
+                        window.open(`geo:${deliveryItem.addressId?.gps}`)
                     }}
                 >
                     {deliveryItem.addressId?.address}

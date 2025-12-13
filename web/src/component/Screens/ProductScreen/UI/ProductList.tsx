@@ -2,9 +2,9 @@ import React, { useState, useMemo, useEffect } from 'react'; // <-- добави
 import { useLoaderData, useNavigate, useSearchParams } from 'react-router-dom'; // <-- добавили useSearchParams
 import type { ProductDto } from '@warehouse/interfaces/DTO';
 import style from './ProductList.module.css';
-import { TextField } from '../../../shared/TextFields';
-import { Button } from '../../../shared/Button';
-import { THEME } from '../../../../../interfaces/Config/Color';
+import { TextField } from '../../../../shared/TextFields';
+import { Button } from '../../../../shared/Button';
+import { THEME } from '../../../../../../interfaces/Config/Color';
 
 export interface LoaderData {
   products: ProductDto[];

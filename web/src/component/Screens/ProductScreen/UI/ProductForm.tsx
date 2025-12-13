@@ -1,41 +1,21 @@
 import { useEffect, useState } from 'react';
 import { useLoaderData, useNavigate } from 'react-router-dom';
-import { fetchApi } from '../../../api/fetchApi';
+import { fetchApi } from '../../../../api/fetchApi';
 import type { IProduct } from '@warehouse/interfaces';
 import style from './ProductForm.module.css';
 import type { ProductDto } from '@warehouse/interfaces/DTO';
 // import { CategorySelectModal, SupplierSelectModal } from '../../SelectModals/index';
-import { Button } from '../../../shared/Button';
+import { Button } from '../../../../shared/Button';
 import { THEME } from '@warehouse/interfaces/config';
-import { TextField, type TextFieldProps } from '../../../shared/TextFields/UI/TextField';
-import { EntitySelectModal } from '../../SelectModals/EntitySelectModal';
+import { TextField, type TextFieldProps } from '../../../../shared/TextFields/UI/TextField';
+import { EntitySelectModal } from '../../../SelectModals/EntitySelectModal';
+import { ProductImages } from './ProductImages';
 
 interface FieldProps {
     label: string;
     name: keyof IProduct;
     type: TextFieldProps['type'];
 }
-
-/*
-    +article: string
-    +name: string                //Наименование
-    +description?: string        //Описание продукции
-    +categoryId: string          //Id категории
-    +unitOfMeasurement?: ProductUnit;    //Единицы измерения
-    +price: number               //Цена
-    +minStock?: number            //Минимальный запас
-    isArchived: boolean         //Архивация позиции в справочнике (вместо удаления)
-    createdBy: string           //Создатель
-    lastUpdateBy: string        //Обновил
-    +supplierId?: string          //Поставщик
-    createdAt?: Date             //Дата создания
-    updatedAt?: Date             //Дата последнего обновления
-    +defaultWarehouseId: string  //Id склада по умолчанию
-    image?: string[]             //Изображения
-    +packagingId?: string           //Упаковка
-
-
-*/
 
 const fields: FieldProps[] = [
     { label: 'Артикул', name: 'article', type: 'text' },
@@ -98,6 +78,7 @@ const ProductForm = () => {
                 unitOfMeasurement: 'шт',
                 price: product.price,
                 isArchived: false,
+                image: product.image
             };
             await fetchApi('product', 'POST', createProduct);
             localStorage.removeItem(localStorageKey);
@@ -139,7 +120,13 @@ const ProductForm = () => {
     return (
         <div className={style.productFormContainer}>
             <h2>{product._id ? 'Редактировать товар' : 'Создать товар'}</h2>
-
+            {/* Блок рисунков */}
+            <ProductImages
+                images={product.image}
+                onImagesUpdate={(newImageUrls) =>
+                    setProduct((prev) => ({ ...prev, image: newImageUrls }))
+                }
+            />
             {/* Категория */}
             <EntitySelectModal
                 endpoint='category'

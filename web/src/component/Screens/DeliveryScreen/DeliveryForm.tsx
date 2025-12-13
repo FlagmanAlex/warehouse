@@ -31,6 +31,16 @@ export const DeliveryForm = () => {
         }
     }, [fetcher.data])
 
+
+    console.log(openModal, docStatusDelivery);
+    
+
+    const handleOpenModal = () => {
+        const currentDocIds = delivery.deliveryItems.map(item => item.docIds.map(docId => docId)).flat();
+        setSelectIds(currentDocIds);
+        setOpenModal(true)
+    }
+
     const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setNewPlanTime(e.target.value)
     }
@@ -104,7 +114,6 @@ export const DeliveryForm = () => {
     }
     const handleDeliveryChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
-        console.log(delivery.deliveryDoc);
 
         switch (e.target.type) {
             case 'date':
@@ -146,7 +155,6 @@ export const DeliveryForm = () => {
             deliveryItems: updatedDeliveryItems
         };
 
-        console.log(updatedDeliveryItems);
         // ✅ Отправляем на сервер
         const formData = new FormData();
         formData.append('delivery', JSON.stringify(updatedDelivery));
@@ -166,11 +174,20 @@ export const DeliveryForm = () => {
         formData.append('delivery', JSON.stringify(delivery.deliveryDoc));
 
         setOpenModal(false)
-        fetcher.submit(formData, {
-            action: `/delivery-planning/${delivery.deliveryDoc._id}`,
-            method: 'POST'
-        })
+
+        if (delivery.deliveryDoc._id) {
+            fetcher.submit(formData, {
+                action: `/delivery-planning/${delivery.deliveryDoc._id}`,
+                method: 'PATCH'
+            })
+        } else {
+            fetcher.submit(formData, {
+                action: '/delivery-planning',
+                method: 'POST'
+            })
+        }
     }
+
 
     const selectModalTimePlan = () => {
         return (
@@ -207,7 +224,9 @@ export const DeliveryForm = () => {
                 </div>
             </div>
         );
-    }; const selectModalDoc = (docStatusDelivery: IDocStatusDelivery[]) => {
+    };
+    
+    const selectModalDoc = (docStatusDelivery: IDocStatusDelivery[]) => {
         return (
             <div className={style.modal}>
                 <div className={style.modalOverlay} onClick={() => setOpenModal(false)} />
@@ -259,7 +278,6 @@ export const DeliveryForm = () => {
         )
     }
     const deliveryItemsCard = (deliveryItem: DeliveryItemsDTO) => {
-        console.log('dTimePlan', deliveryItem.dTimePlan, 'dTimeFact', deliveryItem.dTimeFact)
         return (
             <div className={style.deliveryCard}>
                 <span
@@ -281,14 +299,26 @@ export const DeliveryForm = () => {
                     }
                 </span>
                 <span className={style.customerName}>{deliveryItem.customerId?.name}</span>
-                <a className={style.address} href={`geo:${deliveryItem.addressId?.gps}`} onClick={(e) => e.stopPropagation()}>
-                    <span className={style.docChip}>
-                        {deliveryItem.addressId?.address}
-                    </span>
-                </a>
-                <a className={style.phone} href={`tel:${deliveryItem.addressId?.gps}`} onClick={(e) => e.stopPropagation()}>
-                    <span className={style.docChip}>{deliveryItem.customerId?.phone}</span>
-                </a>
+
+                <span
+                    className={style.docChip + ' ' + style.address}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(`https://geo:${deliveryItem.addressId?.gps}`)
+                    }}
+                >
+                    {deliveryItem.addressId?.address}
+                </span>
+
+                <span
+                    className={[style.docChip, style.phone].join(' ')}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(`tel:${deliveryItem.customerId?.phone}`)
+                    }}
+                >
+                    {deliveryItem.customerId?.phone}
+                </span>
 
                 <span className={style.dTimeFact} style={
                     deliveryItem.dTimeFact
@@ -297,15 +327,23 @@ export const DeliveryForm = () => {
                         : { color: 'blue' }
                 }>
                     {
-                        deliveryItem.dTimeFact
-                        && new Date(deliveryItem.dTimeFact).toISOString().split('T')[0]
-                        && `${new Date(new Date(deliveryItem.dTimePlan).getTime()
-                            - new Date(deliveryItem.dTimeFact).getTime())
-                            .toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
-                        // .padStart(2, '0')
-                        }`
-                    }
-                </span>
+                        deliveryItem.dTimeFact && (() => {
+                            const diffMs = new Date(deliveryItem.dTimePlan).getTime() - new Date(deliveryItem.dTimeFact).getTime();
+                            const totalMinutes = Math.floor(diffMs / (1000 * 60)); // может быть отрицательным
+
+                            // Если нужно только абсолютное отклонение (без знака):
+                            // const totalMinutes = Math.abs(Math.floor(diffMs / (1000 * 60)));
+
+                            const hours = Math.floor(Math.abs(totalMinutes) / 60);
+                            const minutes = Math.abs(totalMinutes) % 60;
+
+                            // Добавим знак, если важно показать "опоздание" или "раньше"
+                            // Но если вы хотите просто "HH:MM" даже при опоздании — уберите знак ниже.
+
+                            const sign = totalMinutes < 0 ? '-' : '';
+                            return `${sign}${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+                        })()
+                    }                </span>
                 <span className={style.entityCount}>шт.: {deliveryItem.entityCount}</span>
                 <span className={style.summ}>Сум.: {deliveryItem.summ}</span>
                 <span className={style.tools}>
@@ -373,7 +411,7 @@ export const DeliveryForm = () => {
             </div>
             <Button
                 bgColor='green'
-                onClick={() => setOpenModal(true)}
+                onClick={() => handleOpenModal()}
                 textColor='white'
                 text='Выбрать документы доставки'
             />

@@ -88,8 +88,17 @@ export const DeliveryList = () => {
         {filteredDeliveries.map((delivery, idx) => (
           <li key={idx}>
             <div className={style.Card} onClick={() => navigate(`/delivery-form/${delivery.deliveryDoc._id}`)}>
-              <span className={style.CardDate}>Доставка на : <br />{new Date(delivery.deliveryDoc.date).toISOString().split('T')[0]}</span>
-              <span className={style.CardCountDoc}>точек.: {delivery.deliveryDoc.totalCountDoc}</span>
+              <span className={style.CardDate}>
+                Доставка на : <br />
+                {new Date(delivery.deliveryDoc.date).toISOString().split('T')[0]} <br />
+                {new Date(delivery.deliveryDoc.startTime).toLocaleTimeString().split(':')[0] + 
+                ':' + new Date(delivery.deliveryDoc.startTime).toLocaleTimeString().split(':')[1]
+                + ' - ' + new Date(delivery.deliveryItems.reduce((latest, current) => current.dTimePlan > latest.dTimePlan ? current : latest, delivery.deliveryItems[0]).dTimePlan).toLocaleTimeString().split(':')[0] +
+                ':' + new Date(delivery.deliveryItems.reduce((latest, current) => current.dTimePlan > latest.dTimePlan ? current : latest, delivery.deliveryItems[0]).dTimePlan).toLocaleTimeString().split(':')[1]
+                } 
+                
+              </span>
+              <span className={style.CardCountDoc}>точек.: {delivery.deliveryItems.length}</span>
               <span className={style.CardCountEnt}>банок.: {delivery.deliveryDoc.totalCountEntity}</span>
               <span className={style.CardSum}>Сумма: {delivery.deliveryDoc.totalSum}</span>
               <span className={style.CardTools}>

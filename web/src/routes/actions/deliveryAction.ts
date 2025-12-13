@@ -19,9 +19,6 @@ export const deliveryAction = async ({ request, params }: ActionFunctionArgs) =>
           ...delivery,
           docIds: docIds
         }
-        console.log('deliveryData', deliveryData);
-
-
         const result = await fetchApi('delivery', 'POST', deliveryData);
         return { success: true, data: result };
       } catch (error) {
@@ -36,7 +33,7 @@ export const deliveryAction = async ({ request, params }: ActionFunctionArgs) =>
         // const deliveryData = Object.fromEntries(formData);
         const deliveryData = JSON.parse(formData.get('delivery') as string);
         // Получаем массив docIds
-        console.log(deliveryData);
+        console.log('PATCH deliveryData', deliveryData);
         
         // Добавляем docIds в deliveryData
 

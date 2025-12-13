@@ -50,6 +50,8 @@ export class DeliveryController {
         try {
             const { deliveryId } = req.params;
             const data = req.body;
+            console.log(deliveryId, data);
+            
             const delivery = await DeliveryService.updateDelivery(deliveryId, data, req.userId);
             res.status(200).json(delivery);
         } catch (error) {

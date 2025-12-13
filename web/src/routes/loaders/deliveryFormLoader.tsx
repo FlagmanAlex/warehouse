@@ -4,18 +4,18 @@ import { fetchApi } from "../../api/fetchApi";
 export const deliveryFormLoader = async ({ params } : { params: { id?: string } }) => {
     const { id } = params;
     console.log('id=', id);
+    const docStatusDelivery = await fetchApi('doc/status/InDelivery', 'GET')
     
     if (id) {
         try {
             const delivery: DeliveryDto = await fetchApi(`delivery/${id}`, 'GET')
             console.log( 'delivery=', delivery);
             
-            return { delivery }
+            return { delivery, docStatusDelivery }
         } catch (error) {
             throw error
         }
     } else {
-        const docStatusDelivery = await fetchApi('doc/status/InDelivery', 'GET')
         
         const date = new Date().getTime();
         const startTime = new Date().setHours(10, 0, 0);

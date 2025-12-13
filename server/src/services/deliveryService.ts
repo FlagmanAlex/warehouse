@@ -17,8 +17,6 @@ interface newDelivery {
 
 
 export class DeliveryService {
-    private static readonly stringToTime = (time: string) => time.split(':').map(Number).reduce((acc, curr) => acc * 60 + curr, 0) * 60 * 1000
-    private static readonly dateToTime = (time: Date) => time.getHours() * 60 * 60 * 1000 + time.getMinutes() * 60 * 1000
     static async createDelivery(data: newDelivery) {
 
         const docs: IDocOrderOut[] = await DocModel.find({ _id: { $in: data.docIds } })
@@ -27,6 +25,9 @@ export class DeliveryService {
             throw new Error('Не найдено ни одного документа по указанным ID');
         }
 
+        if (docs.length !== data.docIds.length) {
+            throw new Error('Документов по указанным ID не существует');
+        }
 
         const newDeliveryDoc: IDeliveryDoc = {
             date: new Date(data.date),
@@ -258,17 +259,19 @@ export class DeliveryService {
         }
     }
     static async updateDelivery(deliveryId: string, data: any, userId: string | undefined) {
-        const { _id, ...deliveryDocUpdate } = data.deliveryDoc;
+        // const deliveryDocUpdate = data.deliveryDoc;
 
+        console.log(data);
+        
         // Обновляем DeliveryDoc
         const deliveryDoc = await DeliveryDocModel.updateOne(
             { _id: deliveryId },
             { $set: {
-                ...deliveryDocUpdate,
-                date: new Date(deliveryDocUpdate.date),
-                startTime: new Date(deliveryDocUpdate.startTime),
-                unloadTime: new Date(deliveryDocUpdate.unloadTime),
-                timeInProgress: new Date(deliveryDocUpdate.timeInProgress),
+                ...data.deliveryDoc,
+                date: new Date(data.deliveryDoc.date),
+                startTime: new Date(data.deliveryDoc.startTime),
+                unloadTime: new Date(data.deliveryDoc.unloadTime),
+                timeInProgress: new Date(data.deliveryDoc.timeInProgress),
             } }
         );
 

@@ -206,7 +206,7 @@ export class DocController {
             }
 
             if (doc.docStatus !== 'Draft' && doc.docStatus !== 'Canceled') {
-                res.status(400).json({ error: 'Удалить можно только документ в статусе "Draft" или "Canceled"' });
+                res.status(400).json({ message: 'Удалить можно только документ в статусе "Draft" или "Canceled"' });
                 return;
             }
 

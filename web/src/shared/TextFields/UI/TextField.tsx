@@ -3,7 +3,7 @@ import styles from './TextField.module.css';
 import { Icon } from '../../Icon';
 
 // 👇 Добавили 'textarea'
-export type InputType = 'text' | 'email' | 'password' | 'date' | 'number' | 'tel' | 'url' | 'button' | 'textarea';
+export type InputType = 'text' | 'email' | 'password' | 'date' | 'number' | 'tel' | 'url' | 'button' | 'textarea' | 'time';
 
 export interface TextFieldProps {
   type?: InputType;
@@ -53,11 +53,22 @@ export const TextField = (({ type, name, placeholder, value, onChange, inputRef 
       autoComplete: 'off' as const,
     };
 
-    if (type === 'textarea') {
-      return <textarea ref={inputRef as React.Ref<HTMLTextAreaElement>} {...commonProps} rows={4} />;
+    switch (type) {
+      case 'textarea':
+        return <textarea ref={inputRef as React.Ref<HTMLTextAreaElement>} {...commonProps} rows={4} />
+      case 'time':
+        return <input ref={inputRef as React.Ref<HTMLInputElement>}
+          {...commonProps}
+          type="time"
+        />
+      case 'date':
+        return <input ref={inputRef as React.Ref<HTMLInputElement>}
+          {...commonProps}
+          type="date"
+          onClick={() => (inputRef as React.RefObject<HTMLInputElement>).current?.showPicker()} />
+      default:
+        return <input ref={inputRef as React.Ref<HTMLInputElement>} {...commonProps} type={type || 'text'} />
     }
-
-    return <input ref={inputRef as React.Ref<HTMLInputElement>} {...commonProps} type={type || 'text'} />;
   };
 
   return (

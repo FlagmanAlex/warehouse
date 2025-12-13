@@ -1,9 +1,8 @@
-import type { DocDto } from "@warehouse/interfaces/DTO";
-import { formatDate } from "../../utils/formatDateTime";
+import type { DeliveryDto } from "@warehouse/interfaces/DTO";
 import { fetchApi } from "../../api/fetchApi";
+import { formatDate } from "../../utils/formatDateTime";
 
-
-export const docLoader = async ({ request } : { request: Request }) => {
+export const deliveryLoader = async ({ request }: { request: Request }) => {
     const url = new URL(request.url);
     const searchParams = url.searchParams
 
@@ -11,24 +10,21 @@ export const docLoader = async ({ request } : { request: Request }) => {
     const endDate = searchParams.get('endDate') || formatDate(new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() + 1)).toString()
 
     try {
-        const docs: DocDto[] = await fetchApi(
-            `doc?startDate=${startDate}&endDate=${endDate}`,
+        const deliveries: DeliveryDto[] = await fetchApi(
+            `delivery?startDate=${startDate}&endDate=${endDate}`,
             'GET'
         )
 
         return {
-            docs,
+            deliveries,
             filters: {
                 startDate,
                 endDate,
-                docType: searchParams.get('docType'),
-                docStatus: searchParams.get('docStatus'),
-                search: searchParams.get('search') || '',
-                filterShow: searchParams.get('filterShow') === 'true'
             }
         }
     } catch (error) {
         console.error('Ошибка в docLoader:', error)
         throw new Error('Ошибка загрузки документов')
-    } 
+    }
+
 }

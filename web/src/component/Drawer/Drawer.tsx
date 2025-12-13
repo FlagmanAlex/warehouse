@@ -2,10 +2,12 @@ import { useNavigate } from 'react-router-dom';
 import styles from './Drawer.module.css';
 import { useEffect, useState } from 'react';
 import { Icon } from '../../shared/Icon';
+import { useAuth } from '../Screens/AuthScreen/AuthContext';
 
 export const Drawer = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   const navigate = useNavigate();
   const [openSubmenus, setOpenSubmenus] = useState<Set<string>>(new Set());
+  const { logout, user } = useAuth();
 
   const menuItems = [
     {
@@ -26,9 +28,26 @@ export const Drawer = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
       children: [
         { label: 'В работе', path: '/inprogress-report' },
         { label: 'По клиентам', path: '/inprogress-report-by-customer' },
+        { label: 'В доставке', path: '/indelivery-report-by-customer' },
 
       ],
+    },
+    {
+      label: 'Инструменты',
+      path: '',
+      children: [
+        { label: 'Планирование доставки', path: '/delivery-planning' },
+      ],
+    },
+    {
+      label: `${user ? user?.username + ' / Выход' || '' : '' }`,
+      path: '',
+      onClick() {
+        logout();
+        navigate('/login');
+      },
     }
+
   ];
 
 
@@ -85,6 +104,10 @@ export const Drawer = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
                 href="#"
                 onClick={(e) => {
                   e.preventDefault();
+                  if (item.onClick) {
+                    item.onClick();
+                    return;
+                  }
                   handleLinkClick(item.path, !!item.children);
                   if (item.children) {
                     toggleSubmenu(item.label);

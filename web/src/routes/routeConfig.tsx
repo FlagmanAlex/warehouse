@@ -13,28 +13,34 @@ import LoginScreen from "../component/Screens/AuthScreen/LoginScreen";
 import RegisterScreen from "../component/Screens/AuthScreen/RegisterScreen";
 import CustomerList from "../component/Screens/CustomerScreen/CustomerList";
 import CustomerForm from "../component/Screens/CustomerScreen/CustomerForm";
-import ProductList from "../component/Screens/ProductScreen/ProductList";
-import ProductForm from "../component/Screens/ProductScreen/ProductForm";
+import ProductList from "../component/Screens/ProductScreen/UI/ProductList";
+import ProductForm from "../component/Screens/ProductScreen/UI/ProductForm";
 import StockProduct from "../component/Screens/StockScreen/StockProduct";
 import StockWarehouse from "../component/Screens/StockScreen/StockWarehouse";
 import { customerLoader } from "./loaders/customerLoader";
 import { docAction } from "./actions/docFormAction";
 import { customerAction } from "./actions/customerFormAction";
 import { InProgressReport } from "../pages/Reports";
-import { inProgressReportLoader } from "./loaders/inProgressReportLoader";
+import { inProgressReportLoader, inDeliveryReportLoader } from "./loaders";
 import InProgressReportByCustomer from "../pages/Reports/InPtrogressReportByCustomer";
+import InDeliveryReportByCustomer from "../pages/Reports/InDeliveryReportByCustomer";
+import { DeliveryList } from "../component/Screens/DeliveryScreen/DeliveryList";
+import { deliveryLoader } from "./loaders/deliveryLoader";
+import { deliveryAction } from "./actions/deliveryAction";
+import { DeliveryForm } from "../component/Screens/DeliveryScreen/DeliveryForm";
+import { deliveryFormLoader } from "./loaders/deliveryFormLoader";
 
 
 export const routeConfig: RouteObject[] = [
     {
         element: (
-            <RootLayout>
-                <AuthProvider>
+            <AuthProvider>
+                <RootLayout>
                     <React.Suspense fallback={<div>Загрузка...</div>}>
                         <Outlet />
                     </React.Suspense>
-                </AuthProvider>
-            </RootLayout>
+                </RootLayout>
+            </AuthProvider>
         ),
         errorElement: <ErrorPage />,
         children: [
@@ -117,7 +123,29 @@ export const routeConfig: RouteObject[] = [
                 element: <InProgressReportByCustomer />,
                 loader: protectedLoader(inProgressReportLoader)
             },
+            {
+                path: 'indelivery-report-by-customer',
+                element: <InDeliveryReportByCustomer />,
+                loader: protectedLoader(inDeliveryReportLoader)
+            },
+            {
+                path: 'delivery-planning',
+                element: <DeliveryList />,
+                loader: protectedLoader(deliveryLoader),
+                action: deliveryAction
+            },
+            {
+                path: 'delivery-form/:id',
+                element: <DeliveryForm />,
+                loader: protectedLoader(deliveryFormLoader),
+            },
+            {
+                path: 'delivery-form',
+                element: <DeliveryForm />,
+                loader: protectedLoader(deliveryFormLoader),
+            },
             { path: '/stock-product/:productId', element: <StockProduct /> },
+            { path: '/delivery-planning/:id', action: deliveryAction },
             { path: '/stock-warehouse', element: <StockWarehouse /> },
             { path: '*', element: <NotFoundPage /> },
         ]

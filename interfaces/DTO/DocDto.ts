@@ -19,6 +19,7 @@ export interface DocOrderInDto extends Omit<IDocOrderIn, 'supplierId' | 'userId'
     summ: number
 }
 export interface DocOrderOutDto extends Omit<IDocOrderOut, 'customerId' | 'userId' | 'createdAt' | 'updatedAt' | 'docType' | 'warehouseId' | 'deliveryAddress' | 'deliveryGps'> {
+    _id: string
     docType: 'OrderOut'
     customerId?: { _id: string, name: string, phone: string, address: string, gps: string,  }
     itemCount: number

@@ -7,8 +7,6 @@ import { DocService } from '../services/StatusService';
 import { DocItemService } from '@services';
 import { IDoc, IDocItem } from '@interfaces';
 import { DocStatusName } from '@interfaces/config';
-import { DocDto, DocOrderOutDto } from '@interfaces/DTO';
-import { recalculateDocSum } from 'src/utils/recalculateDocSum';
 
 // === Дополнительный DTO для обновления статуса (может быть вынесен в DTO)
 
@@ -208,7 +206,7 @@ export class DocController {
             }
 
             if (doc.docStatus !== 'Draft' && doc.docStatus !== 'Canceled') {
-                res.status(400).json({ error: 'Удалить можно только документ в статусе "Draft" или "Canceled"' });
+                res.status(400).json({ message: 'Удалить можно только документ в статусе "Draft" или "Canceled"' });
                 return;
             }
 

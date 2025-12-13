@@ -1,0 +1,96 @@
+.ListContainer {
+    padding: 20px;
+    max-width: 1200px;
+    margin-bottom: 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+}
+
+.ListContainer h2 {
+    text-align: center;
+    color: #333;
+}
+
+li {
+    list-style: none
+}
+
+.DateContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.DateBlock {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    gap: 10px;
+}
+
+
+.SearchInput {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.ListBlock {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.Card {
+    display: grid;
+    grid-template-columns: 3fr 2fr auto;
+    grid-template-rows: 1fr 1fr 1fr;
+    flex-direction: column;
+    background-color: #f8f8f8;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    user-select: none;
+}
+.Card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.CardDate {
+    grid-column: 1;
+    grid-row: span 3;
+}
+.CardCountDoc {
+    grid-column: 2;
+    grid-row: 1;
+}
+.CardCountEnt {
+    grid-column: 2;
+    grid-row: 2;
+}
+.CardSum {
+    grid-column: 2;
+    grid-row: 3;
+}
+.CardTools {
+    grid-column: 3;
+    grid-row: span 3;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 10px;
+}
+.IconDel {
+    color: red;
+}
+.IconEdit {
+    color: grey;
+}
+.IconDel, .IconEdit {
+    cursor: pointer;
+}

@@ -16,7 +16,8 @@
     "web": "cd web && npm run dev",
     "import": "cd server && npm run import",
     "sinc": "cd server && npm run sinc",
-    "restruct": "cd server && npm run restruct"
+    "restruct": "cd server && npm run restruct",
+    "test": "cd web && npm run web:test"
   },
   "repository": {
     "type": "git",

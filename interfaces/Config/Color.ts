@@ -25,7 +25,9 @@ export const THEME = {
         main: '#000066',
         black: color.black,
         wb: color.pinks,
-        red: color.red
+        red: color.red,
+        orange: color.amberYellow,
+        green: color.green
     },
     button: {
         apply: color.green,

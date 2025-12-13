@@ -1,10 +1,11 @@
 .reportContainer {
     padding: 16px;
     font-family: Arial, sans-serif;
+    margin-bottom: 80px;
 }
 
 .customerContainer {
-    margin-bottom: 24px;
+    margin-bottom: 10px;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
     overflow: hidden;
@@ -14,7 +15,8 @@
 .customerHeader {
     background-color: #f5f9ff;
     padding: 16px;
-    display: flex;
+    display: grid;
+    grid-template-columns: 5fr 1fr;
     justify-content: space-between;
     align-items: center;
     cursor: pointer;
@@ -27,8 +29,14 @@
     color: #1976d2;
 }
 
+.customerName {
+    font-weight: bold;
+    grid-row: span 2;
+    color: #1976d2;
+}   
+
 .customerPositions {
-    padding: 0 16px 16px;
+    padding: 0 16px 0px;
 }
 
 .positionList {
@@ -81,15 +89,20 @@
 }
 
 .totalRow {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid #ccc;
-  font-weight: bold;
-  text-align: right;
-  font-size: 1.1em;
-  color: #1976d2;
+    margin-top: 12px;
+    padding-top: 12px;
+    /* border-top: 1px solid #ccc; */
+    font-weight: bold;
+    text-align: right;
+    font-size: 1.1em;
+    color: #1976d2;
+    padding-bottom: 16px;
 }
 
 .totalValue {
-  font-weight: bold;
+    grid-column: 2;
+    color: #1976d2;
+    width: 100px;
+    text-align: left;
+    font-weight: bold;
 }

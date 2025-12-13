@@ -14,3 +14,5 @@ export * from './warehouseModel';
 export * from './paymentModel';
 export * from './accountModel';
 export * from "./addressModel"
+export * from "./deliveryDocModel"
+export * from "./deliveryItemModel"

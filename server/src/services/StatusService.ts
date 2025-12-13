@@ -20,7 +20,7 @@ type ValidStatusTransition<T extends string> = Record<T, { name: T }[]>
 export class DocService {
 
 
-    static async updateStatus(docId: string, newStatusName: DocStatusName, userId: string): Promise<IDocModel> {
+    static async updateStatus(docId: string, newStatusName: DocStatusName, userId: string | undefined): Promise<IDocModel> {
 
         if (!userId) throw new Error('Пользователь не авторизован');
 

@@ -104,7 +104,8 @@ export default () => {
     <div key={item._id} className={`${styles.docItem} ${styles[item.priority || '']}`}
       onClick={() => {
         sessionStorage.setItem('docScreenScrollY', window.scrollY.toString());
-        navigate(`/doc/${item._id}?${searchParams.toString()}`)}
+        navigate(`/doc/${item._id}?${searchParams.toString()}`)
+      }
       }
     >
       <div className={styles.header}>
@@ -148,24 +149,24 @@ export default () => {
             docType={item.docType}
             status={item.docStatus}
             docId={item._id}
-          />} 
+          />}
         </div>
-        {item.docStatus === 'Draft' && ( 
-        <Form method='post' action={`/doc/${item._id}?${searchParams.toString()}`} className={styles.controlButton}>
-          <input type="hidden" name="id" value={item._id!} />
-          <input type="hidden" name="doc" value={JSON.stringify(item)} />
-          <input type="hidden" name="items" value={JSON.stringify({})} />
-          <Button
-            type='submit'
-            icon='FaXmark'
-            name='_method'
-            value='DELETE'
-            bgColor={THEME.color.white}
-            textColor={THEME.color.red}
-            className={styles.controlButton}
-            onClick={(e) => { window.confirm('Вы действительно хотите удалить документ?') ? true : (e.preventDefault(), e.stopPropagation()); }}
-          />
-        </Form>
+        {item.docStatus === 'Draft' && (
+          <Form method='post' action={`/doc/${item._id}?${searchParams.toString()}`} className={styles.controlButton}>
+            <input type="hidden" name="id" value={item._id!} />
+            <input type="hidden" name="doc" value={JSON.stringify(item)} />
+            <input type="hidden" name="items" value={JSON.stringify({})} />
+            <Button
+              type='submit'
+              icon='FaXmark'
+              name='_method'
+              value='DELETE'
+              bgColor={THEME.color.white}
+              textColor={THEME.color.red}
+              className={styles.controlButton}
+              onClick={(e) => { window.confirm('Вы действительно хотите удалить документ?') ? true : (e.preventDefault(), e.stopPropagation()); }}
+            />
+          </Form>
         )}
       </div>
 
@@ -175,153 +176,180 @@ export default () => {
     </div>
   );
 
+  const RenderNavBar = () => {
+
+    const StatusMaps: Record<string, string> = {
+      OrderIn: 'DocStatusOrderMap',
+      OrderOut: 'DocStatusOrderMap',
+      Outgoing: 'DocStatusOutMap',
+      Incoming: 'DocStatusInMap',
+      Transfer: 'DocStatusTransferMap',
+    }
+
+    const activeStatusMap = selectedDocType ? StatusMaps[selectedDocType] : null;
+
+    console.log(activeStatusMap);
+
+
+    return (
+
+      /* Универсальный фильтр */
+      /* Фильтры */
+      filterShow && (
+        <div>
+          {/* Фильтр по типу документа */}
+          <div className={styles.navBar}>
+            {Object.keys(DocTypeMap).map((type) => (
+              <div
+                key={type}
+                className={styles.navItem + ' ' + (selectedDocType === type ? styles.active : '')}
+                onClick={() => updateFilters({ docType: selectedDocType === type ? null : type })}
+              >
+                <Icon
+                  size={24}
+                  key={type}
+                  name={DocTypeMap[type as keyof typeof DocTypeMap].icon}
+                  color={DocTypeMap[type as keyof typeof DocTypeMap].color}
+                  className={`${styles.icon} `}
+                />
+                <span className={styles.label}>{DocTypeMap[type as keyof typeof DocTypeMap].nameRus}</span>
+                {/* {type === 'OrderOut' && <hr />} */}
+              </div>
+            ))}
+          </div>
+
+          {/* Фильтр по статусам расхода если docType === 'OrderOut' */}
+          {selectedDocType === 'OrderOut' && (
+            <div className={styles.navBar}>
+              {Object.keys(DocStatusOrderMap).map((status) => (
+                <div
+                  key={status}
+                  className={styles.navItem + ' ' + (selectedStatus === status ? styles.active : '')}
+                  onClick={() => updateFilters({ docStatus: selectedStatus === status ? null : status })}
+                >
+                  <Icon
+                    size={24}
+                    key={status}
+                    name={DocStatusOrderMap[status as keyof typeof DocStatusOrderMap].icon}
+                    color={DocStatusOrderMap[status as keyof typeof DocStatusOrderMap].color}
+                  />
+                  <span className={styles.label}>{DocStatusOrderMap[status as keyof typeof DocStatusOrderMap].nameRus}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          {/* Фильтр по статусам расхода если docType === 'Outgoing' */}
+          {selectedDocType === 'Outgoing' && (
+            <div className={styles.navBar}>
+              {Object.keys(DocStatusOutMap).map((status) => (
+              <div
+                key={status}
+                className={styles.navItem + ' ' + (selectedStatus === status ? styles.active : '')}
+                onClick={() => updateFilters({ docStatus: selectedStatus === status ? null : status })}
+              >
+                <Icon
+                  size={24}
+                  key={status}
+                  name={DocStatusOutMap[status as keyof typeof DocStatusOutMap].icon}
+                  color={DocStatusOutMap[status as keyof typeof DocStatusOutMap].color}
+                  className={styles.navItem + ` ${selectedStatus === status ? styles.chipSelected : ''}`}
+                />
+                <span className={styles.label}>{DocStatusOutMap[status as keyof typeof DocStatusOutMap].nameRus}</span>
+              </div>
+              ))}
+
+            </div>
+          )}
+
+          {/* Фильтр по статусам прихода если docType === 'Incoming' */}
+          {selectedDocType === 'Incoming' && (
+            <div className={styles.navBar}>
+              {Object.keys(DocStatusInMap).map((status) => (
+                <div
+                  key={status}
+                  className={styles.navItem + ' ' + (selectedStatus === status ? styles.active : '')}
+                  onClick={() => updateFilters({ docStatus: selectedStatus === status ? null : status })}
+                >
+                <Icon
+                  size={24}
+                  key={status}
+                  name={DocStatusInMap[status as keyof typeof DocStatusInMap].icon}
+                  color={DocStatusInMap[status as keyof typeof DocStatusInMap].color}
+                />
+                <span className={styles.label}>{DocStatusInMap[status as keyof typeof DocStatusInMap].nameRus}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Поиск */}
+          <div className={styles.searchContainer}>
+            <TextField
+              name='search'
+              placeholder="Поиск по клиенту или поставщику"
+              value={search}
+              onChange={(e) => updateFilters({ search: e.target.value })}
+            />
+          </div>
+
+          {/* Кнопка создания */}
+          {(selectedDocType === 'OrderOut' || selectedDocType === 'OrderIn') && (
+            <Button
+              // className={styles.addButton}
+              bgColor={THEME.button.add}
+              textColor={THEME.color.white}
+              onClick={() => navigate(`/doc?${searchParams.toString()}`)}
+              icon={"FaPlus"}
+              bdColor='#007bff'
+            />
+          )}
+        </div>
+      )
+    )
+  }
+
   return (
     <>
       <div className={styles.docContainer}>
         {/* Контроллеры выбора дат */}
-        <div className={styles.filterContainer}>
-          <div className={styles.datePickers}>
-            <input
-              type="date"
-              value={formatDate(startDate)}
-              onChange={(e) => {
-                const newDate = new Date(e.target.value);
-                updateFilters({ startDate: formatDate(newDate) });
-              }}
-              className={styles.dateInput}
-            />
+        <div className={styles.datePickers}>
+          <input
+            type="date"
+            value={formatDate(startDate)}
+            onChange={(e) => {
+              const newDate = new Date(e.target.value);
+              updateFilters({ startDate: formatDate(newDate) });
+            }}
+            className={styles.dateInput}
+          />
 
-            <Button
-              onClick={() => updateFilters({ filterShow: !filterShow })}
-              bgColor={filterShow ? '#f0f0f0' : '#fff'}
-              textColor="#007bff"
-              bdColor='#007bff'
-              icon={filterShow ? "FaAngleUp" : "FaAngleDown"}
-            />
+          <Button
+            onClick={() => updateFilters({ filterShow: !filterShow })}
+            bgColor={filterShow ? '#f0f0f0' : '#fff'}
+            textColor="#007bff"
+            bdColor='#007bff'
+            icon={filterShow ? "FaAngleUp" : "FaAngleDown"}
+          />
 
-            <input
-              type="date"
-              value={formatDate(endDate)}
-              onChange={(e) => {
-                const newDate = new Date(e.target.value);
-                updateFilters({ endDate: formatDate(newDate) });
-              }}
-              className={styles.dateInput}
-            />
-          </div>
-          {/* Фильтры */}
-          {filterShow && (
-            <>
-              {/* Фильтр по типу документа */}
-              <div className={styles.filterRow}>
-                {Object.keys(DocTypeMap).map((type) => (
-                  <div key={type} className={styles.filterRow}>
-                    <Icon
-                      size={24}
-                      key={type}
-                      name={DocTypeMap[type as keyof typeof DocTypeMap].icon}
-                      color={DocTypeMap[type as keyof typeof DocTypeMap].color}
-                      onClick={() => updateFilters({ docType: selectedDocType === type ? null : type })}
-                      className={`${styles.chip} ${selectedDocType === type ? styles.chipSelected : ''}`}
-                    />
-                    {type === 'OrderOut' && <hr />}
-                  </div>
-                ))}
-              </div>
-
-              {/* Фильтр по статусам расхода если docType === 'OrderIn' */}
-              {selectedDocType === 'OrderIn' && (
-                <div className={styles.filterRow}>
-                  {Object.keys(DocStatusOrderMap).map((status) => (
-                    <Icon
-                      size={24}
-                      key={status}
-                      name={DocStatusOrderMap[status as keyof typeof DocStatusOrderMap].icon}
-                      color={DocStatusOrderMap[status as keyof typeof DocStatusOrderMap].color}
-                      onClick={() => updateFilters({ docStatus: selectedStatus === status ? null : status })}
-                      className={styles.chip + ` ${selectedStatus === status ? styles.chipSelected : ''}`}
-                    />
-                  ))}
-                </div>
-              )}
-              {/* Фильтр по статусам расхода если docType === 'OrderOut' */}
-              {selectedDocType === 'OrderOut' && (
-                <div className={styles.filterRow}>
-                  {Object.keys(DocStatusOrderMap).map((status) => (
-                    <Icon
-                      size={24}
-                      key={status}
-                      name={DocStatusOrderMap[status as keyof typeof DocStatusOrderMap].icon}
-                      color={DocStatusOrderMap[status as keyof typeof DocStatusOrderMap].color}
-                      onClick={() => updateFilters({ docStatus: selectedStatus === status ? null : status })}
-                      className={styles.chip + ` ${selectedStatus === status ? styles.chipSelected : ''}`}
-                    />
-                  ))}
-                </div>
-              )}
-              {/* Фильтр по статусам расхода если docType === 'Outgoing' */}
-              {selectedDocType === 'Outgoing' && (
-                <div className={styles.filterRow}>
-                  {Object.keys(DocStatusOutMap).map((status) => (
-                    <Icon
-                      size={24}
-                      key={status}
-                      name={DocStatusOutMap[status as keyof typeof DocStatusOutMap].icon}
-                      color={DocStatusOutMap[status as keyof typeof DocStatusOutMap].color}
-                      onClick={() => updateFilters({ docStatus: selectedStatus === status ? null : status })}
-                      className={styles.chip + ` ${selectedStatus === status ? styles.chipSelected : ''}`}
-                    />
-                  ))}
-                </div>
-              )}
-
-              {/* Фильтр по статусам прихода если docType === 'Incoming' */}
-              {selectedDocType === 'Incoming' && (
-                <div className={styles.filterRow}>
-                  {Object.keys(DocStatusInMap).map((status) => (
-                    <Icon
-                      size={24}
-                      key={status}
-                      name={DocStatusInMap[status as keyof typeof DocStatusInMap].icon}
-                      color={DocStatusInMap[status as keyof typeof DocStatusInMap].color}
-                      onClick={() => updateFilters({ docStatus: selectedStatus === status ? null : status })}
-                      className={styles.chip + ` ${selectedStatus === status ? styles.chipSelected : ''}`}
-                    />
-                  ))}
-                </div>
-              )}
-
-              {/* Поиск */}
-              <div className={styles.searchContainer}>
-                <TextField
-                  name='search'
-                  placeholder="Поиск по клиенту или поставщику"
-                  value={search}
-                  onChange={(e) => updateFilters({ search: e.target.value })}
-                />
-              </div>
-
-              {/* Кнопка создания */}
-              {(selectedDocType === 'OrderOut' || selectedDocType === 'OrderIn') && (
-                <Button
-                  // className={styles.addButton}
-                  bgColor={THEME.button.add}
-                  textColor={THEME.color.white}
-                  onClick={() => navigate(`/doc?${searchParams.toString()}`)}
-                  icon={"FaPlus"}
-                  bdColor='#007bff'
-                />
-              )}
-            </>
-          )}
+          <input
+            type="date"
+            value={formatDate(endDate)}
+            onChange={(e) => {
+              const newDate = new Date(e.target.value);
+              updateFilters({ endDate: formatDate(newDate) });
+            }}
+            className={styles.dateInput}
+          />
         </div>
 
-      <div className={styles.docList}>
-        {filteredDocs.length > 0 ? (
-          filteredDocs.map(renderDocItem)
-        ) : (
-          <p className={styles.noDocs}>Документы не найдены</p>
-        )}
+        <RenderNavBar />
+
+        <div className={styles.docList}>
+          {filteredDocs.length > 0 ? (
+            filteredDocs.map(renderDocItem)
+          ) : (
+            <p className={styles.noDocs}>Документы не найдены</p>
+          )}
         </div>
       </div>
     </>

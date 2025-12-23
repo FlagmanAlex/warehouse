@@ -54,7 +54,7 @@ const NavBar = () => {
                         }}
                     >
                         <Icon
-                            className={style.icon}
+                            // className={style.icon}
                             name={status.icon}
                             color={isActive ? '#1976d2' : status.color} // Меняем цвет на брендовый при активации
                             size={30}

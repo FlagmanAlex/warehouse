@@ -13,7 +13,8 @@ export const productFormLoader = async ({ params }: { params: { productId?: stri
                 price: 0,
                 categoryId: { _id: '', name: '' },
                 supplierId: { _id: '', name: '' },
-                isArchived: false
+                isArchived: false,
+                productType: 'Vitamin',
             }
         };
     }

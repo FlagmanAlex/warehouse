@@ -44,6 +44,7 @@ const DocForm = () => {
       name: '',
       categoryId: { _id: '', name: '' },
       unitOfMeasurement: 'шт',
+      productType: 'Vitamin',
 
     },
     quantity: 0,

@@ -76,7 +76,7 @@ export const ProductImages = ({ images = [], onImagesUpdate }: ProductImagesProp
             className={style.imageWrapper}
             onClick={() => openFullScreen(url, index)}
           >
-            <img src={url} alt={`product-${index}`} className={style.thumbnail} />
+            <img src={url} alt={`product-${currentIndex}`} className={style.thumbnail} />
           </div>
         ))}
         <div className={style.addImageButton} onClick={triggerFileInput}>

@@ -1,9 +1,7 @@
 import { IAccount } from "@interfaces";
 import mongoose, { Schema } from "mongoose";
 
-export interface IAccountModel extends Omit<IAccount, '_id'>, mongoose.Document {
-    _id: Schema.Types.ObjectId;
-}
+export interface IAccountModel extends Omit<IAccount, '_id'>, mongoose.Document {}
 
 const accountSchema = new Schema<IAccountModel>({
     _id: { type: Schema.Types.ObjectId, required: true },

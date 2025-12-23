@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
-import { ProductModel } from '../models/productModel';
+import { ParfumModel, ProductModel, VitaminModel } from '../models/productModel';
 import { CategoryModel } from '../models/categoryModel';
 import { SupplierModel } from '../models/supplierModel';
 import { PriceHistoryModel } from '../models/priceHistoryModel';
-import { Document, Types } from 'mongoose';
+import mongoose, { Document, Types } from 'mongoose';
 import { IProduct } from '../../../interfaces/IProduct';
 import { log } from 'node:console';
 import { ProductDto } from '@interfaces/DTO';
@@ -19,7 +19,7 @@ export const productController = {
 
             const body = req.body
 
-            if (!body.article || !body.name || !body.categoryId ) {
+            if (!body.article || !body.name || !body.categoryId) {
                 res.status(400).json({ message: 'Обязательные поля: article, name, categoryId' });
                 console.log('Обязательные поля: article, name, categoryId');
                 return
@@ -30,7 +30,7 @@ export const productController = {
                 CategoryModel.findById(body.categoryId),
             ]);
 
-            if (!categoryExists ) {
+            if (!categoryExists) {
                 console.log(`Категория не найдена`)
                 res.status(404).json({ message: `Категория не найдена` });
                 return
@@ -56,7 +56,7 @@ export const productController = {
     // Получение списка товаров (с фильтрами и пагинацией)
     async getProducts(req: Request, res: Response) {
 
-        interface ResponseProductDto extends Document {}
+        interface ResponseProductDto extends Document { }
 
         try {
             const products: ResponseProductDto[] = await ProductModel.find({})
@@ -99,41 +99,101 @@ export const productController = {
     // Обновление товара (с записью в историю цен при изменении цены)
     async updateProduct(req: Request, res: Response) {
         try {
-            const { price, ...updateData } = req.body;
             const productId = req.params.id;
 
-            // Получаем текущий товар
-            const currentProduct: IProduct | null = await ProductModel.findById(productId);
-            if (currentProduct) {
-                // Если изменилась цена - обновляем и записываем в историю
-                if (price && price !== currentProduct.price) {
-                    await PriceHistoryModel.updateMany(
-                        { productId, endDate: null },
-                        { endDate: new Date() }
-                    );
+            // 1. Извлекаем productType и остальные данные
+            // Мы ожидаем, что тип продукта либо пришел в запросе, либо уже есть в базе
+            const { price, productType, ...updateData }: Partial<IProduct> = req.body;
 
-                    await PriceHistoryModel.create({
-                        productId,
-                        price: Number(price),
-                        startDate: new Date(),
-                    });
-                }
-                const updatedProduct = await ProductModel.findByIdAndUpdate(
-                    productId,
-                    { ...updateData, price },
-                    { new: true }
-                );
-                res.status(200).json(updatedProduct);
-            } else {
-                res.status(404).json({ error: 'Товар не найден' });
+            // 2. Находим текущий документ базовой моделью
+            const currentProduct = await ProductModel.findById(productId);
+            if (!currentProduct) {
+                return res.status(404).json({ error: 'Товар не найден в базе' });
             }
 
-        } catch (error) {
-            console.error('Ошибка при обновлении товара:', error);
-            res.status(500).json({ error: 'Ошибка сервера' });
+            // 3. Определяем финальный тип продукта (приоритет у того, что пришло в body)
+            const finalType = productType || (currentProduct as any).productType;
+
+            if (!finalType) {
+                return res.status(400).json({ error: 'Не удалось определить тип продукта для обновления' });
+            }
+
+            // 4. Выбираем модель через switch/case для строгой типизации и масштабируемости
+            let TargetModel: mongoose.Model<any>;
+
+            switch (finalType) {
+                case 'Vitamin':
+                    TargetModel = VitaminModel;
+                    break;
+                case 'Parfum':
+                    TargetModel = ParfumModel;
+                    break;
+                // Сюда легко добавлять новые типы в будущем:
+                // case 'Cosmetics':
+                //     TargetModel = CosmeticsModel;
+                //     break;
+                default:
+                    return res.status(400).json({ error: `Тип продукта "${finalType}" не поддерживается системой` });
+            }
+
+            // 5. Логика истории цен
+            if (price !== undefined && Number(price) !== currentProduct.price) {
+                await PriceHistoryModel.updateMany(
+                    { productId, endDate: null },
+                    { $set: { endDate: new Date() } }
+                );
+
+                await PriceHistoryModel.create({
+                    productId,
+                    price: Number(price),
+                    startDate: new Date(),
+                    endDate: null
+                });
+            }
+
+            // 6. Очистка системных полей
+            const protectedFields = ['createdBy', '_id', 'createdAt', '__v'];
+            protectedFields.forEach(field => delete (updateData as any)[field]);
+
+            // 7. Выполнение обновления через КОНКРЕТНУЮ модель
+            const updatedProduct = await TargetModel.findByIdAndUpdate(
+                productId,
+                {
+                    $set: {
+                        ...updateData,
+                        productType: finalType, // Гарантируем запись типа
+                        price: price !== undefined ? Number(price) : currentProduct.price,
+                        lastUpdateBy: (req as any).userId,
+                        updatedAt: new Date()
+                    }
+                },
+                {
+                    new: true,           // Вернуть результат
+                    runValidators: true, // Проверить схему (особенно важные поля конкретного типа)
+                    overwriteDiscriminatorProps: true,
+                    // strict: true,     // Теперь можно оставить true, так как модель соответствует типу
+                }
+            );
+
+            return res.status(200).json(updatedProduct);
+
+        } catch (error: any) {
+            console.error('Ошибка при обновлении продукта:', error);
+
+            if (error.code === 11000) {
+                return res.status(400).json({ error: 'Продукт с таким артикулом уже существует' });
+            }
+
+            if (error.name === 'ValidationError') {
+                return res.status(400).json({
+                    error: 'Данные не соответствуют схеме типа продукта',
+                    details: error.errors
+                });
+            }
+
+            return res.status(500).json({ error: 'Внутренняя ошибка сервера' });
         }
     },
-
     // Архивирование товара (мягкое удаление)
     async archiveProduct(req: Request, res: Response) {
         try {

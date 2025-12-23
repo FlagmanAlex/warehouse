@@ -1,6 +1,5 @@
-import { Types } from 'mongoose';
-import { DocItemsModel, DocModel, IDocItemsModel } from '@models';
-import { IDocItem } from '@interfaces';
+import { DocItemsModel, IDocItemsModel } from '../models';
+import { IDocItem } from '../../../interfaces';
 import { recalculateDocSum } from '../utils/recalculateDocSum';
 
 export class DocItemService {

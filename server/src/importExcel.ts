@@ -9,6 +9,7 @@ import {
     IDocItem,
     IDocIncoming,
     IDocOutgoing,
+    IVitamin,
 } from '@interfaces';
 // import { CreateDocDto, CreateProductDto, CreateDocItemDto, CreateSupplierDto, CreateCustomerDto, CreateWarehouseDto, CreateCategoryDto, ResponseWarehouseDto, ResponseSupplierDto, ResponseProductDto, ResponseCustomerDto } from "@interfaces/DTO";
 import {
@@ -18,6 +19,7 @@ import {
     CategoryModel, WarehouseModel, TransactionModel, DocNumModel,
     ITransactionModel,
 } from '@models';
+import { ProductType, ProductTypeMap, ProductTypeRus, ProductTypeRusMap } from '@interfaces/config';
 
 interface IJournal {
     '№ заказа': string
@@ -423,7 +425,7 @@ class ImportExcel {
             // 3. Формируем уникальные продукты
             //------------------------------------------------------------------------------------
             const seen = new Set()
-            const uniqueProducts: IProduct[] = []
+            const uniqueProducts: IVitamin[] = []
             this.journal.forEach(journal => {
                 if (
                     !journal['Бренд'] ||
@@ -437,7 +439,11 @@ class ImportExcel {
 
                 const categoryId = this.categoryMap.get(journal['Бренд']);
                 const supplierId = this.supplierMap.get(journal['Поставщик']);
+                const productConfig = ProductTypeRusMap[journal['Группа'] as ProductTypeRus];
                 const defaultWarehouseId = this.warehouseMap.get(journal['Группа']);
+
+                if (!productConfig) throw new Error(`Ошибка в productConfig (${journal['Группа']})`);
+                const productType = productConfig.name
 
                 if (!categoryId) throw new Error(`Ошибка в categoryId (${journal['Бренд']})`);
                 if (!supplierId) throw new Error(`Ошибка в supplierId (${journal['Поставщик']})`);
@@ -461,6 +467,7 @@ class ImportExcel {
                         lastUpdateBy: this.userId,
                         isArchived: false,
                         defaultWarehouseId: defaultWarehouseId || '',
+                        productType: productType,
                     })
                 }
             })

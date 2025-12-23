@@ -106,3 +106,66 @@
     text-align: left;
     font-weight: bold;
 }
+
+.navBar {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background: #ffffff;
+    padding: 8px 16px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); /* Легкая тень для объема */
+    margin-bottom: 16px;
+    user-select: none;
+}
+
+.navItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 5px;
+    cursor: pointer;
+    transition: all 0.3s ease; /* Плавность — залог красоты */
+    border-radius: 8px;
+    position: relative;
+    flex: 1; /* Чтобы все кнопки были равной ширины */
+}
+
+/* Эффект при наведении */
+.navItem:hover {
+    background-color: #f5f5f5;
+}
+
+.label {
+    font-size: 9px;
+    margin-top: 4px;
+    color: #666;
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+/* Стили для активного состояния */
+.navItem.active {
+    background-color: #e3f2fd; /* Светло-голубой фон */
+}
+
+.navItem.active .label {
+    color: #1976d2;
+}
+
+/* Изящная линия внизу */
+.navItem::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    width: 0;
+    height: 3px;
+    background-color: #1976d2;
+    transition: width 0.3s ease;
+    border-radius: 3px 3px 0 0;
+}
+
+.navItem.active::after {
+    width: 60%; /* Линия не на всю ширину выглядит аккуратнее */
+}

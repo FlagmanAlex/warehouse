@@ -1,7 +1,7 @@
 import type { IProduct } from '@warehouse/interfaces';
 import { useState } from 'react';
 import { useLoaderData } from 'react-router-dom';
-import style from './InProgressreportByCustomer.module.css';
+import style from './style.module.css';
 
 interface DocItem {
     _id: string;

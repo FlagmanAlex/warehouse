@@ -1,7 +1,9 @@
 import type { IProduct } from '@warehouse/interfaces';
+import { DOC_STATUS_ORDER } from '@warehouse/interfaces/config';
 import { useState } from 'react';
-import { useLoaderData } from 'react-router-dom';
-import style from './InProgressreportByCustomer.module.css';
+import { useLoaderData, useNavigate } from 'react-router-dom';
+import style from './style.module.css';
+import { Icon } from '../../../shared/Icon';
 
 interface DocItem {
     _id: string;
@@ -27,17 +29,49 @@ interface CustomerGroup {
     docs: Doc[];
 }
 
+
 const InProgressReportByCustomer = () => {
     const { response: data } = useLoaderData() as { response: CustomerGroup[] };
     const [expandedCustomers, setExpandedCustomers] = useState<Record<string, boolean>>({});
+    const navigate = useNavigate();
+    const [selectStatus, setSelectStatus] = useState('');
 
     const toggleCustomer = (customerId: string) => {
         setExpandedCustomers(prev => ({ ...prev, [customerId]: !prev[customerId] }));
     };
+const NavBar = () => {
+    return (
+        <nav className={style.navBar}>
+            {DOC_STATUS_ORDER.map(status => {
+                const isActive = selectStatus === status.name;
+                return (
+                    <div 
+                        key={status.name}
+                        className={`${style.navItem} ${isActive ? style.active : ''}`}
+                        onClick={() => {
+                            navigate(`/indelivery-report-by-customer?status=${status.name}`);
+                            setSelectStatus(status.name);
+                        }}
+                    >
+                        <Icon
+                            className={style.icon}
+                            name={status.icon}
+                            color={isActive ? '#1976d2' : status.color} // Меняем цвет на брендовый при активации
+                            size={30}
+                        />
+                        <span className={style.label}>{status.nameRus}</span>
+                    </div>
+                );
+            })}
+        </nav>
+    );
+};
+
     let totalPositions = 0;
     let totalSum = 0;
     return (
         <div className={style.reportContainer}>
+            {<NavBar />}
             {data.map(customer => {
                 totalPositions += customer.totalPositions;
                 totalSum += customer.totalSum;

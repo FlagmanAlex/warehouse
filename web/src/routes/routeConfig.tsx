@@ -22,8 +22,8 @@ import { docAction } from "./actions/docFormAction";
 import { customerAction } from "./actions/customerFormAction";
 import { InProgressReport } from "../pages/Reports";
 import { inProgressReportLoader, inDeliveryReportLoader } from "./loaders";
-import InProgressReportByCustomer from "../pages/Reports/InPtrogressReportByCustomer";
-import InDeliveryReportByCustomer from "../pages/Reports/InDeliveryReportByCustomer";
+import InProgressReportByCustomer from "../pages/Reports/UI/InPtrogressReportByCustomer";
+import InDeliveryReportByCustomer from "../pages/Reports/UI/InDeliveryReportByCustomer";
 import { DeliveryList } from "../component/Screens/DeliveryScreen/DeliveryList";
 import { deliveryLoader } from "./loaders/deliveryLoader";
 import { deliveryAction } from "./actions/deliveryAction";
@@ -125,6 +125,11 @@ export const routeConfig: RouteObject[] = [
             },
             {
                 path: 'indelivery-report-by-customer',
+                element: <InDeliveryReportByCustomer />,
+                loader: protectedLoader(inDeliveryReportLoader)
+            },
+            {
+                path: 'indelivery-report-by-customer/:status',
                 element: <InDeliveryReportByCustomer />,
                 loader: protectedLoader(inDeliveryReportLoader)
             },

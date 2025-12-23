@@ -10,7 +10,8 @@
     "sinc": "node ./dist/server/src/sincExcel.js",
     "dev": "concurrently \"npm run start:build\" \"npm run start:nodemon\"",
     "server": "node ./dist/server/src/server.js",
-    "restruct": "node ./dist/server/src/restruct.js"
+    "restruct": "node ./dist/server/src/restruct.js",
+    "test": "vitest run"
   },
   "keywords": [],
   "author": "",
@@ -23,13 +24,15 @@
     "@types/jsonwebtoken": "^9.0.9",
     "@types/morgan": "^1.9.9",
     "@types/node": "^22.15.14",
+    "@vitest/coverage-v8": "^4.0.15",
     "concurrently": "^9.2.0",
     "dotenv": "^16.5.0",
     "morgan": "^1.10.0",
     "nodemon": "^3.1.10",
     "tsc-alias": "^1.8.16",
     "tsc-watch": "^7.1.1",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^4.0.15"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",

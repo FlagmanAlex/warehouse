@@ -7,17 +7,22 @@
     "client",
     "server",
     "interfaces",
-    "web"
+    "web",
+    "tests"
   ],
   "main": "index.js",
   "scripts": {
     "server": "cd server && npm run dev",
     "client": "cd client && npm run client",
-    "web": "cd web && npm run dev",
+    "web": "npm run dev --workspace web",
+    "web:build": "npm run build --workspace web",
     "import": "cd server && npm run import",
     "sinc": "cd server && npm run sinc",
     "restruct": "cd server && npm run restruct",
-    "test": "cd web && npm run web:test"
+    "test:server": "npm run test --workspace server",
+    "test:web": "npm run test --workspace web",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui"
   },
   "repository": {
     "type": "git",

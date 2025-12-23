@@ -8,10 +8,10 @@
     max-height: 60px;
     align-items: center;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    font-size: medium;
-    border-radius: 10px;
+    font-size: small;
+    border-radius: 5px;
     border: 0px solid;
-    padding: 15px;
+    padding: 10px;
     text-transform: uppercase;
     font-weight: 700;
     user-select: none;

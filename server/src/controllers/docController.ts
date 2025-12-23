@@ -3,7 +3,7 @@
 import { Request, Response } from 'express';
 // import { CreateDocDto,  } from '@interfaces/DTO';
 import { DocModel, DocItemsModel, DocNumModel, IDocModel } from '@models';
-import { DocService } from '../services/StatusService';
+import { StatusService } from '../services/StatusService';
 import { DocItemService } from '@services';
 import { IDoc, IDocItem } from '@interfaces';
 import { DocStatusName } from '@interfaces/config';
@@ -183,7 +183,7 @@ export class DocController {
 
         try {
 
-            const doc = await DocService.updateStatus(id, status, req.userId || '');
+            const doc = await StatusService.updateStatus(id, status, req.userId || '');
             res.json({ success: true, doc });
             return
         } catch (error: any) {

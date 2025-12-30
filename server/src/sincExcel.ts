@@ -1387,7 +1387,7 @@ class sincExcel {
             await this.init();
             await this.syncCategory();
             await this.compareAndCreateProducts();
-            this.setProductType();
+            // await this.setProductType();
             // await this.addSuppliers()
             // await this.addCustomers()
             // await this.addWarehouse()

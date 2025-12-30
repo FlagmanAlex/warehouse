@@ -263,6 +263,7 @@ export class DocController {
                         customerName,
                         docs: [],
                         totalPositions: 0,
+                        totalBonus: 0,
                         totalSum: 0,
                     };
                 }
@@ -272,11 +273,14 @@ export class DocController {
 
                 // Считаем сумму и количество для документа
                 let docTotalSum = 0;
+                let docTotalBonus = 0;
                 let docTotalQty = 0;
                 for (const item of items) {
                     const qty = item.quantity || 0;
+                    const bonus = item.bonusStock || 0;
                     const price = item.unitPrice || 0;
                     docTotalSum += qty * price;
+                    docTotalBonus += qty * bonus;
                     docTotalQty += qty;
                 }
 
@@ -285,11 +289,13 @@ export class DocController {
                     ...doc,
                     items, // добавляем позиции
                     docTotalQty,
+                    docTotalBonus,
                     docTotalSum,
                 });
 
                 // Обновляем итоги по клиенту
                 acc[customerId].totalPositions += docTotalQty;
+                acc[customerId].totalBonus += docTotalBonus;
                 acc[customerId].totalSum += docTotalSum;
 
                 return acc;

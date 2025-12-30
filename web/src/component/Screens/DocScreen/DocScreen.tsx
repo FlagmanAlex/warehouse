@@ -18,6 +18,7 @@ import { TextField } from '../../../shared/TextFields';
 import { formatDate } from '../../../utils/formatDateTime';
 import { DocStatusInMap, DocStatusOutMap, DocTypeMap } from '@warehouse/interfaces/config';
 
+
 export interface LoaderData {
   docs: DocDto[];
   filters: {
@@ -29,6 +30,147 @@ export interface LoaderData {
     filterShow: boolean;
   };
 }
+
+
+  const RenderNavBar = ({
+    filterShow,
+    selectedDocType,
+    selectedStatus,
+    search,
+    updateFilters,
+    searchParams,
+    navigate,
+
+  }: {
+    filterShow: boolean;
+    selectedDocType: string | null;
+    selectedStatus: string | null;
+    search: string;
+    updateFilters: (newParams: Record<string, string | boolean | null>) => void;
+    searchParams: URLSearchParams;
+    navigate: ReturnType<typeof useNavigate>;
+  }) => {
+
+    if (!filterShow) return null;
+
+    return (
+
+      /* Универсальный фильтр */
+      /* Фильтры */
+      filterShow && (
+        <div>
+          {/* Фильтр по типу документа */}
+          <div className={styles.navBar}>
+            {Object.keys(DocTypeMap).map((type) => (
+              <div
+                key={type}
+                className={styles.navItem + ' ' + (selectedDocType === type ? styles.active : '')}
+                onClick={() => updateFilters({ docType: selectedDocType === type ? null : type })}
+              >
+                <Icon
+                  size={24}
+                  key={type}
+                  name={DocTypeMap[type as keyof typeof DocTypeMap].icon}
+                  color={DocTypeMap[type as keyof typeof DocTypeMap].color}
+                  className={`${styles.icon} `}
+                />
+                <span className={styles.label}>{DocTypeMap[type as keyof typeof DocTypeMap].nameRus}</span>
+                {/* {type === 'OrderOut' && <hr />} */}
+              </div>
+            ))}
+          </div>
+
+          {/* Фильтр по статусам расхода если docType === 'OrderOut' */}
+          {selectedDocType === 'OrderOut' && (
+            <div className={styles.navBar}>
+              {Object.keys(DocStatusOrderMap).map((status) => (
+                <div
+                  key={status}
+                  className={styles.navItem + ' ' + (selectedStatus === status ? styles.active : '')}
+                  onClick={() => updateFilters({ docStatus: selectedStatus === status ? null : status })}
+                >
+                  <Icon
+                    size={24}
+                    key={status}
+                    name={DocStatusOrderMap[status as keyof typeof DocStatusOrderMap].icon}
+                    color={DocStatusOrderMap[status as keyof typeof DocStatusOrderMap].color}
+                  />
+                  <span className={styles.label}>{DocStatusOrderMap[status as keyof typeof DocStatusOrderMap].nameRus}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          {/* Фильтр по статусам расхода если docType === 'Outgoing' */}
+          {selectedDocType === 'Outgoing' && (
+            <div className={styles.navBar}>
+              {Object.keys(DocStatusOutMap).map((status) => (
+              <div
+                key={status}
+                className={styles.navItem + ' ' + (selectedStatus === status ? styles.active : '')}
+                onClick={() => updateFilters({ docStatus: selectedStatus === status ? null : status })}
+              >
+                <Icon
+                  size={24}
+                  key={status}
+                  name={DocStatusOutMap[status as keyof typeof DocStatusOutMap].icon}
+                  color={DocStatusOutMap[status as keyof typeof DocStatusOutMap].color}
+                  className={styles.navItem + ` ${selectedStatus === status ? styles.chipSelected : ''}`}
+                />
+                <span className={styles.label}>{DocStatusOutMap[status as keyof typeof DocStatusOutMap].nameRus}</span>
+              </div>
+              ))}
+
+            </div>
+          )}
+
+          {/* Фильтр по статусам прихода если docType === 'Incoming' */}
+          {selectedDocType === 'Incoming' && (
+            <div className={styles.navBar}>
+              {Object.keys(DocStatusInMap).map((status) => (
+                <div
+                  key={status}
+                  className={styles.navItem + ' ' + (selectedStatus === status ? styles.active : '')}
+                  onClick={() => updateFilters({ docStatus: selectedStatus === status ? null : status })}
+                >
+                <Icon
+                  size={24}
+                  key={status}
+                  name={DocStatusInMap[status as keyof typeof DocStatusInMap].icon}
+                  color={DocStatusInMap[status as keyof typeof DocStatusInMap].color}
+                />
+                <span className={styles.label}>{DocStatusInMap[status as keyof typeof DocStatusInMap].nameRus}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Поиск */}
+          <div className={styles.searchContainer}>
+            <TextField
+              name='search'
+              placeholder="Поиск по клиенту или поставщику"
+              value={search}
+              onChange={(e) => updateFilters({ search: e.target.value })}
+            />
+          </div>
+
+          {/* Кнопка создания */}
+          {(selectedDocType === 'OrderOut' || selectedDocType === 'OrderIn') && (
+            <Button
+              // className={styles.addButton}
+              bgColor={THEME.button.add}
+              textColor={THEME.color.white}
+              onClick={() => navigate(`/doc?${searchParams.toString()}`)}
+              icon={"FaPlus"}
+              bdColor='#007bff'
+            />
+          )}
+        </div>
+      )
+    )
+  }
+
+
 
 export default () => {
   const navigate = useNavigate();
@@ -176,137 +318,6 @@ export default () => {
     </div>
   );
 
-  const RenderNavBar = () => {
-
-    const StatusMaps: Record<string, string> = {
-      OrderIn: 'DocStatusOrderMap',
-      OrderOut: 'DocStatusOrderMap',
-      Outgoing: 'DocStatusOutMap',
-      Incoming: 'DocStatusInMap',
-      Transfer: 'DocStatusTransferMap',
-    }
-
-    const activeStatusMap = selectedDocType ? StatusMaps[selectedDocType] : null;
-
-    console.log(activeStatusMap);
-
-
-    return (
-
-      /* Универсальный фильтр */
-      /* Фильтры */
-      filterShow && (
-        <div>
-          {/* Фильтр по типу документа */}
-          <div className={styles.navBar}>
-            {Object.keys(DocTypeMap).map((type) => (
-              <div
-                key={type}
-                className={styles.navItem + ' ' + (selectedDocType === type ? styles.active : '')}
-                onClick={() => updateFilters({ docType: selectedDocType === type ? null : type })}
-              >
-                <Icon
-                  size={24}
-                  key={type}
-                  name={DocTypeMap[type as keyof typeof DocTypeMap].icon}
-                  color={DocTypeMap[type as keyof typeof DocTypeMap].color}
-                  className={`${styles.icon} `}
-                />
-                <span className={styles.label}>{DocTypeMap[type as keyof typeof DocTypeMap].nameRus}</span>
-                {/* {type === 'OrderOut' && <hr />} */}
-              </div>
-            ))}
-          </div>
-
-          {/* Фильтр по статусам расхода если docType === 'OrderOut' */}
-          {selectedDocType === 'OrderOut' && (
-            <div className={styles.navBar}>
-              {Object.keys(DocStatusOrderMap).map((status) => (
-                <div
-                  key={status}
-                  className={styles.navItem + ' ' + (selectedStatus === status ? styles.active : '')}
-                  onClick={() => updateFilters({ docStatus: selectedStatus === status ? null : status })}
-                >
-                  <Icon
-                    size={24}
-                    key={status}
-                    name={DocStatusOrderMap[status as keyof typeof DocStatusOrderMap].icon}
-                    color={DocStatusOrderMap[status as keyof typeof DocStatusOrderMap].color}
-                  />
-                  <span className={styles.label}>{DocStatusOrderMap[status as keyof typeof DocStatusOrderMap].nameRus}</span>
-                </div>
-              ))}
-            </div>
-          )}
-          {/* Фильтр по статусам расхода если docType === 'Outgoing' */}
-          {selectedDocType === 'Outgoing' && (
-            <div className={styles.navBar}>
-              {Object.keys(DocStatusOutMap).map((status) => (
-              <div
-                key={status}
-                className={styles.navItem + ' ' + (selectedStatus === status ? styles.active : '')}
-                onClick={() => updateFilters({ docStatus: selectedStatus === status ? null : status })}
-              >
-                <Icon
-                  size={24}
-                  key={status}
-                  name={DocStatusOutMap[status as keyof typeof DocStatusOutMap].icon}
-                  color={DocStatusOutMap[status as keyof typeof DocStatusOutMap].color}
-                  className={styles.navItem + ` ${selectedStatus === status ? styles.chipSelected : ''}`}
-                />
-                <span className={styles.label}>{DocStatusOutMap[status as keyof typeof DocStatusOutMap].nameRus}</span>
-              </div>
-              ))}
-
-            </div>
-          )}
-
-          {/* Фильтр по статусам прихода если docType === 'Incoming' */}
-          {selectedDocType === 'Incoming' && (
-            <div className={styles.navBar}>
-              {Object.keys(DocStatusInMap).map((status) => (
-                <div
-                  key={status}
-                  className={styles.navItem + ' ' + (selectedStatus === status ? styles.active : '')}
-                  onClick={() => updateFilters({ docStatus: selectedStatus === status ? null : status })}
-                >
-                <Icon
-                  size={24}
-                  key={status}
-                  name={DocStatusInMap[status as keyof typeof DocStatusInMap].icon}
-                  color={DocStatusInMap[status as keyof typeof DocStatusInMap].color}
-                />
-                <span className={styles.label}>{DocStatusInMap[status as keyof typeof DocStatusInMap].nameRus}</span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Поиск */}
-          <div className={styles.searchContainer}>
-            <TextField
-              name='search'
-              placeholder="Поиск по клиенту или поставщику"
-              value={search}
-              onChange={(e) => updateFilters({ search: e.target.value })}
-            />
-          </div>
-
-          {/* Кнопка создания */}
-          {(selectedDocType === 'OrderOut' || selectedDocType === 'OrderIn') && (
-            <Button
-              // className={styles.addButton}
-              bgColor={THEME.button.add}
-              textColor={THEME.color.white}
-              onClick={() => navigate(`/doc?${searchParams.toString()}`)}
-              icon={"FaPlus"}
-              bdColor='#007bff'
-            />
-          )}
-        </div>
-      )
-    )
-  }
 
   return (
     <>
@@ -342,7 +353,15 @@ export default () => {
           />
         </div>
 
-        <RenderNavBar />
+        <RenderNavBar 
+          filterShow={filterShow}
+          selectedDocType={selectedDocType}
+          selectedStatus={selectedStatus}
+          search={search}
+          updateFilters={updateFilters}
+          searchParams={searchParams}
+          navigate={navigate}
+        />
 
         <div className={styles.docList}>
           {filteredDocs.length > 0 ? (

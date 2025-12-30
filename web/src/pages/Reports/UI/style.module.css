@@ -1,7 +1,7 @@
 .reportContainer {
     padding: 16px;
     font-family: Arial, sans-serif;
-    margin-bottom: 80px;
+    margin-bottom: 90px;
 }
 
 .customerContainer {
@@ -93,7 +93,7 @@
     padding-top: 12px;
     /* border-top: 1px solid #ccc; */
     font-weight: bold;
-    text-align: right;
+    text-align: left;
     font-size: 1.1em;
     color: #1976d2;
     padding-bottom: 16px;

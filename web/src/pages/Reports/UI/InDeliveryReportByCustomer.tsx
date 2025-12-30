@@ -25,6 +25,7 @@ interface CustomerGroup {
     customerId: string;
     customerName: string;
     totalPositions: number;
+    totalBonus: number;
     totalSum: number;
     docs: Doc[];
 }
@@ -68,12 +69,14 @@ const NavBar = () => {
 };
 
     let totalPositions = 0;
+    let totalBonus = 0;
     let totalSum = 0;
     return (
         <div className={style.reportContainer}>
             {<NavBar />}
             {data.map(customer => {
                 totalPositions += customer.totalPositions;
+                totalBonus += customer.totalBonus;
                 totalSum += customer.totalSum;
                 return (
                     <div
@@ -87,7 +90,7 @@ const NavBar = () => {
                         >
                             <h3 className={style.customerName}>{customer.customerName}</h3>
                             <span className={style.totalValue}>Кол: {customer.totalPositions}</span>
-                            <span className={style.totalValue}>Сум: {customer.totalSum}</span>
+                            <span className={style.totalValue}>Сум: {customer.totalSum - customer.totalBonus}</span>
 
                         </div>
 
@@ -106,7 +109,8 @@ const NavBar = () => {
                                         )}
                                     </ul>
                                     <div className={style.totalRow}>
-                                        <span className={style.totalValue}>Итого: {customer.totalSum}</span>
+                                        <span className={style.totalValue}> {customer.totalBonus > 0 && `Скидка: ${customer.totalBonus}`}</span>
+                                        <span className={style.totalValue}> Итого: {customer.totalSum - customer.totalBonus} </span>
                                     </div>
                                 </>
                             )}
@@ -116,7 +120,8 @@ const NavBar = () => {
             })}
             <h3 className={style.customerName}>Итого:</h3>
             <span className={style.totalValue}>Кол: {totalPositions} / </span>
-            <span className={style.totalValue}>Сумма: {totalSum}</span>
+            <span className={style.totalValue}>{totalBonus > 0 && `Скидка: ${totalBonus} / `}</span>
+            <span className={style.totalValue}>Сумма: {totalSum - totalBonus}</span>
         </div>
     );
 };

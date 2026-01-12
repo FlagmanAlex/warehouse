@@ -227,17 +227,22 @@ export class DocController {
             })
                 .populate('customerId') // только имя клиента
                 .lean(); // для производительности
-
-            if (!docs.length) {
-                return res.json([]);
-            }
-
-            // Получаем все docId
-            const docIds = docs.map(doc => doc._id);
-
-            // Получаем все DocItems для этих документов
-            const docItems = await DocItemsModel.find({ docId: { $in: docIds } })
-                .populate('productId', 'article name') // опционально: имя и артикул
+                
+                if (!docs.length) {
+                    return res.json([]);
+                }
+                
+                // Получаем все docId
+                const docIds = docs.map(doc => doc._id);
+                
+                // Получаем все DocItems для этих документов
+                const docItems = await DocItemsModel.find({ docId: { $in: docIds } })
+                .populate({
+                    path: 'productId',
+                    populate: {
+                        path: 'categoryId',
+                    }
+                })
                 .lean();
 
             // Маппинг: docId -> массив позиций

@@ -1,16 +1,9 @@
-import type { IProduct } from '@warehouse/interfaces';
+import type { DocItemDto } from '@warehouse/interfaces/DTO';
 import { DOC_STATUS_ORDER } from '@warehouse/config';
 import { useState } from 'react';
 import { useLoaderData, useNavigate } from 'react-router-dom';
 import style from './style.module.css';
 import { Icon } from '../../../shared/Icon';
-
-interface DocItem {
-    _id: string;
-    productId: IProduct;
-    quantity: number;
-    unitPrice: number;
-}
 
 interface Doc {
     _id: string;
@@ -18,7 +11,7 @@ interface Doc {
     docDate: string;
     docTotalQty: number;
     docTotalSum: number;
-    items: DocItem[];
+    items: DocItemDto[];
 }
 
 interface CustomerGroup {
@@ -101,7 +94,7 @@ const NavBar = () => {
                                         {customer.docs.flatMap(doc =>
                                             doc.items.map(item => (
                                                 <li key={item._id} className={style.positionItem}>
-                                                    <span className={style.productName}>{item.productId.name}</span>
+                                                    <span className={style.productName}>{item.productId.categoryId.name + ', ' + item.productId.name}</span>
                                                     <span className={style.quantity}>{`${item.quantity}шт. х ${item.unitPrice.toFixed(0)}`} </span>
                                                     <span className={style.sum}> ={item.quantity * item.unitPrice}</span>
                                                 </li>

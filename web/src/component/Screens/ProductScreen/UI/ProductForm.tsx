@@ -6,7 +6,7 @@ import style from './ProductForm.module.css';
 import type { ProductDto } from '@warehouse/interfaces/DTO';
 // import { CategorySelectModal, SupplierSelectModal } from '../../SelectModals/index';
 import { Button } from '../../../../shared/Button';
-import { THEME } from '@warehouse/interfaces/config';
+import { THEME } from '@warehouse/config';
 import { TextField, type TextFieldProps } from '../../../../shared/TextFields/UI/TextField';
 import { EntitySelectModal } from '../../../SelectModals/EntitySelectModal';
 import { ProductImages } from './ProductImages';

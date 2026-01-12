@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
-import mongoose, { Types } from "mongoose";
-import { readExcelRangeToJSon, writeExcel } from "./utils/excel";
+
+import { readExcelRangeToJSon, writeExcel } from "./excel";
 import {
     IUser,
     ICustomer,
@@ -14,29 +14,12 @@ import {
     IDocItem,
     IDocIncoming,
     IDocOutgoing,
-} from "@interfaces";
-// import { CreateDocDto, CreateProductDto, CreateDocItemDto, CreateSupplierDto, CreateCustomerDto, CreateWarehouseDto, CreateCategoryDto, ResponseWarehouseDto, ResponseSupplierDto, ResponseProductDto, ResponseCustomerDto } from "@interfaces/DTO";
-import {
-    UserModel,
-    ProductModel,
-    PriceHistoryModel,
-    DocModel,
-    BatchModel,
-    InventoryModel,
-    DocItemsModel,
-    SupplierModel,
-    CustomerModel,
-    CategoryModel,
-    WarehouseModel,
-    TransactionModel,
-    DocNumModel,
-    ITransactionModel,
-} from "@models";
+} from "@warehouse/interfaces";
 import {
     ProductTypeMap,
     ProductTypeRus,
     ProductTypeRusMap,
-} from "@interfaces/config";
+} from "@warehouse/interfaces/config";
 
 interface IJournal {
     "№ заказа": string;
@@ -78,47 +61,7 @@ interface IHeadJournal {
     "Чистая прибыль RUB": number;
     "% наценки": number;
 }
-class Database {
-    private static instance: Database;
-    private readonly url: string;
-    private readonly dbName: string;
-    constructor() {
-        const BD_TOKEN = process.env.BD_TOKEN;
-        const BD_NAME = process.env.BD_NAME_WAREHOUSE;
 
-        if (!BD_TOKEN || !BD_NAME) {
-            throw new Error("Токен или имя базы данных не найдены...");
-        }
-
-        this.url = BD_TOKEN;
-        this.dbName = BD_NAME;
-    }
-    public static getInstance(): Database {
-        if (!Database.instance) {
-            Database.instance = new Database();
-        }
-        return Database.instance;
-    }
-    async connect() {
-        try {
-            await mongoose.connect(this.url, { dbName: this.dbName });
-            console.log(`✅ Успешное подключение к базе ${this.dbName}`);
-        } catch (error) {
-            console.log(`❌ Ошибка подключения к базе ${this.dbName}`);
-            process.exit(1);
-        }
-    }
-    async disconnect() {
-        try {
-            await mongoose.disconnect();
-            console.log(`☑️ Соединение с базой ${this.dbName} закрыто`);
-        } catch (error) {
-            console.log(
-                `❌ Ошибка при закрытии соединения с базой ${this.dbName}`
-            );
-        }
-    }
-}
 
 class sincExcel {
     private startTime = performance.now();
@@ -197,7 +140,7 @@ class sincExcel {
             console.log("Тело запроса:", body);
         }
     }
-    private getTime() {
+    private getDeltaTime() {
         const seconds = (performance.now() - this.startTime) / 1000;
         const h = Math.floor(seconds / 3600);
         const m = Math.floor((seconds % 3600) / 60);
@@ -348,7 +291,7 @@ class sincExcel {
     }
 
     //-------------------------------------------------------------------
-    private async addSuppliers() {
+/*    private async addSuppliers() {
         console.log("Создание коллекции Supplier...");
         await SupplierModel.deleteMany({});
 
@@ -402,7 +345,8 @@ class sincExcel {
 
         console.log("Создание коллекции Suppliers завершено");
     }
-    private async addCustomers() {
+*/
+/*    private async addCustomers() {
         console.log("Создание коллекции Customer...");
         await CustomerModel.deleteMany({});
         //Загружаем данные клиентов
@@ -451,7 +395,8 @@ class sincExcel {
         }
         console.log("Создание коллекции Customer завершено");
     }
-    private async addWarehouse() {
+    */
+/*    private async addWarehouse() {
         console.log("Создание коллекции Warehouse...");
         await WarehouseModel.deleteMany({});
         try {
@@ -497,7 +442,8 @@ class sincExcel {
 
         console.log("Создание коллекции Warehouse завершено");
     }
-    private async addCategory() {
+    */
+/*    private async addCategory() {
         console.log("Создание коллекции Category...");
         await CategoryModel.deleteMany({});
         //Создание root категории и Получение rootId
@@ -529,7 +475,8 @@ class sincExcel {
             console.log("Ошибка сервера", (error as Error).message);
         }
     }
-    private async addProduct() {
+*/
+/*    private async addProduct() {
         await ProductModel.deleteMany({});
         await PriceHistoryModel.deleteMany({});
         try {
@@ -721,7 +668,8 @@ class sincExcel {
             throw error; // Пробрасываем ошибку выше для обработки
         }
     }
-    private async addDocIn() {
+*/
+/*    private async addDocIn() {
         await DocNumModel.deleteMany({});
         await BatchModel.deleteMany({});
         await InventoryModel.deleteMany({});
@@ -815,8 +763,9 @@ class sincExcel {
             console.log((error as Error).message);
         }
     }
+*/
     //Создание расходных документов
-    private async addDocOut() {
+/*    private async addDocOut() {
         interface IDocItemExcel {
             docDate: Date;
             customerId: string;
@@ -945,7 +894,8 @@ class sincExcel {
             }
         }
     }
-    private async DeleteAllOrderOut() {
+*/    
+/*    private async DeleteAllOrderOut() {
         try {
             // 1. Найти все расходные заказы
             const docs = await DocModel.find({ docType: "Расход" });
@@ -996,6 +946,7 @@ class sincExcel {
             console.error("Ошибка при удалении расходных заказов:", error);
         }
     }
+*/
     private async syncCategory() {
         try {
             console.log("Синхронизация категорий из Excel...");
@@ -1381,13 +1332,11 @@ class sincExcel {
     }
 
     public Main = async () => {
-        const db = new Database();
         try {
-            await db.connect();
             await this.init();
             await this.syncCategory();
             await this.compareAndCreateProducts();
-            // await this.setProductType();
+            await this.setProductType();
             // await this.addSuppliers()
             // await this.addCustomers()
             // await this.addWarehouse()
@@ -1395,12 +1344,12 @@ class sincExcel {
             // await this.addProduct()
             // await this.addDocIn()
             // await this.addDocOut()
-            console.log(this.getTime());
-        } finally {
-            db.disconnect();
+            console.log(this.getDeltaTime());
+        } catch (error) {
+            console.error("❌ Критическая ошибка в Main:", error);
         }
     };
 }
 
-const createDB = new sincExcel();
-createDB.Main();
+const sinc = new sincExcel();
+sinc.Main();

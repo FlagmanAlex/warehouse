@@ -1,5 +1,5 @@
 import type { IProduct } from '@warehouse/interfaces';
-import { DOC_STATUS_ORDER } from '@warehouse/interfaces/config';
+import { DOC_STATUS_ORDER } from '@warehouse/config';
 import { useState } from 'react';
 import { useLoaderData, useNavigate } from 'react-router-dom';
 import style from './style.module.css';

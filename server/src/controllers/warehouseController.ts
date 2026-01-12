@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { WarehouseModel } from '../models/warehouseModel';
+import { WarehouseModel } from '@models';
 
 export const warehouseController = {
     // Создание склада (только админ)

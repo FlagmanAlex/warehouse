@@ -1,12 +1,9 @@
 // controllers/DocController.ts
-
 import { Request, Response } from 'express';
-// import { CreateDocDto,  } from '@interfaces/DTO';
 import { DocModel, DocItemsModel, DocNumModel, IDocModel } from '@models';
-import { StatusService } from '../services/StatusService';
-import { DocItemService } from '@services';
-import { IDoc, IDocItem } from '@interfaces';
-import { DocStatusName } from '@interfaces/config';
+import { DocItemService, StatusService } from '@services';
+import { IDoc, IDocItem } from '@warehouse/interfaces';
+import { DocStatusName } from '@warehouse/config';
 
 // === Дополнительный DTO для обновления статуса (может быть вынесен в DTO)
 

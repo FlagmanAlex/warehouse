@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { IParfum, IProduct, IVitamin } from "../../../interfaces";
+import { IParfum, IProduct, IVitamin } from "@warehouse/interfaces";
 
 interface IProductModel
     extends Omit<

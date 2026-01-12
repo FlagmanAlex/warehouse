@@ -1,4 +1,4 @@
-import { IAddress } from "@interfaces";
+import { IAddress } from "@warehouse/interfaces";
 import { AddressModel } from "@models";
 import { Request, Response } from "express";
 

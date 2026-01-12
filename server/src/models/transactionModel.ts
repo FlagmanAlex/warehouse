@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { ITransaction } from "@interfaces";
+import { ITransaction } from "@warehouse/interfaces";
 
 export interface ITransactionModel extends Omit<ITransaction, '_id' | 'productId' | 'warehouseId' | 'batchId' | 'userId' | 'docId'>, mongoose.Document { 
     productId: mongoose.Types.ObjectId

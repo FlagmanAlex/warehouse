@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { IDocNum } from "@interfaces";
+import { IDocNum } from "@warehouse/interfaces";
 
 interface IDocNumModel extends IDocNum, mongoose.Document<string> {
     _id: string;

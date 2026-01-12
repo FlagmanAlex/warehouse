@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
-import { CategoryModel } from '../models/categoryModel';
-import { ProductModel } from '../models/productModel';
+import { CategoryModel, ProductModel } from '@models';
 import { Types } from 'mongoose';
 
 // Тип для запроса с возможным parentCategory

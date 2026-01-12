@@ -5,8 +5,8 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { UserModel } from '@models';
-import { IUser } from '@interfaces';
-import { ResponseUserDto } from '@interfaces/DTO';
+import { IUser } from '@warehouse/interfaces';
+import { ResponseUserDto } from '@warehouse/interfaces/DTO';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 

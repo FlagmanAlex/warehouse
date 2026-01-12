@@ -1,5 +1,5 @@
 import mongoose, { Document, Schema } from "mongoose";
-import { IAddress } from "@interfaces";
+import { IAddress } from "@warehouse/interfaces";
 
 export interface IAddressModel extends Omit<IAddress, '_id' | 'customerId'>, Document {
     customerId: Schema.Types.ObjectId;

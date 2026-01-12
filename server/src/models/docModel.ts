@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { IAddress, IDoc } from "@interfaces";
+import { IAddress, IDoc } from "@warehouse/interfaces";
 
 export interface IDocModel extends Omit<IDoc,
     | '_id'

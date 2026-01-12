@@ -1,8 +1,6 @@
-import { Request, Response } from 'express';
-import { TransactionModel } from '../models/transactionModel';
 import mongoose from 'mongoose';
-import { BatchModel } from '../models/batchModel';
-import { InventoryModel } from '../models/inventoryModel';
+import { Request, Response } from 'express';
+import { BatchModel, InventoryModel, TransactionModel } from '@models';
 
 
 // Создание транзакции (приход/расход)

@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { IPriceHistory } from "@interfaces";
+import { IPriceHistory } from "@warehouse/interfaces";
 
 interface IPriceHistoryModel extends Omit<IPriceHistory, '_id' | 'productId'>, mongoose.Document { 
     productId: mongoose.Types.ObjectId

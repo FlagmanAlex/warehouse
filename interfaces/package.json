@@ -6,8 +6,7 @@
   "types": "index.ts",
   "exports": {
     ".": "./index.ts",
-    "./DTO": "./DTO/index.ts",
-    "./config": "./Config/index.ts"
+    "./DTO": "./DTO/index.ts"
   },
   "scripts": {
     "build": "tsc"

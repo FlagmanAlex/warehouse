@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { BatchModel } from '../models/batchModel';
+import { BatchModel } from '@models';
 
 export class BatchController {
     static createBatch = async (req: Request, res: Response) => {

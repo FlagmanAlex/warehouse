@@ -1,8 +1,6 @@
 import { Request, Response } from 'express';
-import { InventoryModel } from '../models/inventoryModel';
-import { TransactionModel } from '../models/transactionModel';
+import { BatchModel, InventoryModel, TransactionModel } from '@models';
 import mongoose, { model } from 'mongoose';
-import { BatchModel } from '../models/batchModel';
 
 export class InventoryController {
     // Получение остатков по складу с партиями и нулевыми остатками

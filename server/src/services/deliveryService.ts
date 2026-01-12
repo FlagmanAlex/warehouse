@@ -4,8 +4,8 @@ import {
     IDeliveryDoc,
     IDeliveryItem,
     IDocOrderOut,
-} from "../../../interfaces";
-import { DeliveryDocDTO, DeliveryDto, DeliveryItemsDTO } from "../../../interfaces/DTO";
+} from "@warehouse/interfaces";
+import { DeliveryDocDTO, DeliveryDto, DeliveryItemsDTO } from "@warehouse/interfaces/DTO";
 import {
     AddressModel,
     CustomerModel,
@@ -13,7 +13,7 @@ import {
     DeliveryItemModel,
     DocModel,
 } from "../models";
-import { StatusService } from "../services";
+import { StatusService } from "@services";
 import { Types } from "mongoose";
 
 interface newDelivery {

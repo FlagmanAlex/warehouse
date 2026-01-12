@@ -11,12 +11,11 @@ import {
 import { Button } from '../../../shared/Button';
 import { StatusIcon } from './StatusIcon';
 import type { DocDto } from '@warehouse/interfaces/DTO';
-import { DocStatusOrderMap, THEME } from '@warehouse/interfaces/config';
 import styles from './DocScreen.module.css';
 import { Icon } from '../../../shared/Icon';
 import { TextField } from '../../../shared/TextFields';
 import { formatDate } from '../../../utils/formatDateTime';
-import { DocStatusInMap, DocStatusOutMap, DocTypeMap } from '@warehouse/interfaces/config';
+import { DocStatusInMap, DocStatusOutMap, DocTypeMap, THEME, DocStatusOrderMap } from '@warehouse/config';
 
 
 export interface LoaderData {

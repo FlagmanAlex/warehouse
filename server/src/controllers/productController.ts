@@ -1,12 +1,8 @@
 import { Request, Response } from 'express';
-import { ParfumModel, ProductModel, VitaminModel } from '../models/productModel';
-import { CategoryModel } from '../models/categoryModel';
-import { SupplierModel } from '../models/supplierModel';
-import { PriceHistoryModel } from '../models/priceHistoryModel';
 import mongoose, { Document, Types } from 'mongoose';
-import { IProduct } from '../../../interfaces/IProduct';
-import { log } from 'node:console';
-import { ProductDto } from '@interfaces/DTO';
+import { IProduct } from '@warehouse/interfaces';
+import { ProductDto } from '@warehouse/interfaces/DTO';
+import { CategoryModel, ParfumModel, PriceHistoryModel, ProductModel, VitaminModel } from '@models';
 
 interface CreateProductRequest extends Request {
     body: ProductDto

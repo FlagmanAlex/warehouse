@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { DocModel, DocItemsModel } from '../models';           // ← Ваша модель Doc
+import { DocModel, DocItemsModel } from '@models';           // ← Ваша модель Doc
 
 /**
  * Пересчитывает сумму документа по всем его позициям и обновляет поле summ

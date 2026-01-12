@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { TextField } from '../../../shared/TextFields'
 import { Button } from '../../../shared/Button'
 import { Icon } from '../../../shared/Icon'
-import { THEME } from '@warehouse/interfaces/config'
+import { THEME } from '@warehouse/config'
 
 interface IDocStatusDelivery {
     customerId: string;

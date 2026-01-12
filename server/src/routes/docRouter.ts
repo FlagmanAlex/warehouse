@@ -1,6 +1,6 @@
 import express from 'express';
 import { DocController } from '@controllers';
-import { adminMiddleware } from '../middleware/authMiddleware';
+import { adminMiddleware } from '../middlewares/authMiddleware';
 
 export const docRouter = express.Router();
 

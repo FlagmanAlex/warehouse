@@ -1,4 +1,4 @@
-import { IPayment } from "@interfaces";
+import { IPayment } from "@warehouse/interfaces";
 import mongoose, { mongo, Schema } from "mongoose";
 
 export interface IPaymentModel extends Omit<IPayment, '_id' | 'docId'>, mongoose.Document {

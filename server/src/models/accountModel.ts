@@ -1,4 +1,4 @@
-import { IAccount } from "@interfaces";
+import { IAccount } from "@warehouse/interfaces";
 import mongoose, { Schema } from "mongoose";
 
 export interface IAccountModel extends Omit<IAccount, '_id'>, mongoose.Document {}

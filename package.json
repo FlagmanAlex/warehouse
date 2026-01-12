@@ -8,7 +8,9 @@
     "server",
     "interfaces",
     "web",
-    "tests"
+    "tests",
+    "sinc",
+    "config"
   ],
   "main": "index.js",
   "scripts": {
@@ -17,7 +19,8 @@
     "web": "npm run dev --workspace web",
     "web:build": "npm run build --workspace web",
     "import": "cd server && npm run import",
-    "sinc": "cd server && npm run sinc",
+    "sinc": "npm run sinc --workspace sinc",
+    "sinc:build" : "npm run build --workspace sinc",
     "restruct": "cd server && npm run restruct",
     "test:server": "npm run test --workspace server",
     "test:web": "npm run test --workspace web",

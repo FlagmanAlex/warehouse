@@ -1,4 +1,4 @@
-import { IDeliveryDoc } from "@interfaces";
+import { IDeliveryDoc } from "@warehouse/interfaces";
 import mongoose from "mongoose";
 
 export interface IDeliveryDocModel extends Omit<IDeliveryDoc, '_id'>, Document {}

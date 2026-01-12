@@ -1,4 +1,4 @@
-import type { ProductType } from './Config'
+import type { ProductType } from '../config'
 interface IBaseProduct {
     _id?: string
     article: string

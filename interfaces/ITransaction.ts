@@ -1,4 +1,4 @@
-import type { DocTypeName } from "./Config";
+import type { DocTypeName } from "../config";
 
 export interface ITransaction {
     _id?: string;

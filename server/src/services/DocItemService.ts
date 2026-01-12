@@ -1,5 +1,5 @@
-import { DocItemsModel, IDocItemsModel } from '../models';
-import { IDocItem } from '../../../interfaces';
+import { DocItemsModel, IDocItemsModel } from '@models';
+import { IDocItem } from '@warehouse/interfaces';
 import { recalculateDocSum } from '../utils/recalculateDocSum';
 
 export class DocItemService {

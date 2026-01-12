@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { IDocItem } from "@interfaces";
+import { IDocItem } from "@warehouse/interfaces";
 
 export interface IDocItemsModel extends Omit<IDocItem, '_id' | 'docId' | 'productId' | 'batchId'>, mongoose.Document { 
     docId: mongoose.Types.ObjectId;

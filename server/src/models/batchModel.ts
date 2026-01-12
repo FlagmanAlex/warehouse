@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { IBatch } from '@interfaces';
+import { IBatch } from '@warehouse/interfaces';
 
 export interface IBatchModel extends Omit<IBatch, '_id' | 'productId' | 'supplierId' | 'warehouseId'>, mongoose.Document {
     productId: mongoose.Types.ObjectId

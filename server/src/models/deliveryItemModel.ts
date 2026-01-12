@@ -1,4 +1,4 @@
-import { IDeliveryItem } from "@interfaces";
+import { IDeliveryItem } from "@warehouse/interfaces";
 import mongoose from "mongoose";
 
 export interface IDeliveryItemModel extends Omit<IDeliveryItem, 

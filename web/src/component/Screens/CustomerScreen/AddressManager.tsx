@@ -1,5 +1,5 @@
 // components/AddressManager.tsx
-import { THEME } from '@warehouse/interfaces/config';
+import { THEME } from '@warehouse/config';
 import type { IAddress } from '@warehouse/interfaces';
 import { Button } from '../../../shared/Button';
 import { TextField } from '../../../shared/TextFields';

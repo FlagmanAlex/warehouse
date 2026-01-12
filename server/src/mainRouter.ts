@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { authMiddleware } from '../src/middleware/authMiddleware';
+import { authMiddleware } from '@middlewares';
 import { 
     categoryRouter, 
     productRouter, 

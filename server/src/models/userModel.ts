@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { IUser } from "@interfaces";
+import { IUser } from "@warehouse/interfaces";
 
 interface IUserModel extends Omit<IUser, '_id'>, mongoose.Document { }
 

@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { AddressModel, CustomerModel, DocModel } from '@models';
 import { Types } from 'mongoose';
-import { IAddress, ICustomer } from '@interfaces';
 
 
 export const customerController = {

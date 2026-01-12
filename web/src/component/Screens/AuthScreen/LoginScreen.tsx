@@ -5,7 +5,7 @@ import { useAuth } from '../../Screens/AuthScreen/AuthContext'; // ← если 
 import { TextField } from '../../../shared/TextFields';
 import style from './LoginScreen.module.css';
 import { Button } from '../../../shared/Button';
-import { THEME } from '@warehouse/interfaces/config';
+import { THEME } from '@warehouse/config';
 import type { ResponseUserDto } from '@warehouse/interfaces/DTO';
 
 // Если у тебя есть кастомный Button — импортируй его

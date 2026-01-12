@@ -4,7 +4,7 @@ import type { ProductDto } from '@warehouse/interfaces/DTO';
 import style from './ProductList.module.css';
 import { TextField } from '../../../../shared/TextFields';
 import { Button } from '../../../../shared/Button';
-import { THEME } from '../../../../../../interfaces/Config/Color';
+import { THEME } from '@warehouse/config';
 
 export interface LoaderData {
   products: ProductDto[];

@@ -4,7 +4,7 @@ import style from './CustomerList.module.css';
 import type { IAddress, ICustomer } from '@warehouse/interfaces';
 import { TextField } from '../../../shared/TextFields';
 import { Button } from '../../../shared/Button';
-import { THEME } from '../../../../../interfaces/Config/Color';
+import { THEME } from '@warehouse/config';
 
 type customerwithAddress = ICustomer & { addresses: IAddress[] };
 export interface LoaderData {

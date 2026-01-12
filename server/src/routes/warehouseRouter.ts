@@ -1,6 +1,6 @@
 import express from 'express';
-import { warehouseController } from '../controllers/warehouseController';
-import { authMiddleware, adminMiddleware } from '../middleware/authMiddleware';
+import { warehouseController } from '@controllers';
+import { authMiddleware, adminMiddleware } from '../middlewares/authMiddleware';
 import { body } from 'express-validator';
 
 export const warehouseRouter = express.Router();

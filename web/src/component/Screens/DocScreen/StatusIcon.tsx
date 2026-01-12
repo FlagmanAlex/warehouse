@@ -2,7 +2,17 @@
 
 import { useState } from 'react';
 import { fetchApi } from '../../../api/fetchApi';
-import { DocStatusMap, STATUS_TRANSITIONS_INCOMING, STATUS_TRANSITIONS_ORDER, STATUS_TRANSITIONS_OUTGOING, STATUS_TRANSITIONS_TRANSFER, type DocStatusInName, type DocStatusName, type DocStatusOrderName, type DocStatusOutName, type DocStatusTransferName, type DocTypeName } from '@warehouse/interfaces/config';
+import { DocStatusMap, 
+  STATUS_TRANSITIONS_INCOMING, 
+  STATUS_TRANSITIONS_ORDER, 
+  STATUS_TRANSITIONS_OUTGOING, 
+  STATUS_TRANSITIONS_TRANSFER, 
+  type DocStatusInName, 
+  type DocStatusName, 
+  type DocStatusOrderName, 
+  type DocStatusOutName, 
+  type DocStatusTransferName, 
+  type DocTypeName } from '@warehouse/config';
 import { Icon } from '../../../shared/Icon';
 import { useRevalidator } from 'react-router-dom';
 

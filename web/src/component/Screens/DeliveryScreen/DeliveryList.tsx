@@ -4,7 +4,7 @@ import type { DeliveryDto } from '@warehouse/interfaces/DTO';
 import style from './DeliveryList.module.css';
 import { Icon } from '../../../shared/Icon';
 import { Button } from '../../../shared/Button';
-import { THEME } from '@warehouse/interfaces/config';
+import { THEME } from '@warehouse/config';
 import { TextField } from '../../../shared/TextFields';
 
 export const DeliveryList = () => {

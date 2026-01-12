@@ -3,7 +3,7 @@ import styles from './HeaderForm.module.css';
 import { Field } from './Field';
 import type { DocAndItemsDto, DocIncomingDto, DocOrderOutDto, DocOutgoingDto, DocTransferDto } from '@warehouse/interfaces/DTO';
 import { EntitySelectModal } from '../../../SelectModals';
-import { DocStatusInMap, DocStatusOutMap, DocTypeMap, type DocStatusInName, type DocStatusOutName, type DocTypeName } from '@warehouse/interfaces/config';
+import { DocStatusInMap, DocStatusOutMap, DocTypeMap, type DocStatusInName, type DocStatusOutName, type DocTypeName } from '@warehouse/config';
 import { TextField } from '../../../../shared/TextFields';
 import { StatusIcon } from '../StatusIcon';
 import type { IAddress, ICustomer } from '@warehouse/interfaces';

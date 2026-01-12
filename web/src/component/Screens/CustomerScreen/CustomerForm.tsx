@@ -4,7 +4,7 @@ import style from './CustomerForm.module.css';
 import type { IAddress, ICustomer } from '@warehouse/interfaces';
 import { TextField, type InputType } from '../../../shared/TextFields/UI/TextField';
 import { Button } from '../../../shared/Button';
-import { THEME } from '@warehouse/interfaces/config';
+import { THEME } from '@warehouse/config';
 import AddressManager from './AddressManager';
 
 interface FieldProps {

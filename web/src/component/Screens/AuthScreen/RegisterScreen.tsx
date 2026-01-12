@@ -4,7 +4,7 @@ import { fetchApi } from '../../../api/fetchApi'; // ← Убедись, что 
 import { TextField } from '../../../shared/TextFields';
 import style from './RegisterScreen.module.css';
 import { Button } from '../../../shared/Button';
-import { THEME } from '@warehouse/interfaces/config';
+import { THEME } from '@warehouse/config';
 
 // Типизация данных формы (опционально, если используешь TypeScript)
 interface RegisterData {

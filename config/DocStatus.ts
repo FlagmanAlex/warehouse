@@ -98,6 +98,8 @@ export const STATUS_TRANSITIONS_OUTGOING: Record<DocStatusOutName, DocStatusOutN
   Canceled: [],
 };
 
+export type status_transitions_outgoing = Record<DocStatusOutName, DocStatusOutName[]>;
+
 export const STATUS_TRANSITIONS_INCOMING: Record<DocStatusInName, DocStatusInName[]> = {
   Draft: ['Shipped', 'Canceled'],
   Shipped: ['TransitHub', 'Canceled'],

@@ -6,8 +6,8 @@ import {
     BatchModel,
     DocModel,
     
-} from '../models';
-import { IDoc, IDocItem } from '@interfaces';
+} from '@models';
+import { IDoc, IDocItem } from '@warehouse/interfaces';
 
 
 export class DocItemsController {

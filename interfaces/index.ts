@@ -1,45 +1,45 @@
 //Основные интерфейсы WareHouse
 //Справочники
-export * from './ICategory'                     //Категории
-export * from './IProduct'                      //Товары
-export * from './ISupplier'                     //Поставщики
-export * from './IUser'                         //Пользователи
-export * from './IWarehouse'                    //Склады
-export * from './ICustomer'                     //Клиенты
-export * from "./IAddress"                      //Адрес
+export type * from './ICategory'                     //Категории
+export type * from './IProduct'                      //Товары
+export type * from './ISupplier'                     //Поставщики
+export type * from './IUser'                         //Пользователи
+export type * from './IWarehouse'                    //Склады
+export type * from './ICustomer'                     //Клиенты
+export type * from "./IAddress"                      //Адрес
 
 //Изменение статусов
-export * from './IBatch'                        //Партии
-export * from './IInventory'                    //Остатки
-export * from './ITransaction'                  //Транзакции
+export type * from './IBatch'                        //Партии
+export type * from './IInventory'                    //Остатки
+export type * from './ITransaction'                  //Транзакции
 
 //Screens
 //DocScreen
-export * from './IDoc'                          //Документ
-export * from './IDocNum'                       //Номера документов  
+export type * from './IDoc'                          //Документ
+export type * from './IDocNum'                       //Номера документов  
 //DocFormScreen
-export * from './IDocItem'                      //Позиции документа
+export type * from './IDocItem'                      //Позиции документа
 
 //DeliveryScreen
-export * from './IDeliveryDoc'                  //Доставка
-export * from './IDeliveryItem'                 //Позиции доставки
+export type * from './IDeliveryDoc'                  //Доставка
+export type * from './IDeliveryItem'                 //Позиции доставки
 
-export * from './IPayment'                      //Платежи
+export type * from './IPayment'                      //Платежи
 
 //Журналы
-export * from './IPriceHistory'                 //История цен
-export * from './IAuditLog'                     //Журнал аудита
-export * from './IAccount'                      //Счета
-export * from './ILocation'                     //Местоположения
-export * from './INotification'                 //Уведомления
-export * from './IPackaging'                    //Упаковка
+export type * from './IPriceHistory'                 //История цен
+export type * from './IAuditLog'                     //Журнал аудита
+export type * from './IAccount'                      //Счета
+export type * from './ILocation'                     //Местоположения
+export type * from './INotification'                 //Уведомления
+export type * from './IPackaging'                    //Упаковка
 
 
 //Популированные интерфейсы
-export * from './IPopulatedOrder'               //Популированные заказы
-export * from './IPopulatedOrderItem'           //Популированные позиции заказа
-export * from './IPopulatedInventory'           //Популированные остатки
-export * from './IPopulatedProductInventory'    //Популированные остатки по товарам
+export type * from './IPopulatedOrder'               //Популированные заказы
+export type * from './IPopulatedOrderItem'           //Популированные позиции заказа
+export type * from './IPopulatedInventory'           //Популированные остатки
+export type * from './IPopulatedProductInventory'    //Популированные остатки по товарам
 
 //Параметры импорта
-export * from './IExcelImportParams'            //Параметры импорта из Excel
+export type * from './IExcelImportParams'            //Параметры импорта из Excel

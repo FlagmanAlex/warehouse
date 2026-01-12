@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { ICategory } from "@interfaces";
+import { ICategory } from "@warehouse/interfaces";
 
 interface ICategoryModel extends Omit<ICategory, '_id' | 'parentCategory'>, mongoose.Document {
     parentCategory?: mongoose.Types.ObjectId

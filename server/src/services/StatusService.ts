@@ -9,8 +9,8 @@ import {
     ITransactionModel,
     IAccountModel,
     AccountModel,
-} from "../models";
-import { InventoryService } from "./InventoryService";
+} from "@models";
+import { InventoryService } from "@services";
 import {
     DocStatusInName,
     DocStatusName,
@@ -21,8 +21,8 @@ import {
     STATUS_TRANSITIONS_ORDER,
     STATUS_TRANSITIONS_OUTGOING,
     STATUS_TRANSITIONS_TRANSFER,
-} from "../../../interfaces/Config";
-import { IDocItem } from "../../../interfaces";
+} from "@warehouse/config";
+import type { IDocItem } from "@warehouse/interfaces";
 
 type ValidStatusTransition<T extends string> = Record<T, { name: T }[]>;
 

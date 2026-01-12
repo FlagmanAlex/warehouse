@@ -1,4 +1,4 @@
-import { IDocItem, IInventory } from "@interfaces";
+import { IDocItem, IInventory } from "@warehouse/interfaces";
 import { InventoryModel } from "@models";
 
 

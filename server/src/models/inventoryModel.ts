@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { IInventory } from "@interfaces";
+import { IInventory } from "@warehouse/interfaces";
 
 
 export interface IInventoryModel extends Omit<IInventory, '_id' | 'productId' | 'batchId' | 'warehouseId' | 'locationId'>, mongoose.Document {

@@ -1,5 +1,5 @@
-import { IBatch } from "../../../interfaces";
-import { IInventoryModel, InventoryModel } from "../models";
+import { IBatch } from "@warehouse/interfaces";
+import { IInventoryModel, InventoryModel } from "@models";
 
 export class InventoryService {
     /********************************************

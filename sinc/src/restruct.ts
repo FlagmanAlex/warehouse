@@ -1,7 +1,7 @@
 import dotenv from 'dotenv'
 dotenv.config()
 import mongoose, { Types } from 'mongoose'
-import { readExcelRangeToJSon, writeExcel } from './utils/excel';
+// import { readExcelRangeToJSon, writeExcel } from './utils/excel';
 import {
     IUser, ICustomer,
     ICategory, IProduct, ISupplier,
@@ -10,15 +10,15 @@ import {
     IDocIncoming,
     IDocOutgoing,
     IAddress,
-} from '@interfaces';
+} from '@warehouse/interfaces';
 // import { CreateDocDto, CreateProductDto, CreateDocItemDto, CreateSupplierDto, CreateCustomerDto, CreateWarehouseDto, CreateCategoryDto, ResponseWarehouseDto, ResponseSupplierDto, ResponseProductDto, ResponseCustomerDto } from "@interfaces/DTO";
-import {
-    UserModel, ProductModel, PriceHistoryModel,
-    DocModel, BatchModel, InventoryModel,
-    DocItemsModel, SupplierModel, CustomerModel,
-    CategoryModel, WarehouseModel, TransactionModel, DocNumModel,
-    ITransactionModel,
-} from '@models';
+// import {
+//     UserModel, ProductModel, PriceHistoryModel,
+//     DocModel, BatchModel, InventoryModel,
+//     DocItemsModel, SupplierModel, CustomerModel,
+//     CategoryModel, WarehouseModel, TransactionModel, DocNumModel,
+//     ITransactionModel,
+// } from '@models';
 
 class Database {
     private static instance: Database

@@ -53,7 +53,6 @@ export const HeaderForm = ({
                     setAddresses(response);
                     const selectAddress = response.find(addr => addr._id === doc.addressId);
                     setSelectedAddress(selectAddress);
-                    console.log(selectAddress);
                 } else {
                     setAddresses([]);
                 }
@@ -123,7 +122,7 @@ export const HeaderForm = ({
                         <select
                             className={styles.addressSelect}
                             disabled={!isEditing}
-                            value={selectedAddress?._id}
+                            value={selectedAddress?._id || ''}
                             onChange={
                                 (e) => {
                                     const addr = addresses.find(addr => String(addr._id) === e.target.value);
@@ -132,7 +131,7 @@ export const HeaderForm = ({
                                     setSelectedAddress(addr);
                                 }
                             }>
-                            <option value="">Адрес не выбран</option>
+                            {/* <option value="">Адрес не выбран</option> */}
                             {addresses && addresses.map((item) => (
                                 <option key={item._id} value={String(item._id)}>
                                     {item.address}

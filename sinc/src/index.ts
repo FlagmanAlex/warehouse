@@ -15,11 +15,8 @@ import {
     IDocIncoming,
     IDocOutgoing,
 } from "@warehouse/interfaces";
-import {
-    ProductTypeMap,
-    ProductTypeRus,
-    ProductTypeRusMap,
-} from "@warehouse/interfaces/config";
+import { ProductTypeRus, ProductTypeRusMap } from "@warehouse/config";
+import { create } from "node:domain";
 
 interface IJournal {
     "№ заказа": string;
@@ -1019,6 +1016,7 @@ class sincExcel {
 
             // 5. Создаём отсутствующие категории
             const errors: string[] = [];
+            const createCategoryes: ICategory[] = [];
             let createdCount = 0;
 
             for (const [index, category] of categoriesToCreate.entries()) {
@@ -1047,11 +1045,22 @@ class sincExcel {
             }
 
             console.log(`\n✅ Создано категорий: ${createdCount}`);
+            await writeExcel(
+                createCategoryes,
+                `${this.fileName}_CreatedCategory.xlsx`,
+                performance.now().toString(),
+            );
             if (errors.length > 0) {
+                await writeExcel(
+                    errors,
+                    `${this.fileName}_ErrorsCategory.xlsx`,
+                    performance.now().toString(),
+                )
                 console.log(
                     `❌ Не удалось создать ${errors.length} категорий:`,
                     errors
                 );
+
             } else {
                 console.log("✅ Все новые категории успешно созданы.");
             }
@@ -1228,11 +1237,16 @@ class sincExcel {
                 );
                 await writeExcel(
                     errorProducts,
-                    `${this.fileName}_errors.xlsx`,
+                    `${this.fileName}_errorsProduct.xlsx`,
                     performance.now().toString()
                 );
                 console.log("✅ Файл с ошибками сохранён.");
             } else {
+                await writeExcel(
+                    productsToCreate,
+                    `${this.fileName}_createProduct.xlsx`,
+                    performance.now().toString()
+                );
                 console.log("\n✅ Все новые продукты успешно созданы.");
             }
 
@@ -1315,6 +1329,11 @@ class sincExcel {
 
 
             } catch (error) {
+                await writeExcel(
+                    [item],
+                    `${this.fileName}_errors.xlsx`,
+                    performance.now().toString()
+                )
                 console.error(
                     `\n❌ Ошибка обновления артикула ${item.article}:`,
                     (error as Error).message
@@ -1329,6 +1348,11 @@ class sincExcel {
             );
         }
         console.log("\n✅ Обновление завершено");
+        await writeExcel(
+            [],
+            `${this.fileName}.xlsx`,
+            performance.now().toString()
+        )
     }
 
     public Main = async () => {
@@ -1336,7 +1360,7 @@ class sincExcel {
             await this.init();
             await this.syncCategory();
             await this.compareAndCreateProducts();
-            await this.setProductType();
+            // await this.setProductType();
             // await this.addSuppliers()
             // await this.addCustomers()
             // await this.addWarehouse()

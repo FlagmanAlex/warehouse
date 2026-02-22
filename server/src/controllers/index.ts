@@ -12,3 +12,4 @@ export * from './userController';
 export * from './warehouseController';
 export * from './addressController'
 export * from './deliveryController'
+export * from './fileController'

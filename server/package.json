@@ -19,6 +19,7 @@
     "@types/express": "^5.0.1",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/morgan": "^1.9.9",
+    "@types/multer": "^2.0.0",
     "@types/node": "^22.15.14",
     "@vitest/coverage-v8": "^4.0.15",
     "concurrently": "^9.2.0",
@@ -38,6 +39,7 @@
     "express-validator": "^7.2.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.14.1",
+    "multer": "^2.0.2",
     "setimmediate": "^1.0.5"
   }
 }

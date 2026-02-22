@@ -15,7 +15,6 @@ export type LoaderData = {
 const DocForm = () => {
   const location = useLocation();
   const search = location.search;
-  console.log(search);
   
   const navigate = useNavigate();
   const actionData = useActionData();
@@ -55,7 +54,7 @@ const DocForm = () => {
 
   const renderFooter = () => {
     const totalSKU = formData.items.length;
-    console.log(formData);
+    //console.log(formData.doc);
 
     return (
       <div className={styles.footer}>

@@ -6,13 +6,13 @@
   "type": "commonjs",
   "scripts": {
     "build": "tsc -b && tsc-alias",
-    "sinc" : "node dist/sinc/src/index.js"
+    "start" : "node dist/sinc/src/index.js",
+    "sinc": "npm run build && npm run start"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@warehouse/interfaces": "1.0.0",
     "exceljs": "^4.4.0"
   },
   "devDependencies": {

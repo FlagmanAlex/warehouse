@@ -12,3 +12,4 @@ export * from './userRouter';
 export * from './warehouseRouter';
 export * from './addressRouter';
 export * from './deliveryRouter';
+export * from './fileRouter';

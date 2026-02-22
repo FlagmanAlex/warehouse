@@ -77,12 +77,12 @@ const LoginScreen = () => {
         text='Войти'
       />
 
-      <Button
+      {/* <Button
         onClick={() => navigate('/register')}
         bgColor={THEME.color.grey}
         textColor={THEME.color.white}
         text='Зарегистрироваться'
-      />
+      /> */}
     </div>
   );
 };

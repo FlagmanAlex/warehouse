@@ -14,7 +14,8 @@ import {
     supplierRouter, 
     transactionRouter,
     addressRouter, 
-    deliveryRouter
+    deliveryRouter,
+    fileRouter
     
 } from '@routes';
 
@@ -34,4 +35,4 @@ mainRouter.use('/price-history', authMiddleware, priceHistoryRouter);
 mainRouter.use('/supplier', authMiddleware, supplierRouter);
 mainRouter.use('/transaction', authMiddleware, transactionRouter);
 mainRouter.use('/delivery', authMiddleware, deliveryRouter);
-mainRouter.use('/upload', authMiddleware );
+mainRouter.use('/upload', authMiddleware, fileRouter);

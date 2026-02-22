@@ -28,6 +28,7 @@ const DocForm = () => {
   });
 
 
+  
   // ✅ Установить isEditing в true по умолчанию
   const [isEditing, setIsEditing] = useState(true);
 

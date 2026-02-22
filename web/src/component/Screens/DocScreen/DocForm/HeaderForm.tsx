@@ -51,7 +51,7 @@ export const HeaderForm = ({
                 if (doc.customerId) {
                     const response: IAddress[] = await fetchApi(`address/${doc.customerId._id}`, 'GET');
                     setAddresses(response);
-                    const selectAddress = response.find(addr => addr._id === doc.addressId);
+                    const selectAddress = response.find(addr => addr._id === doc.addressId?._id);
                     setSelectedAddress(selectAddress);
                 } else {
                     setAddresses([]);

@@ -1,4 +1,4 @@
-import type { ProductType } from '../config'
+import type { ProductType } from '../config/ProductType'
 interface IBaseProduct {
     _id?: string
     article: string
@@ -53,6 +53,8 @@ export interface IVitamin extends IBaseProduct {
     dose?: string;
 }
 
+export interface ISport extends IBaseProduct {}
+export interface ICosmetic extends IBaseProduct {}
 
 export type IProduct = IParfum | IVitamin;
 export type ProductUnit = 'шт' | 'кг' | 'мл' | 'л' | 'г';

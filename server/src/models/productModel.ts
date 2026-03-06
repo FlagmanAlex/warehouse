@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { IParfum, IProduct, IVitamin } from "@warehouse/interfaces";
+import { ICosmetic, IParfum, IProduct, ISport, IVitamin } from "@warehouse/interfaces";
 
 interface IProductModel
     extends Omit<
@@ -63,11 +63,7 @@ productSchema.index({ name: "text" }); // Полнотекстовый поис�
 productSchema.index({ category: 1 }); // Фильтрация по категории
 productSchema.index({ isArchived: 1 }); // Отдельно архивные/неархивные
 
-export const ProductModel = mongoose.model<IProductModel>(
-    "Product",
-    productSchema,
-    "Product"
-);
+export const ProductModel = mongoose.model<IProductModel>("Product", productSchema, "Product");
 
 const parfumSchema = new Schema<IParfum>({
     // === Специфические поля для IParfumProduct ===
@@ -94,14 +90,10 @@ const parfumSchema = new Schema<IParfum>({
     status: { type: String, required: false }, // Статус наличия ('В наличии') [3]
 });
 
-export const ParfumModel = ProductModel.discriminator<IParfum>(
-    "Parfum",
-    parfumSchema,
-    "Parfum"
-);
+export const ParfumModel = ProductModel.discriminator<IParfum>("Parfum", parfumSchema, "Parfum");
 
+// === Специфические поля для IVitaminProduct ===
 const vitaminSchema = new Schema<IVitamin>({
-    // === Специфические поля для IVitaminProduct ===
     dose: { type: String, required: false },
     brand: { type: String, required: false },
     nameENG: { type: String, required: false },
@@ -109,8 +101,10 @@ const vitaminSchema = new Schema<IVitamin>({
     nameShort: { type: String, required: false },
 });
 
-export const VitaminModel = ProductModel.discriminator<IVitamin>(
-    "Vitamin",
-    vitaminSchema,
-    "Vitamin"
-);
+export const VitaminModel = ProductModel.discriminator<IVitamin>("Vitamin", vitaminSchema, "Vitamin");
+
+const sportSchema = new Schema<ISport>({});
+export const SportModel = ProductModel.discriminator<ISport>("Sport", sportSchema, "Sport");
+
+const cosmeticSchema = new Schema<ICosmetic>({});
+export const CosmeticModel = ProductModel.discriminator<ICosmetic>("Cosmetic", cosmeticSchema, "Cosmetic");

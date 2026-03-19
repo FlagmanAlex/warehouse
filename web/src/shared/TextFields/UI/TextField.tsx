@@ -55,7 +55,7 @@ export const TextField = (({ type, name, placeholder, value, onChange, inputRef 
 
     switch (type) {
       case 'textarea':
-        return <textarea ref={inputRef as React.Ref<HTMLTextAreaElement>} {...commonProps} rows={4} />
+        return <textarea ref={inputRef as React.Ref<HTMLTextAreaElement>} {...commonProps} rows={2} />
       case 'time':
         return <input ref={inputRef as React.Ref<HTMLInputElement>}
           {...commonProps}
@@ -78,7 +78,7 @@ export const TextField = (({ type, name, placeholder, value, onChange, inputRef 
       </label>
       <div className={styles.inputWrapper}>
         {renderInput()}
-        {value ? (
+        {value && type !== 'textarea' ? (
           <Icon
             className={styles.clearButton}
             name="FaXmark"

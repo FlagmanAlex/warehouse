@@ -33,11 +33,8 @@ export const Drawer = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
       ],
     },
     {
-      label: 'Инструменты',
-      path: '',
-      children: [
-        { label: 'Планирование доставки', path: '/delivery-planning' },
-      ],
+      label: 'Доставка',
+      path: '/delivery-planning',
     },
     {
       label: `${user ? user?.username + ' / Выход' || '' : '' }`,

@@ -239,7 +239,7 @@ export const HeaderForm = ({
                 {renderTypeSpecificFields()}
                 <TextField
                     name="description"
-                    type='text'
+                    type='textarea'
                     placeholder='Комментарии'
                     value={isEditing ? doc.description : doc.description}
                     // editable={isEditing}

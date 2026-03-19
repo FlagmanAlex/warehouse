@@ -6,6 +6,7 @@ import { TextField } from '../../../shared/TextFields'
 import { Button } from '../../../shared/Button'
 import { Icon } from '../../../shared/Icon'
 import { THEME } from '@warehouse/config'
+import { DeliveryInfoOrders } from './UI/DeliveryInfoOrders'
 
 interface IDocStatusDelivery {
     customerId: string;
@@ -21,6 +22,10 @@ export const DeliveryForm = () => {
     const [openModalTimePlan, setOpenModalTimePlan] = useState<boolean>(false)
     const [selectIds, setSelectIds] = useState<string[]>([])
     const [newPlanTime, setNewPlanTime] = useState<string>('00:00')
+    // Состояние для модалки с информацией о заказах
+    const [infoModalDocIds, setInfoModalDocIds] = useState<string[]>([]);
+    const [isInfoModalOpen, setIsInfoModalOpen] = useState<boolean>(false);
+
     const fetcher = useFetcher()
 
     useEffect(() => {
@@ -32,8 +37,8 @@ export const DeliveryForm = () => {
     }, [fetcher.data])
 
 
-    console.log(openModal, docStatusDelivery);
-    
+    // console.log(openModal, docStatusDelivery);
+
 
     const handleOpenModal = () => {
         const currentDocIds = delivery.deliveryItems.map(item => item.docIds.map(docId => docId)).flat();
@@ -188,7 +193,31 @@ export const DeliveryForm = () => {
         }
     }
 
+    const handleOpenInfo = (id: string) => {
+        // Находим элемент доставки по ID
+        const item = delivery.deliveryItems.find(i => i._id === id);
 
+        if (!item) {
+            console.warn('Элемент не найден:', id);
+            return;
+        }
+
+        // Извлекаем docIds. 
+        // В вашем интерфейсе это массив, поэтому просто копируем его
+        // Если docIds может быть вложенным, используйте .flat() как в handleOpenModal
+        const docIds = Array.isArray(item.docIds)
+            ? item.docIds
+            : [item.docIds].filter(Boolean);
+
+        if (docIds.length === 0) {
+            alert('Нет заказов для отображения');
+            return;
+        }
+
+        // Сохраняем ID и открываем модалку
+        setInfoModalDocIds(docIds);
+        setIsInfoModalOpen(true);
+    }
     const selectModalTimePlan = () => {
         return (
             <div className={style.modal}>
@@ -225,7 +254,7 @@ export const DeliveryForm = () => {
             </div>
         );
     };
-    
+
     const selectModalDoc = (docStatusDelivery: IDocStatusDelivery[]) => {
         return (
             <div className={style.modal}>
@@ -277,6 +306,44 @@ export const DeliveryForm = () => {
             </div>
         )
     }
+
+    const selectModalOrdersInfo = (docIds: string[]) => {
+        return (
+            <div className={style.modal}>
+                <div
+                    className={style.modalOverlay}
+                    onClick={() => setIsInfoModalOpen(false)}
+                />
+                <div className={style.modalContent}>
+                    <div className={style.modalHeader}>
+                        <h2>Информация о заказах</h2>
+                        <Icon
+                            name='FaX'
+                            onClick={() => setIsInfoModalOpen(false)}
+                            color={THEME.color.black}
+                            size={20}
+                        />
+                    </div>
+                    <div className={style.modalBody}>
+                        {/* 
+                       Импорт компонента должен быть вверху файла:
+                       import { DeliveryInfoOrders } from './путь/к/компоненту';
+                    */}
+                        <DeliveryInfoOrders docIds={docIds} />
+                    </div>
+                    <div className={style.modalFooter}>
+                        <Button
+                            onClick={() => setIsInfoModalOpen(false)}
+                            bgColor={THEME.button.cancel}
+                            textColor={THEME.color.white}
+                            text='Закрыть'
+                        />
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
     const deliveryItemsCard = (deliveryItem: DeliveryItemsDTO) => {
         return (
             <div className={style.deliveryCard}>
@@ -298,8 +365,7 @@ export const DeliveryForm = () => {
                             .padStart(2, '0')}`
                     }
                 </span>
-                <span className={style.customerName}>{deliveryItem.customerId?.name}</span>
-
+                <span className={style.customerName}>{deliveryItem.customerId?.name} </span>
                 <span
                     className={style.docChip + ' ' + style.address}
                     onClick={(e) => {
@@ -347,7 +413,12 @@ export const DeliveryForm = () => {
                 <span className={style.entityCount}>шт.: {deliveryItem.entityCount}</span>
                 <span className={style.summ}>Сум.: {deliveryItem.summ}</span>
                 <span className={style.tools}>
-                    <Icon style={{ cursor: 'pointer' }} name='FaInfo' color={THEME.color.grey} size={24} />
+                    <Icon
+                        style={{ cursor: 'pointer' }}
+                        name='FaInfo'
+                        color={THEME.color.grey}
+                        size={24}
+                        onClick={() => handleOpenInfo(deliveryItem._id!)} />
                     <Icon
                         style={{ cursor: 'pointer' }}
                         name={`FaRegSquare${deliveryItem.dTimeFact ? 'Check' : ''}`}
@@ -417,6 +488,7 @@ export const DeliveryForm = () => {
             />
             {openModal && docStatusDelivery && selectModalDoc(docStatusDelivery)}
             {openModalTimePlan && selectModalTimePlan()}
+            {isInfoModalOpen && selectModalOrdersInfo( infoModalDocIds)}
             {delivery.deliveryItems &&
                 [...delivery.deliveryItems]
                     .sort((a, b) => {

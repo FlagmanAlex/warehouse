@@ -15,7 +15,9 @@ interface IDocStatusDelivery {
 }
 export const DeliveryForm = () => {
 
+    const [deliveryEdit, setdeliveryEdit] = useState(false)
     const { delivery: { deliveryDoc, deliveryItems }, docStatusDelivery } = useLoaderData()
+    const [sliderValues, setSliderValues] = useState<Record<string, number>>({})
     const [delivery, setDelivery] = useState<DeliveryDto>({ deliveryDoc, deliveryItems })
     const [openModal, setOpenModal] = useState<boolean>(false)
     const [editingItemId, setEditingItemId] = useState<string | null>(null)
@@ -29,8 +31,40 @@ export const DeliveryForm = () => {
     const fetcher = useFetcher()
 
     useEffect(() => {
+        if (!delivery.deliveryItems.length) return;
+
+        const sorted = [...delivery.deliveryItems].sort((a, b) =>
+            new Date(a.dTimePlan).getTime() - new Date(b.dTimePlan).getTime()
+        );
+
+        const initialValues: Record<string, number> = {};
+        sorted.forEach((item, index) => {
+            if (!item._id) return;
+            if (index === 0) {
+                initialValues[item._id] = 0;
+                return;
+            }
+
+            const prevTime = new Date(sorted[index - 1].dTimePlan).getTime();
+            const currTime = new Date(item.dTimePlan).getTime();
+
+            if (isNaN(prevTime) || isNaN(currTime)) {
+                initialValues[item._id] = 0;
+                return;
+            }
+
+            const diffMin = (currTime - prevTime) / 60000;
+            // Переводим минуты в шаги ползунка (1 шаг = 5 мин), ограничиваем 0-12
+            initialValues[item._id] = Math.max(0, Math.min(12, Math.round(diffMin / 5)));
+        });
+
+        setSliderValues(initialValues);
+    }, [delivery.deliveryItems])
+
+
+    useEffect(() => {
         if (fetcher.data?.success && fetcher.data?.data) {
-            if (fetcher.formMethod !== 'POST') return
+            // Обновляем данные при любом успешном ответе (POST, PATCH)
             setDelivery(fetcher.data.data)
             setSelectIds([])
         }
@@ -38,7 +72,6 @@ export const DeliveryForm = () => {
 
 
     // console.log(openModal, docStatusDelivery);
-
 
     const handleOpenModal = () => {
         const currentDocIds = delivery.deliveryItems.map(item => item.docIds.map(docId => docId)).flat();
@@ -183,7 +216,7 @@ export const DeliveryForm = () => {
         if (delivery.deliveryDoc._id) {
             fetcher.submit(formData, {
                 action: `/delivery-planning/${delivery.deliveryDoc._id}`,
-                method: 'PATCH'
+                method: 'PUT'
             })
         } else {
             fetcher.submit(formData, {
@@ -218,6 +251,178 @@ export const DeliveryForm = () => {
         setInfoModalDocIds(docIds);
         setIsInfoModalOpen(true);
     }
+    const handleMoveUpItem = (id: string) => {
+        if (fetcher.state !== 'idle') return;
+
+        // Находим индекс текущего элемента
+        const currentIndex = delivery.deliveryItems.findIndex(i => i._id === id);
+        if (currentIndex === -1 || currentIndex === 0) return; // Нельзя переместить выше первого
+
+        // Сортируем элементы по dTimePlan для получения правильного порядка
+        const sorted = [...delivery.deliveryItems].sort((a, b) =>
+            new Date(a.dTimePlan).getTime() - new Date(b.dTimePlan).getTime()
+        );
+
+        // Находим индекс в отсортированном массиве
+        const sortedIndex = sorted.findIndex(i => i._id === id);
+        if (sortedIndex === -1 || sortedIndex === 0) return;
+
+        // Меняем местами dTimePlan с предыдущим элементом
+        const prevItem = sorted[sortedIndex - 1];
+        const currentItem = sorted[sortedIndex];
+
+        const tempTime = currentItem.dTimePlan;
+        currentItem.dTimePlan = prevItem.dTimePlan;
+        prevItem.dTimePlan = tempTime;
+
+        // Обновляем состояние
+        setDelivery(prev => ({
+            ...prev,
+            deliveryItems: [...delivery.deliveryItems] // Создаем новый массив для ререндера
+        }));
+
+        // Пересчитываем значения слайдеров
+        const newSliderValues: Record<string, number> = {};
+        const newSorted = [...delivery.deliveryItems].sort((a, b) =>
+            new Date(a.dTimePlan).getTime() - new Date(b.dTimePlan).getTime()
+        );
+
+        newSorted.forEach((item, index) => {
+            if (!item._id) return;
+            if (index === 0) {
+                newSliderValues[item._id] = 0;
+                return;
+            }
+
+            const prevTime = new Date(newSorted[index - 1].dTimePlan).getTime();
+            const currTime = new Date(item.dTimePlan).getTime();
+            const diffMin = (currTime - prevTime) / 60000;
+            newSliderValues[item._id] = Math.max(0, Math.min(12, Math.round(diffMin / 5)));
+        });
+
+        setSliderValues(newSliderValues);
+
+        // Отправляем на сервер
+        const formData = new FormData();
+        formData.append('delivery', JSON.stringify({
+            deliveryDoc: delivery.deliveryDoc,
+            deliveryItems: delivery.deliveryItems
+        }));
+
+        fetcher.submit(formData, {
+            method: 'PATCH',
+            action: `/delivery-planning/${delivery.deliveryDoc._id}`
+        });
+    };
+    const handleMoveDownItem = (id: string) => {
+        if (fetcher.state !== 'idle') return;
+
+        // Находим индекс текущего элемента
+        const currentIndex = delivery.deliveryItems.findIndex(i => i._id === id);
+        if (currentIndex === -1 || currentIndex === delivery.deliveryItems.length - 1) return;
+
+        // Сортируем элементы по dTimePlan для получения правильного порядка
+        const sorted = [...delivery.deliveryItems].sort((a, b) =>
+            new Date(a.dTimePlan).getTime() - new Date(b.dTimePlan).getTime()
+        );
+
+        // Находим индекс в отсортированном массиве
+        const sortedIndex = sorted.findIndex(i => i._id === id);
+        if (sortedIndex === -1 || sortedIndex === sorted.length - 1) return;
+
+        // Меняем местами dTimePlan со следующим элементом
+        const nextItem = sorted[sortedIndex + 1];
+        const currentItem = sorted[sortedIndex];
+
+        const tempTime = currentItem.dTimePlan;
+        currentItem.dTimePlan = nextItem.dTimePlan;
+        nextItem.dTimePlan = tempTime;
+
+        // Обновляем состояние
+        setDelivery(prev => ({
+            ...prev,
+            deliveryItems: [...delivery.deliveryItems]
+        }));
+
+        // Пересчитываем значения слайдеров
+        const newSliderValues: Record<string, number> = {};
+        const newSorted = [...delivery.deliveryItems].sort((a, b) =>
+            new Date(a.dTimePlan).getTime() - new Date(b.dTimePlan).getTime()
+        );
+
+        newSorted.forEach((item, index) => {
+            if (!item._id) return;
+            if (index === 0) {
+                newSliderValues[item._id] = 0;
+                return;
+            }
+
+            const prevTime = new Date(newSorted[index - 1].dTimePlan).getTime();
+            const currTime = new Date(item.dTimePlan).getTime();
+            const diffMin = (currTime - prevTime) / 60000;
+            newSliderValues[item._id] = Math.max(0, Math.min(12, Math.round(diffMin / 5)));
+        });
+
+        setSliderValues(newSliderValues);
+
+        // Отправляем на сервер
+        const formData = new FormData();
+        formData.append('delivery', JSON.stringify({
+            deliveryDoc: delivery.deliveryDoc,
+            deliveryItems: delivery.deliveryItems
+        }));
+
+        fetcher.submit(formData, {
+            method: 'PATCH',
+            action: `/delivery-planning/${delivery.deliveryDoc._id}`
+        });
+    };
+
+    const handleProgressChange = (itemId: string, newSliderValue: number) => {
+        const oldSliderValue = sliderValues[itemId] ?? 0;
+        const deltaMin = (newSliderValue - oldSliderValue) * 5;
+        const deltaMs = deltaMin * 60000;
+
+        const sorted = [...delivery.deliveryItems].sort((a, b) =>
+            new Date(a.dTimePlan).getTime() - new Date(b.dTimePlan).getTime()
+        );
+
+        const itemIndex = sorted.findIndex(i => i._id === itemId);
+        if (itemIndex === -1) return;
+
+        // Сдвигаем текущий и все последующие элементы на дельту
+        const updatedItems = sorted.map((item, idx) => {
+            if (idx < itemIndex) return item;
+            const newTime = new Date(new Date(item.dTimePlan).getTime() + deltaMs);
+            return { ...item, dTimePlan: newTime };
+        });
+
+        // Обновляем локальное состояние
+        setDelivery(prev => ({
+            ...prev,
+            deliveryItems: updatedItems
+        }));
+
+        // Обновляем значение ползунка
+        setSliderValues(prev => ({ ...prev, [itemId]: newSliderValue }));
+    };
+
+    // Отправка на сервер только после отпускания ползунка (защита от спама запросами)
+    const handleProgressEnd = () => {
+        if (fetcher.state !== 'idle') return;
+
+        const formData = new FormData();
+        formData.append('delivery', JSON.stringify({
+            deliveryDoc: delivery.deliveryDoc,
+            deliveryItems: delivery.deliveryItems
+        }));
+
+        fetcher.submit(formData, {
+            method: 'PATCH',
+            action: `/delivery-planning/${delivery.deliveryDoc._id}`
+        });
+    };
+
     const selectModalTimePlan = () => {
         return (
             <div className={style.modal}>
@@ -345,8 +550,9 @@ export const DeliveryForm = () => {
     };
 
     const deliveryItemsCard = (deliveryItem: DeliveryItemsDTO) => {
+        const isCompleted = deliveryItem.dTimeFact !== undefined
         return (
-            <div className={style.deliveryCard}>
+            <div className={`${style.deliveryCard} ${isCompleted && style.completed}`}>
                 <span
                     className={style.dTimePlan}
                     onClick={() => { handleChangesPlanDate(deliveryItem._id!, deliveryItem.dTimePlan) }}
@@ -409,7 +615,8 @@ export const DeliveryForm = () => {
                             const sign = totalMinutes < 0 ? '-' : '';
                             return `${sign}${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
                         })()
-                    }                </span>
+                    }
+                </span>
                 <span className={style.entityCount}>шт.: {deliveryItem.entityCount}</span>
                 <span className={style.summ}>Сум.: {deliveryItem.summ}</span>
                 <span className={style.tools}>
@@ -418,7 +625,17 @@ export const DeliveryForm = () => {
                         name='FaInfo'
                         color={THEME.color.grey}
                         size={24}
-                        onClick={() => handleOpenInfo(deliveryItem._id!)} />
+                        onClick={() => handleOpenInfo(deliveryItem._id!)}
+                    />
+                </span>
+                <span className={style.move}>
+                    {deliveryEdit && <Icon
+                        style={{ cursor: 'pointer' }}
+                        name='FaUpLong'
+                        color={THEME.color.grey}
+                        size={24}
+                        onClick={() => handleMoveUpItem(deliveryItem._id!)}
+                    />}
                     <Icon
                         style={{ cursor: 'pointer' }}
                         name={`FaRegSquare${deliveryItem.dTimeFact ? 'Check' : ''}`}
@@ -426,7 +643,27 @@ export const DeliveryForm = () => {
                         size={24}
                         onClick={() => handleCheckChange(deliveryItem._id)}
                     />
+                    {deliveryEdit && <Icon
+                        style={{ cursor: 'pointer' }}
+                        name='FaDownLong'
+                        color={THEME.color.grey}
+                        size={24}
+                        onClick={() => handleMoveDownItem(deliveryItem._id!)}
+                    />}
                 </span>
+                {deliveryEdit && <span className={style.progress} >
+                    <input
+                        type="range"
+                        min="0"
+                        max="12"
+                        step="1"
+                        value={sliderValues[deliveryItem._id!] || 0}
+                        onChange={(e) => handleProgressChange(deliveryItem._id!, Number(e.target.value))}
+                        onMouseUp={() => handleProgressEnd()}
+                        onTouchEnd={() => handleProgressEnd()}
+                        disabled={fetcher.state !== 'idle'}
+                    />
+                </span>}
             </div>
         )
     }
@@ -436,9 +673,15 @@ export const DeliveryForm = () => {
             <div className={style.header}>
                 <h1>Доставка</h1>
                 <Icon
+                    name='FaGear'
+                    color={deliveryEdit ? THEME.color.main : THEME.color.grey}
+                    size={30}
+                    onClick={() => setdeliveryEdit(!deliveryEdit)}
+                />
+                <Icon
                     name='FaMap'
                     color={THEME.color.orange}
-                    size={20}
+                    size={30}
                     onClick={() => handleOpenMap()}
                 />
             </div>
@@ -488,10 +731,20 @@ export const DeliveryForm = () => {
             />
             {openModal && docStatusDelivery && selectModalDoc(docStatusDelivery)}
             {openModalTimePlan && selectModalTimePlan()}
-            {isInfoModalOpen && selectModalOrdersInfo( infoModalDocIds)}
+            {isInfoModalOpen && selectModalOrdersInfo(infoModalDocIds)}
             {delivery.deliveryItems &&
                 [...delivery.deliveryItems]
                     .sort((a, b) => {
+                        // Сначала сортируем по чекбоксу (dTimeFact)
+                        // false (undefined) - вверху, true (есть значение) - внизу
+                        const aCompleted = a.dTimeFact !== undefined;
+                        const bCompleted = b.dTimeFact !== undefined;
+
+                        if (aCompleted !== bCompleted) {
+                            return aCompleted ? 1 : -1;
+                        }
+
+                        // Затем сортируем по времени
                         const aDate = new Date(a.dTimePlan).getTime()
                         const bDate = new Date(b.dTimePlan).getTime()
                         return aDate - bDate

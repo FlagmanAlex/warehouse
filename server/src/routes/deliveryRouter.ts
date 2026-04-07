@@ -6,5 +6,6 @@ export const deliveryRouter = Router();
 deliveryRouter.get('/', DeliveryController.getDocDeliveries)
 deliveryRouter.post('/', DeliveryController.createDelivery)
 deliveryRouter.delete('/:deliveryId', DeliveryController.deleteDelivery)
-deliveryRouter.patch('/:deliveryId', DeliveryController.updateDelivery)
+deliveryRouter.patch('/:deliveryId', DeliveryController.updateDeliveryItems)
+deliveryRouter.put('/:deliveryId', DeliveryController.updateDelivery)
 deliveryRouter.get('/:deliveryId', DeliveryController.getDeliveryForId)

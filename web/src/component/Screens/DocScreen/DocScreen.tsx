@@ -273,13 +273,13 @@ export default () => {
         <div className={styles.content}>
           <span className={styles.subtitle}>Клиент: {item.customerId?.name}</span>
           <div>
-            <a href={`tel:${item.customerId?.phone}`} onClick={(e) => e.stopPropagation()}>
-              <span className={styles.docChip}>тел.: {item.customerId?.phone}</span>
-            </a>
             <a href={`geo:${item.addressId?.gps}`} onClick={(e) => e.stopPropagation()}>
               <span className={styles.docChip}>Адрес: {item.addressId?.address} </span>
             </a>
-            <span className={styles.description}>{item.description}</span>
+            <a href={`tel:${item.customerId?.phone}`} onClick={(e) => e.stopPropagation()}>
+              <span className={styles.docChip}>тел.: {item.customerId?.phone}</span>
+            </a>
+            {item.description && <span className={styles.description}>{item.description}</span>}
           </div>
         </div>
       )}

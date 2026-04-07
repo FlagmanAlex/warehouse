@@ -3,6 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "description": "Система складсколго учета",
+  "type": "module",
   "workspaces": [
     "client",
     "server",
@@ -34,7 +35,6 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "bugs": {
     "url": "https://github.com/FlagmanAlex/warehouse/issues"
   },

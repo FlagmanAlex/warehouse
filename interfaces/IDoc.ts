@@ -1,4 +1,4 @@
-import type { DocTypeName, DocStatusName } from '../config';
+import type { DocTypeName, DocStatusName } from '../config/index.js';
 import type { IAddress } from '@warehouse/interfaces';
 
 /******************************

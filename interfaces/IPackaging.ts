@@ -1,4 +1,4 @@
-import type { ProductUnit } from './IProduct'
+import type { ProductUnit } from './IProduct.js'
 
 export interface IPackaging {
     id?: string;                             // Уникальный идентификатор упаковки

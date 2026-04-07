@@ -1,7 +1,7 @@
 // Interfaces/IPopulatedInventory.ts
 
-import type { IBatch } from './IBatch';
-import type { IWarehouse } from './IWarehouse';
+import type { IBatch } from './IBatch.js';
+import type { IWarehouse } from './IWarehouse.js';
 
 export interface IPopulatedBatch extends Omit<IBatch, '_id' | 'productId' | 'supplierId' | 'warehouseId'> {
   _id: string;

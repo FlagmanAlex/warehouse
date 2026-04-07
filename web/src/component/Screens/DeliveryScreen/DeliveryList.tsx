@@ -10,7 +10,7 @@ import { TextField } from '../../../shared/TextFields';
 export const DeliveryList = () => {
   const navigate = useNavigate();
   const fetcher = useFetcher();
-  const { deliveries, filters } = useLoaderData() as {
+    const { deliveries, filters } = useLoaderData() as {
     deliveries: DeliveryDto[];
     filters: any;
   };

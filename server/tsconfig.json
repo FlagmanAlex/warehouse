@@ -1,22 +1,19 @@
 {
   "compilerOptions": {
     "target": "ES2023",                                  /* Установить версию JavaScript для генерируемого кода и включить совместимые библиотечные объявления. */
-    /* Модули */
-    "module": "commonjs",                                /* Указать, какой код модуля генерируется. */
+    "module": "nodenext",                                /* Указать, какой код модуля генерируется. */
     "rootDir": "../",                                  /* Указать корневую папку внутри исходных файлов. */
     "outDir": "./dist",                                    /* Указать выходную папку для всех сгенерированных файлов. */
-    "moduleResolution": "node",                     /* Указать, как TypeScript ищет файл по заданному модульному идентификатору. */
-    "baseUrl": ".",                                  /* Указать базовую директорию для разрешения нерелятивных имен модулей. */
+    "moduleResolution": "nodenext",                     /* Указать, как TypeScript ищет файл по заданному модульному идентификатору. */
     "paths": {
-        "@warehouse/interfaces": ["../interfaces"],
-        "@warehouse/interfaces/DTO": ["../interfaces/DTO"],
-        "@warehouse/config": ["../config"],
-        "@utils": ["./src/utils"],
-        "@models": ["./src/models"],
-        "@controllers": ["./src/controllers"],
-        "@services": ["./src/services"],
-        "@routes": ["./src/routes"],
-        "@middlewares": ["./src/middlewares"]
+        "@warehouse/interfaces": ["../interfaces/index.ts"],
+        "@warehouse/interfaces/DTO": ["../interfaces/DTO/index.ts"],
+        "@warehouse/config": ["../config/index.ts"],
+        "@models": ["./src/models/index.ts"],
+        "@controllers": ["./src/controllers/index.ts"],
+        "@services": ["./src/services/index.ts"],
+        "@routes": ["./src/routes/index.ts"],
+        "@middlewares": ["./src/middlewares/index.ts"]
     },                                      /* Указать набор записей, которые перенаправляют импорты на дополнительные места поиска. */
     "esModuleInterop": true,                             /* Генерировать дополнительный JavaScript для упрощения поддержки импорта CommonJS-модулей. Это включает 'allowSyntheticDefaultImports' для совместимости типов. */
     "forceConsistentCasingInFileNames": true,            /* Убедиться, что регистр символов в импортах правильный. */

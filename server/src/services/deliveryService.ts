@@ -12,7 +12,7 @@ import {
     DeliveryDocModel,
     DeliveryItemModel,
     DocModel,
-} from "../models";
+} from "@models";
 import { StatusService } from "@services";
 import { Types } from "mongoose";
 
@@ -105,7 +105,6 @@ export class DeliveryService {
         const DeliveryDto: DeliveryDto | null = await this.getDeliveryForId(
             deliveryDoc._id.toString()
         );
-        console.log(DeliveryDto);
 
         return DeliveryDto;
     }
@@ -298,7 +297,7 @@ export class DeliveryService {
             return null;
         }
     }
-    static async updateDelivery(
+    static async updateDeliveryItems(
         deliveryId: string,
         data: any,
         userId: string | undefined
@@ -349,6 +348,103 @@ export class DeliveryService {
         // Ожидаем обновления всех DeliveryItem
         const deliveryItems = await Promise.all(itemUpdates);
 
-        return { deliveryDoc, deliveryItems };
+        // Возвращаем обновленную доставку
+        const DeliveryDto: DeliveryDto | null = await this.getDeliveryForId(
+            deliveryId.toString()
+        );
+
+        return DeliveryDto
     }
+    static async updateDelivery(
+        deliveryId: string,
+        data: any,
+        userId: string | undefined
+    ) {
+        console.log(data);
+        
+        const docs: IDocOrderOut[] = await DocModel.find({
+            _id: { $in: data.docIds },
+        });
+
+        if (docs.length === 0) {
+            throw new Error("Не найдено ни одного документа по указанным ID");
+        }
+
+        if (docs.length !== data.docIds.length) {
+            throw new Error("Документов по указанным ID не существует");
+        }
+
+        const updateDeliveryDoc: IDeliveryDoc = {
+            date: new Date(data.date),
+            startTime: new Date(data.startTime),
+            unloadTime: new Date(data.unloadTime),
+            timeInProgress: new Date(data.timeInProgress),
+            creatorId: docs[0].userId.toString(),
+            totalCountEntity: docs.reduce(
+                (acc, curr) => acc + curr.itemCount,
+                0
+            ),
+            totalCountDoc: docs.length,
+            totalSum: docs.reduce((acc, curr) => acc + curr.summ, 0),
+        };
+
+        const deliveryDoc = await DeliveryDocModel.updateOne(
+            { _id: deliveryId },
+            {
+                $set: updateDeliveryDoc,
+            }
+        );
+
+        const startTime = new Date(data.startTime).getTime();
+        const timeInProgress = new Date(data.timeInProgress).getTime();
+        const unloadTime = new Date(data.unloadTime).getTime();
+
+        let currentTime = startTime;
+
+        const updateDeliveryItems: IDeliveryItem[] = docs.map((doc) => {
+            const deliveryItem = {
+                deliveryId: deliveryId,
+                docIds: [doc._id?.toString() || ""], // превращаем строку в массив
+                addressId: doc.addressId ? doc.addressId.toString() : "",
+                customerId: doc.customerId ? doc.customerId.toString() : "",
+                entityCount: doc.itemCount,
+                summ: doc.summ,
+            };
+            return deliveryItem;
+        });
+
+        const groupedItems = updateDeliveryItems.reduce<
+            Record<string, IDeliveryItem>
+        >((acc, item) => {
+            const { addressId } = item;
+
+            if (!acc[addressId]) {
+                // Первый элемент для этого addressId
+                acc[addressId] = {
+                    ...item,
+                };
+            } else {
+                // Уже есть — агрегируем
+                acc[addressId].entityCount += item.entityCount;
+                acc[addressId].summ += item.summ;
+                acc[addressId].docIds.push(...item.docIds); // безопасно, т.к. мы контролируем структуру
+            }
+            acc[addressId].dTimePlan = new Date(
+                currentTime + new Date(timeInProgress).getMinutes() * 60 * 1000
+            );
+            currentTime += new Date(unloadTime).getMinutes() * 60 * 1000;
+            return acc;
+        }, {});
+
+        const deliveryGroupedItems: IDeliveryItem[] =
+            Object.values(groupedItems);
+        await DeliveryItemModel.deleteMany({ deliveryId: deliveryId });
+        await DeliveryItemModel.insertMany(deliveryGroupedItems);
+        const DeliveryDto: DeliveryDto | null = await this.getDeliveryForId(
+            deliveryId
+        );
+
+        return DeliveryDto;
+    }
+
 }

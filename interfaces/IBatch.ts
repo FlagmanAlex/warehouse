@@ -1,4 +1,4 @@
-import type { ProductUnit } from "./IProduct"
+import type { ProductUnit } from "./IProduct.js"
 
 export interface IBatch {   
     _id?: string                    //ID

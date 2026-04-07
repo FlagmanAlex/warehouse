@@ -1,7 +1,7 @@
 import express from 'express';
 import { productController } from '@controllers';
 import { body } from 'express-validator';
-import { adminMiddleware, authMiddleware } from '../middlewares/authMiddleware';
+import { adminMiddleware, authMiddleware } from '@middlewares';
 
 export const productRouter = express.Router();
 

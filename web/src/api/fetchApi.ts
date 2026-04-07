@@ -16,7 +16,7 @@ export const getNavigation = () => navigate;
 
 export const fetchApi = async <T = unknown>(
     url: string,
-    method: 'POST' | 'PATCH' | 'GET' | 'DELETE' = 'GET',
+    method: 'POST' | 'PATCH' | 'GET' | 'DELETE' | 'PUT' = 'GET',
     body?: object | FormData,
     headers: Record<string, string> = {}
 ): Promise<T> => {

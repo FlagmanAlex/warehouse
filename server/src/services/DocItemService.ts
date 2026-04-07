@@ -1,6 +1,6 @@
 import { DocItemsModel, IDocItemsModel } from '@models';
 import { IDocItem } from '@warehouse/interfaces';
-import { recalculateDocSum } from '../utils/recalculateDocSum';
+import { recalculateDocSum } from '../utils/recalculateDocSum.js';
 
 export class DocItemService {
   // --- CREATE ---

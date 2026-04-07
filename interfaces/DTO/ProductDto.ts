@@ -1,4 +1,4 @@
-import type { IProduct } from "../IProduct";
+import type { IProduct } from "../IProduct.js";
 
 export interface ProductDto extends Omit<IProduct, 'categoryId' | 'supplierId' > {
     categoryId: { _id: string, name: string };

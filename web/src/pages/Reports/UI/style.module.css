@@ -66,9 +66,12 @@
 }
 
 .productName {
-    font-size: small;
+    grid-column: 1;
     grid-row: span 2;
-    align-self: start;
+    font-size: 0.8em;
+    color: #333;
+    line-height: 1.2;
+    height: auto;
 }
 
 .quantity {

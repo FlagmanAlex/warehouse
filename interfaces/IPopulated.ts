@@ -1,10 +1,10 @@
 // Interfaces/IPopulated.ts
 
-import type { ICustomer } from './ICustomer';
-import type { IUser } from './IUser';
-import type { IProduct } from './IProduct';
-import type { IWarehouse } from './IWarehouse';
-import type { IBatch } from './IBatch';
+import type { ICustomer } from './ICustomer.js';
+import type { IUser } from './IUser.js';
+import type { IProduct } from './IProduct.js';
+import type { IWarehouse } from './IWarehouse.js';
+import type { IBatch } from './IBatch.js';
 
 // Популированные версии
 

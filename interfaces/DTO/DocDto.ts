@@ -1,8 +1,8 @@
-import type { IAddress } from '../IAddress';
-import type { ICategory } from '../ICategory';
-import type { IDocIncoming, IDocOrderIn, IDocOrderOut, IDocOutgoing, IDocTransfer } from '../IDoc';
-import type { IDocItem } from '../IDocItem'
-import type { IProduct } from '../IProduct';
+import type { IAddress } from '../IAddress.js';
+import type { ICategory } from '../ICategory.js';
+import type { IDocIncoming, IDocOrderIn, IDocOrderOut, IDocOutgoing, IDocTransfer } from '../IDoc.js';
+import type { IDocItem } from '../IDocItem.js'
+import type { IProduct } from '../IProduct.js';
 
 interface CategoryIdDto extends ICategory {}
 interface ProductIdDto extends Omit<IProduct, 'categoryId'> {

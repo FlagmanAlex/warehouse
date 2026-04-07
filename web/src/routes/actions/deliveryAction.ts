@@ -25,17 +25,36 @@ export const deliveryAction = async ({ request, params }: ActionFunctionArgs) =>
         console.error('Ошибка при создании доставки:', error);
         return { success: false, error: (error as Error).message };
       }
-
-    case 'PATCH':
-      console.log('PATCH', request);
+    case 'PUT':
       try {
         const formData: any = await request.formData();
-        // const deliveryData = Object.fromEntries(formData);
-        const deliveryData = JSON.parse(formData.get('delivery') as string);
+        const docIds = formData.getAll('docIds') as string[];
+        const delivery = JSON.parse(formData.get('delivery') as string);
+
+        const deliveryData = {
+          ...delivery,
+          docIds: docIds
+        }
+
+        const result = await fetchApi(`delivery/${deliveryId}`, 'PUT', deliveryData);
+        return { success: true, data: result };
+
+      } catch (error) {
+        console.error('Ошибка при обновлении доставки:', error);
+        return { success: false, error: (error as Error).message };
+      }
+    case 'PATCH':
+      try {
+        const formData: any = await request.formData();
         // Получаем массив docIds
-        console.log('PATCH deliveryData', deliveryData);
-        
-        // Добавляем docIds в deliveryData
+        const docIds = formData.getAll('docIds') as string[];
+        // const deliveryData = Object.fromEntries(formData);
+        const delivery = JSON.parse(formData.get('delivery') as string);
+
+        const deliveryData = {
+          ...delivery,
+          docIds: docIds
+        }
 
         // ВАЖНО: Убедитесь, что ваш backend (fetchApi) ожидает поле docIds
         // и умеет его обрабатывать.

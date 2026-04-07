@@ -7,7 +7,7 @@
 import { describe, it, expect } from 'vitest'
 
 // Импорт типов (на основе,,,)
-import type { DocTypeName, DocStatusName } from '../../interfaces/Config'
+import type { DocTypeName, DocStatusName } from '../../config'
 import type { PriorityOrder, IDocBase, IDocIncoming, IAddress } from '../../interfaces'
 
 /*********************************

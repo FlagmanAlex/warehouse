@@ -1,4 +1,5 @@
 import { DeliveryService } from "@services";
+import { DeliveryDto } from "@warehouse/interfaces/DTO";
 import { Request, Response } from "express";
 
 export class DeliveryController {
@@ -18,6 +19,7 @@ export class DeliveryController {
         try {
             const data = req.body;
             
+            console.log(data);
             const delivery = await DeliveryService.createDelivery(data);
             res.status(200).json(delivery);
         } catch (error) {
@@ -46,12 +48,24 @@ export class DeliveryController {
             res.status(500).json({ error: 'Ошибка сервера' });
         }
     }
+    static async updateDeliveryItems(req: Request, res: Response) {
+        try {
+            const { deliveryId } = req.params;
+            const data: DeliveryDto = req.body;
+            console.log(deliveryId, data);
+            
+            const delivery = await DeliveryService.updateDeliveryItems(deliveryId, data, req.userId);
+            res.status(200).json(delivery);
+        } catch (error) {
+            console.error('Ошибка при обновлении доставки:', error);
+            res.status(500).json({ error: 'Ошибка сервера' });
+        }
+    }
     static async updateDelivery(req: Request, res: Response) {
         try {
             const { deliveryId } = req.params;
-            const data = req.body;
+            const data: DeliveryDto = req.body;
             console.log(deliveryId, data);
-            
             const delivery = await DeliveryService.updateDelivery(deliveryId, data, req.userId);
             res.status(200).json(delivery);
         } catch (error) {

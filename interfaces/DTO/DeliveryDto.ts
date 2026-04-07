@@ -1,7 +1,7 @@
-import type { IDeliveryItem } from "../IDeliveryItem";
-import type { IAddress } from "../IAddress";
-import type { ICustomer } from "../ICustomer";
-import type { IDeliveryDoc } from "../IDeliveryDoc";
+import type { IDeliveryItem } from "../IDeliveryItem.js";
+import type { IAddress } from "../IAddress.js";
+import type { ICustomer } from "../ICustomer.js";
+import type { IDeliveryDoc } from "../IDeliveryDoc.js";
 export interface DeliveryDocDTO extends Omit<IDeliveryDoc, 'creatorId'> {
     _id?: string;
     date: Date;

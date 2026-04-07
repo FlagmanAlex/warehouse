@@ -1,7 +1,7 @@
 import express from 'express';
 import { body } from 'express-validator'
 import { userController } from '@controllers';
-import { authMiddleware, adminMiddleware } from '../middlewares/authMiddleware';
+import { authMiddleware, adminMiddleware } from '@middlewares';
 
 export const userRouter = express.Router();
 

@@ -109,6 +109,7 @@
 }
 
 .itemName {
+  height: auto;
   font-weight: 500;
   color: #333;
 }

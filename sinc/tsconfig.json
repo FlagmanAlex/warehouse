@@ -3,16 +3,17 @@
     "target": "ES2022",
     "module": "nodenext",
     "moduleResolution": "nodenext",
-    "outDir": "./dist",
     "rootDir": "../",
+    "outDir": "./dist",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
+    "declaration": true,
     "paths": {
-      "@warehouse/interfaces": ["../interfaces"],
-      "@warehouse/config": ["../config"]
+      "@warehouse/interfaces": ["../interfaces/index.ts"],
+      "@warehouse/config": ["../config/index.ts"]
     }
   },
 

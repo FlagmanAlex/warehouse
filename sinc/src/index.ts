@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import { readExcelRangeToJSon, writeExcel } from "./excel";
+import { readExcelRangeToJSon, writeExcel } from "./excel.js";
 import {
     IUser,
     ICustomer,

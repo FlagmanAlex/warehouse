@@ -275,3 +275,70 @@ span {
     height: auto;
     line-height: 1;
 } */
+
+
+.progressBarContainer {
+    padding-block: 5px;
+    border-radius: 8px;
+}
+
+.progressBarTrack {
+    background-color: #e0e0e0;
+    border-radius: 4px;
+    height: 30px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progressBarFill {
+    background-color: #4caf50;
+    height: 100%;
+    transition: width 0.3s ease;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.progressBarText {
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    text-shadow: 0 0 2px rgba(0,0,0,0.5);
+    white-space: nowrap;
+    z-index: 1;
+}
+
+/* Для маленького процента показываем текст вне полосы */
+.progressBarFill:has(span) {
+    justify-content: flex-start;
+}
+
+.progressBarFill:has(span) .progressBarText {
+    position: absolute;
+    left: 100%;
+    color: #333;
+    text-shadow: none;
+    white-space: nowrap;
+    padding-left: 8px;
+}
+
+/* Но если полоса достаточно широкая, центрируем текст внутри */
+.progressBarFill[style*="width: 3"] .progressBarText,
+.progressBarFill[style*="width: 4"] .progressBarText,
+.progressBarFill[style*="width: 5"] .progressBarText,
+.progressBarFill[style*="width: 6"] .progressBarText,
+.progressBarFill[style*="width: 7"] .progressBarText,
+.progressBarFill[style*="width: 8"] .progressBarText,
+.progressBarFill[style*="width: 9"] .progressBarText,
+.progressBarFill[style*="width: 1"] .progressBarText {
+    position: static;
+    color: white;
+    text-shadow: 0 0 2px rgba(0,0,0,0.5);
+    justify-content: center;
+}
+
+.progressBarFill[style*="width: 100%"] {
+    justify-content: center;
+}

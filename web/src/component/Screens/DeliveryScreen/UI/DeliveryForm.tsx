@@ -2,11 +2,11 @@ import { useFetcher, useLoaderData } from 'react-router-dom'
 import style from './DeliveryForm.module.css'
 import type { DeliveryDto, DeliveryItemsDTO, DocOrderOutDto } from '@warehouse/interfaces/DTO'
 import { useEffect, useState } from 'react'
-import { TextField } from '../../../shared/TextFields'
-import { Button } from '../../../shared/Button'
-import { Icon } from '../../../shared/Icon'
+import { TextField } from '../../../../shared/TextFields'
+import { Button } from '../../../../shared/Button'
+import { Icon } from '../../../../shared/Icon'
 import { THEME } from '@warehouse/config'
-import { DeliveryInfoOrders } from './UI/DeliveryInfoOrders'
+import { DeliveryInfoOrders } from './DeliveryInfoOrders'
 
 interface IDocStatusDelivery {
     customerId: string;
@@ -423,7 +423,46 @@ export const DeliveryForm = () => {
         });
     };
 
-    const selectModalTimePlan = () => {
+    // Добавьте эту функцию внутри компонента DeliveryForm, например, после handleProgressEnd
+    const calculateCompletionPercentage = () => {
+        if (!delivery.deliveryItems.length) return 0;
+
+        const completedItems = delivery.deliveryItems.filter(item => item.dTimeFact !== undefined).length;
+        return (completedItems / delivery.deliveryItems.length) * 100;
+    };
+
+    // Добавьте этот компонент прогресс-бара
+    // Обновите компонент CompletionProgressBar
+    // Обновите компонент CompletionProgressBar
+    const CompletionProgressBar = () => {
+        const percentage = calculateCompletionPercentage();
+        const completedCount = delivery.deliveryItems.filter(item => item.dTimeFact !== undefined).length;
+        const totalCount = delivery.deliveryItems.length;
+
+        // Определяем цвет в зависимости от процента выполнения
+        const getProgressColor = () => {
+            if (percentage === 100) return '#4caf50'; // Зеленый при 100%
+            return '#ffc107'; // Желтый при менее 100%
+        };
+
+        return (
+            <div className={style.progressBarContainer}>
+                <div className={style.progressBarTrack}>
+                    <div
+                        className={style.progressBarFill}
+                        style={{
+                            width: `${percentage}%`,
+                            backgroundColor: getProgressColor()
+                        }}
+                    >
+                        <span className={style.progressBarText}>
+                            {completedCount} / {totalCount} ({Math.round(percentage)}%)
+                        </span>
+                    </div>
+                </div>
+            </div>
+        )
+    }; const selectModalTimePlan = () => {
         return (
             <div className={style.modal}>
                 <div className={style.modalOverlay} onClick={() => setOpenModalTimePlan(false)} />
@@ -668,67 +707,76 @@ export const DeliveryForm = () => {
         )
     }
 
+    const DeliveryHeder = () => {
+        return (
+            <>
+                <div className={style.header}>
+                    <h1>Доставка</h1>
+                    <Icon
+                        name='FaGear'
+                        color={deliveryEdit ? THEME.color.main : THEME.color.grey}
+                        size={30}
+                        onClick={() => setdeliveryEdit(!deliveryEdit)}
+                    />
+                    <Icon
+                        name='FaMap'
+                        color={THEME.color.orange}
+                        size={30}
+                        onClick={() => handleOpenMap()}
+                    />
+                </div>
+                <div className={style.headerRow}>
+                    <TextField
+                        type='date'
+                        name='date'
+                        onChange={handleDeliveryChange}
+                        placeholder='Дата доставки'
+                        value={delivery.deliveryDoc?.date && new Date(delivery.deliveryDoc?.date).toISOString().split('T')[0]}
+                    />
+                    <TextField
+                        type='time'
+                        name='startTime'
+                        onChange={handleDeliveryChange}
+                        placeholder='Выезд'
+                        value={new Date(delivery.deliveryDoc?.startTime).toLocaleTimeString()}
+                    />
+                </div>
+                <div className={style.headerRow}>
+                    <TextField
+                        type='time'
+                        name='timeInProgress'
+                        onChange={handleDeliveryChange}
+                        placeholder='От точки до точки'
+                        value={delivery.deliveryDoc?.timeInProgress && new Date(delivery.deliveryDoc?.timeInProgress).toLocaleTimeString()}
+                    />
+                    <TextField
+                        type='time'
+                        name='unloadTime'
+                        onChange={handleDeliveryChange}
+                        placeholder='Время выгрузки'
+                        value={delivery.deliveryDoc?.unloadTime && new Date(delivery.deliveryDoc?.unloadTime).toLocaleTimeString()}
+                    />
+                </div>
+                <div className={style.statusRow}>
+                    <span>Точек: {delivery.deliveryItems.length}</span>
+                    <span>Заказов: {delivery.deliveryDoc?.totalCountDoc}</span>
+                    <span>Штук: {delivery.deliveryDoc?.totalCountEntity}</span>
+                    <span>Сумма: {delivery.deliveryDoc?.totalSum}</span>
+                </div>
+                <CompletionProgressBar />
+                <Button
+                    bgColor='green'
+                    onClick={() => handleOpenModal()}
+                    textColor='white'
+                    text='Выбрать документы доставки'
+                />
+            </>
+        )
+    }
+
     return (
         <div className={style.deliveryFormContainer}>
-            <div className={style.header}>
-                <h1>Доставка</h1>
-                <Icon
-                    name='FaGear'
-                    color={deliveryEdit ? THEME.color.main : THEME.color.grey}
-                    size={30}
-                    onClick={() => setdeliveryEdit(!deliveryEdit)}
-                />
-                <Icon
-                    name='FaMap'
-                    color={THEME.color.orange}
-                    size={30}
-                    onClick={() => handleOpenMap()}
-                />
-            </div>
-            <div className={style.headerRow}>
-                <TextField
-                    type='date'
-                    name='date'
-                    onChange={handleDeliveryChange}
-                    placeholder='Дата доставки'
-                    value={delivery.deliveryDoc?.date && new Date(delivery.deliveryDoc?.date).toISOString().split('T')[0]}
-                />
-                <TextField
-                    type='time'
-                    name='startTime'
-                    onChange={handleDeliveryChange}
-                    placeholder='Выезд'
-                    value={new Date(delivery.deliveryDoc?.startTime).toLocaleTimeString()}
-                />
-            </div>
-            <div className={style.headerRow}>
-                <TextField
-                    type='time'
-                    name='timeInProgress'
-                    onChange={handleDeliveryChange}
-                    placeholder='От точки до точки'
-                    value={delivery.deliveryDoc?.timeInProgress && new Date(delivery.deliveryDoc?.timeInProgress).toLocaleTimeString()}
-                />
-                <TextField
-                    type='time'
-                    name='unloadTime'
-                    onChange={handleDeliveryChange}
-                    placeholder='Время выгрузки'
-                    value={delivery.deliveryDoc?.unloadTime && new Date(delivery.deliveryDoc?.unloadTime).toLocaleTimeString()}
-                />
-            </div>
-            <div className={style.statusRow}>
-                <span>Точек: {delivery.deliveryItems.length}</span>
-                <span>Заказов: {delivery.deliveryDoc?.totalCountDoc}</span>
-                <span>Штук: {delivery.deliveryDoc?.totalCountEntity}</span>
-                <span>Сумма: {delivery.deliveryDoc?.totalSum}</span>
-            </div>
-            <Button
-                bgColor='green'
-                onClick={() => handleOpenModal()}
-                textColor='white'
-                text='Выбрать документы доставки'
-            />
+            <DeliveryHeder />
             {openModal && docStatusDelivery && selectModalDoc(docStatusDelivery)}
             {openModalTimePlan && selectModalTimePlan()}
             {isInfoModalOpen && selectModalOrdersInfo(infoModalDocIds)}

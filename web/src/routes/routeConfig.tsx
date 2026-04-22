@@ -24,10 +24,10 @@ import { InProgressReport } from "../pages/Reports";
 import { inProgressReportLoader, inDeliveryReportLoader } from "./loaders";
 import InProgressReportByCustomer from "../pages/Reports/UI/InPtrogressReportByCustomer";
 import InDeliveryReportByCustomer from "../pages/Reports/UI/InDeliveryReportByCustomer";
-import { DeliveryList } from "../component/Screens/DeliveryScreen/DeliveryList";
+import { DeliveryList } from "../component/Screens/DeliveryScreen";
 import { deliveryLoader } from "./loaders/deliveryLoader";
 import { deliveryAction } from "./actions/deliveryAction";
-import { DeliveryForm } from "../component/Screens/DeliveryScreen/DeliveryForm";
+import { DeliveryForm } from "../component/Screens/DeliveryScreen";
 import { deliveryFormLoader } from "./loaders/deliveryFormLoader";
 
 

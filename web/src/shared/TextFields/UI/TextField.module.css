@@ -8,14 +8,6 @@
   width: auto;
 }
 
-.inputWrapper {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-}
-
 .input {
   padding: 20px 40px 5px 10px; /*← Увеличил правый padding, чтобы текст не залезал под крестик */
   border: 1px solid #ccc;

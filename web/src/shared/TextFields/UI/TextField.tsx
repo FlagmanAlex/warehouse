@@ -76,7 +76,6 @@ export const TextField = (({ type, name, placeholder, value, onChange, inputRef 
       <label className={`${styles.label} ${focused || value ? styles.focusedLabel : ''}`}>
         {placeholder}
       </label>
-      <div className={styles.inputWrapper}>
         {renderInput()}
         {value && type !== 'textarea' ? (
           <Icon
@@ -89,7 +88,6 @@ export const TextField = (({ type, name, placeholder, value, onChange, inputRef 
           />
         ) : null}
       </div>
-    </div>
   );
 });
 

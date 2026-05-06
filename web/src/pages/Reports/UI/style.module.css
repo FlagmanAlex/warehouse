@@ -14,7 +14,7 @@
 
 .customerHeader {
     background-color: #f5f9ff;
-    padding: 16px;
+    padding: 10px;
     display: grid;
     grid-template-columns: 5fr 1fr;
     justify-content: space-between;
@@ -172,3 +172,138 @@
 .navItem.active::after {
     width: 60%; /* Линия не на всю ширину выглядит аккуратнее */
 }
+
+
+
+
+/* Новые стили для группировки товаров */
+.productGroupItem {
+    margin-bottom: 5px;
+    border: 1px solid #f0f0f0;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.productHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #fafafa;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.productHeader:hover {
+    background-color: #f0f0f0;
+}
+
+.productHeaderLeft {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 2;
+    padding: 5px 8px;
+}
+
+.productHeaderRight {
+    display: flex;
+    flex-direction: column;
+    padding: 5px 8px;
+    /* gap: 16px; */
+    align-items: center;
+}
+
+.productName {
+    font-size: 0.9em;
+    color: #333;
+    font-weight: 500;
+}
+
+.productHeader .quantity,
+.productHeader .sum {
+    font-size: 0.85em;
+}
+
+.purchaseHistory {
+    padding: 12px;
+    background-color: #ffffff;
+}
+
+.historyTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8em;
+}
+
+.historyTable th {
+    background-color: #f5f5f5;
+    padding: 8px;
+    text-align: left;
+    font-weight: 600;
+    color: #666;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.historyTable td {
+    padding: 8px;
+    border-bottom: 1px solid #f0f0f0;
+    color: #555;
+}
+
+.historyTable tr:hover td {
+    background-color: #f9f9f9;
+}
+
+.globalTotal {
+    margin-top: 20px;
+    padding: 16px;
+    border-top: 2px solid #1976d2;
+    background-color: #f5f9ff;
+    border-radius: 8px;
+}
+
+.totalTitle {
+    margin: 0 0 8px 0;
+    color: #1976d2;
+    font-size: 1.1em;
+}
+
+/* Адаптация для мобильных устройств */
+
+/* Стили для сортировки */
+.sortHeader {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding: 8px 12px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+}
+
+.sortButton {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: #666;
+    transition: all 0.2s;
+}
+
+.sortButton:hover {
+    background-color: #f0f0f0;
+    border-color: #1976d2;
+}
+
+.sortButton.active {
+    background-color: #e3f2fd;
+    border-color: #1976d2;
+    color: #1976d2;
+}
+

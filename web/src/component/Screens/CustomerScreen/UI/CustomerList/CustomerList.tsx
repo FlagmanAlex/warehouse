@@ -2,8 +2,8 @@ import { useState, useMemo, useEffect } from 'react'; // <-- добавили us
 import { useNavigate, useLoaderData, useSearchParams } from 'react-router-dom';
 import style from './CustomerList.module.css';
 import type { IAddress, ICustomer } from '@warehouse/interfaces';
-import { TextField } from '../../../shared/TextFields';
-import { Button } from '../../../shared/Button';
+import { TextField } from '../../../../../shared/TextFields';
+import { Button } from '../../../../../shared/Button';
 import { THEME } from '@warehouse/config';
 
 type customerwithAddress = ICustomer & { addresses: IAddress[] };
@@ -14,7 +14,7 @@ export interface LoaderData {
     };
 }
 
-export default () => {
+export const CustomerList = () => {
     const { customers } = useLoaderData<LoaderData>();
     const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();

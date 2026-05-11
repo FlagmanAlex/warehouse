@@ -1,8 +1,8 @@
 import type { DocItemDto } from "@warehouse/interfaces/DTO";
 import { useState, useEffect } from "react";
 import styles from './EditableItem.module.css';
-import { EntitySelectModal } from "../../../SelectModals";
-import { Icon } from "../../../../shared/Icon";
+import { EntitySelectModal } from "../../../../SelectModals";
+import { Icon } from "../../../../../shared/Icon";
 
 interface EditableItemProps {
   docItem: DocItemDto;

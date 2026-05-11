@@ -1,9 +1,10 @@
 // components/AddressManager.tsx
 import { THEME } from '@warehouse/config';
 import type { IAddress } from '@warehouse/interfaces';
-import { Button } from '../../../shared/Button';
-import { TextField } from '../../../shared/TextFields';
-import { fetchApi } from '../../../api/fetchApi';
+import { Button } from '../../../../../shared/Button';
+import { TextField } from '../../../../../shared/TextFields';
+import { fetchApi } from '../../../../../api/fetchApi';
+import { Icon } from '../../../../../shared';
 
 interface AddressManagerProps {
   customerId: string | undefined; // undefined при создании нового клиента
@@ -92,12 +93,18 @@ export default function AddressManager({ customerId, onSave, addresses }: Addres
               onChange={(e) => updateAddress(index, 'address', e.target.value)}
               placeholder="Адрес"
             />
-            <TextField
-              name="gps"
-              value={addr.gps}
-              onChange={(e) => updateAddress(index, 'gps', e.target.value)}
-              placeholder="GPS (напр., 55.7558,37.6176)"
-            />
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <TextField
+                name="gps"
+                value={addr.gps}
+                onChange={(e) => updateAddress(index, 'gps', e.target.value)}
+                placeholder="GPS (напр., 55.7558,37.6176)"
+              />
+              <Icon
+                onClick={() => window.open(`https://yandex.ru/maps/?text=${encodeURIComponent(addr.address)}&z=1`, '_blank')}
+                name="FaMap" size={20} color={THEME.button.apply}
+              />
+            </div>
             <TextField
               name="description"
               value={addr.description}

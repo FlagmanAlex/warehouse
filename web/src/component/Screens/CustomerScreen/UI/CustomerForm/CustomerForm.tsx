@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { Form, useActionData, useLoaderData, useNavigation, useParams } from 'react-router-dom';
 import style from './CustomerForm.module.css';
 import type { IAddress, ICustomer } from '@warehouse/interfaces';
-import { TextField, type InputType } from '../../../shared/TextFields/UI/TextField';
-import { Button } from '../../../shared/Button';
+import { TextField, type InputType } from '../../../../../shared/TextFields/UI/TextField';
+import { Button } from '../../../../../shared/Button';
 import { THEME } from '@warehouse/config';
-import AddressManager from './AddressManager';
+import AddressManager from '../AddressManager/AddressManager';
 
 interface FieldProps {
   label: string;
@@ -25,7 +25,7 @@ const fields: FieldProps[] = [
   { label: 'Скидка (%)', name: 'percent', type: 'number' },
 ];
 
-export default function CustomerForm() {
+export const CustomerForm = () => {
   const { customerId: id } = useParams<{ customerId?: string }>();
   const { customer, addresses } = useLoaderData<{ customer: ICustomer, addresses: IAddress[] }>();
   const actionData = useActionData<{ error?: string }>();

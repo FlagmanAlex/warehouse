@@ -5,7 +5,7 @@ import type { DocAndItemsDto, DocDto, DocItemDto } from '@warehouse/interfaces/D
 import EditableItem from './EditableItem';
 import HeaderForm from './HeaderForm';
 import styles from './DocForm.module.css';
-import { Button } from '../../../../shared/Button';
+import { Button } from '../../../../../shared/Button';
 
 export type LoaderData = {
   doc: DocDto;

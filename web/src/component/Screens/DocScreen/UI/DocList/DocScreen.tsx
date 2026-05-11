@@ -8,14 +8,14 @@ import {
   useRevalidator,
   useSearchParams,
 } from 'react-router-dom';
-import { Button } from '../../../shared/Button';
-import { StatusIcon } from './StatusIcon';
-import type { DocDto } from '@warehouse/interfaces/DTO';
-import styles from './DocScreen.module.css';
-import { Icon } from '../../../shared/Icon';
-import { TextField } from '../../../shared/TextFields';
-import { formatDate } from '../../../utils/formatDateTime';
 import { DocStatusInMap, DocStatusOutMap, DocTypeMap, THEME, DocStatusOrderMap } from '@warehouse/config';
+import type { DocDto } from '@warehouse/interfaces/DTO';
+import { StatusIcon } from '../../StatusIcon';
+import { Button } from '../../../../../shared/Button';
+import { Icon } from '../../../../../shared/Icon';
+import { TextField } from '../../../../../shared/TextFields';
+import { formatDate } from '../../../../../utils/formatDateTime';
+import styles from './DocScreen.module.css';
 
 
 export interface LoaderData {
@@ -271,14 +271,14 @@ export default () => {
       )}
       {(item.docType === 'Outgoing' || item.docType === 'OrderOut') && (
         <div className={styles.content}>
-          <span className={styles.subtitle}>Клиент: {item.customerId?.name}</span>
+          <span className={styles.subtitle}>Клиент: <strong>{item.customerId?.name}</strong></span>
           <div>
             <a href={`geo:${item.addressId?.gps}`} onClick={(e) => e.stopPropagation()}>
               <span className={styles.docChip}>Адрес: {item.addressId?.address} </span>
             </a>
-            <a href={`tel:${item.customerId?.phone}`} onClick={(e) => e.stopPropagation()}>
+            {item.customerId?.phone && <a href={`tel:${item.customerId?.phone}`} onClick={(e) => e.stopPropagation()}>
               <span className={styles.docChip}>тел.: {item.customerId?.phone}</span>
-            </a>
+            </a>}
             {item.description && <span className={styles.description}>{item.description}</span>}
           </div>
         </div>

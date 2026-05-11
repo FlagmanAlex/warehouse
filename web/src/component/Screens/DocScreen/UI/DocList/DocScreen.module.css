@@ -140,7 +140,7 @@
 }
 
 .docChip {
-  padding: 4px 10px;
+  padding: 0px 10px;
   border: 1px solid #007BFF;
   background-color: #eeffff;
   border-radius: 20px;
@@ -190,6 +190,7 @@ hr {
   font-weight: 700;
   font-size: 12px;
   margin-top: 4px;
+  overflow: hidden;
 }
 
 .High {

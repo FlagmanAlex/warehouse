@@ -11,6 +11,7 @@ export default defineConfig({
           vendor: ['react', 'react-dom'],
           vendor_router: ['react-router-dom'],
           vendor_icons: ['react-icons'],
+          vendor_interfaces: ['@warehouse/interfaces'],
         },
       },
     },

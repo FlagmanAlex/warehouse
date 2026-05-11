@@ -307,3 +307,9 @@
     color: #1976d2;
 }
 
+.docNum {
+    color: #1976d2;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+}

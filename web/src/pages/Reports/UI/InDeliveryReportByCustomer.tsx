@@ -30,6 +30,7 @@ interface GroupedProduct {
     totalQuantity: number;
     totalSum: number;
     purchaseHistory: {
+        docId: string;
         docDate: string;
         docNum: string;
         quantity: number;
@@ -62,7 +63,7 @@ const InProgressReportByCustomer = () => {
     const sortCustomers = (customers: CustomerGroup[]): CustomerGroup[] => {
         return [...customers].sort((a, b) => {
             let comparison = 0;
-            
+
             switch (sortField) {
                 case 'name':
                     comparison = a.customerName.localeCompare(b.customerName, 'ru');
@@ -78,7 +79,7 @@ const InProgressReportByCustomer = () => {
                 default:
                     comparison = 0;
             }
-            
+
             return sortOrder === 'asc' ? comparison : -comparison;
         });
     };
@@ -113,11 +114,12 @@ const InProgressReportByCustomer = () => {
                             purchaseHistory: []
                         });
                     }
-    
+
                     const grouped = productMap.get(key)!;
                     grouped.totalQuantity += item.quantity;
                     grouped.totalSum += item.quantity * item.unitPrice;
                     grouped.purchaseHistory.push({
+                        docId: doc._id,
                         docDate: doc.docDate,
                         docNum: doc.docNum,
                         quantity: item.quantity,
@@ -131,7 +133,7 @@ const InProgressReportByCustomer = () => {
         // Сортируем историю покупок по дате (новые сверху)
         const result = Array.from(productMap.values());
         result.forEach(product => {
-            product.purchaseHistory.sort((a, b) => 
+            product.purchaseHistory.sort((a, b) =>
                 new Date(b.docDate).getTime() - new Date(a.docDate).getTime()
             );
         });
@@ -145,7 +147,7 @@ const InProgressReportByCustomer = () => {
                 {DOC_STATUS_ORDER.map(status => {
                     const isActive = selectStatus === status.name;
                     return (
-                        <div 
+                        <div
                             key={status.name}
                             className={`${style.navItem} ${isActive ? style.active : ''}`}
                             onClick={() => {
@@ -169,41 +171,41 @@ const InProgressReportByCustomer = () => {
     const SortHeader = () => {
         return (
             <div className={style.sortHeader}>
-                <button 
+                <button
                     className={`${style.sortButton} ${sortField === 'name' ? style.active : ''}`}
                     onClick={() => handleSort('name')}
                 >
                     Клиент
                     {sortField === 'name' && (
-                        <Icon 
-                            name={sortOrder === 'asc' ? 'FaArrowDownAZ' : 'FaArrowUpZA'} 
-                            size={16} 
+                        <Icon
+                            name={sortOrder === 'asc' ? 'FaArrowDownAZ' : 'FaArrowUpZA'}
+                            size={16}
                             color="#1976d2"
                         />
                     )}
                 </button>
-                <button 
+                <button
                     className={`${style.sortButton} ${sortField === 'positions' ? style.active : ''}`}
                     onClick={() => handleSort('positions')}
                 >
                     Количество
                     {sortField === 'positions' && (
-                        <Icon 
-                            name={sortOrder === 'asc' ? 'FaArrowDown19' : 'FaArrowUp91'} 
-                            size={16} 
+                        <Icon
+                            name={sortOrder === 'asc' ? 'FaArrowDown19' : 'FaArrowUp91'}
+                            size={16}
                             color="#1976d2"
                         />
                     )}
                 </button>
-                <button 
+                <button
                     className={`${style.sortButton} ${sortField === 'sum' ? style.active : ''}`}
                     onClick={() => handleSort('sum')}
                 >
                     Сумма
                     {sortField === 'sum' && (
-                        <Icon 
-                            name={sortOrder === 'asc' ? 'FaArrowDown19' : 'FaArrowUp91'} 
-                            size={16} 
+                        <Icon
+                            name={sortOrder === 'asc' ? 'FaArrowDown19' : 'FaArrowUp91'}
+                            size={16}
                             color="#1976d2"
                         />
                     )}
@@ -215,9 +217,9 @@ const InProgressReportByCustomer = () => {
     let totalPositions = 0;
     let totalBonus = 0;
     let totalSum = 0;
-    
+
     const sortedCustomers = sortCustomers(data);
-    
+
     return (
         <div className={style.reportContainer}>
             <NavBar />
@@ -226,9 +228,9 @@ const InProgressReportByCustomer = () => {
                 totalPositions += customer.totalPositions;
                 totalBonus += customer.totalBonus;
                 totalSum += customer.totalSum;
-                
+
                 const groupedProducts = groupProductsByCustomer(customer.docs);
-                
+
                 return (
                     <div
                         key={customer.customerId}
@@ -251,10 +253,10 @@ const InProgressReportByCustomer = () => {
                                         {groupedProducts.map(product => {
                                             const productKey = `${customer.customerId}_${product.productId}`;
                                             const isProductExpanded = expandedProducts[productKey];
-                                            
+
                                             return (
                                                 <li key={product.productId} className={style.productGroupItem}>
-                                                    <div 
+                                                    <div
                                                         className={style.productHeader}
                                                         onClick={() => toggleProduct(productKey)}
                                                     >
@@ -266,7 +268,7 @@ const InProgressReportByCustomer = () => {
                                                             <span className={style.sum}> = {product.totalSum.toFixed(0)}</span>
                                                         </div>
                                                     </div>
-                                                    
+
                                                     {isProductExpanded && (
                                                         <div className={style.purchaseHistory}>
                                                             <table className={style.historyTable}>
@@ -283,14 +285,17 @@ const InProgressReportByCustomer = () => {
                                                                     {product.purchaseHistory.map((purchase, idx) => (
                                                                         <tr key={idx}>
                                                                             <td>{new Date(purchase.docDate).toLocaleDateString()}</td>
-                                                                            <td>{purchase.docNum}</td>
+                                                                            <td>
+                                                                                <span onClick={() => navigate(`/doc/${purchase.docId}`)} className={style.docNum} >
+                                                                                    {purchase.docNum}
+                                                                                </span> {/* Добавляем onClick для навигации по документу */}</td>
                                                                             <td>{purchase.quantity}</td>
                                                                             <td>{purchase.unitPrice.toFixed(0)}</td>
                                                                             <td>{purchase.sum.toFixed(0)}</td>
                                                                         </tr>
                                                                     ))}
                                                                 </tbody>
-                                                             </table>
+                                                            </table>
                                                         </div>
                                                     )}
                                                 </li>

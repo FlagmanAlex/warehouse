@@ -304,7 +304,7 @@ const InProgressReportByCustomer = () => {
                                     </ul>
                                     <div className={style.totalRow}>
                                         <span className={style.totalValue}>
-                                            {customer.totalBonus > 0 && (<>Итого: {customer.totalSum} Скидка: {customer.totalBonus} <br /> </>)}
+                                            <>шт: {customer.totalPositions} сумма: {customer.totalSum} {customer.totalBonus > 0 && (`Скидка: ${customer.totalBonus}`)} <br /> </>
                                             К оплате: {customer.totalSum - customer.totalBonus}
                                         </span>
                                     </div>
@@ -316,7 +316,7 @@ const InProgressReportByCustomer = () => {
             })}
             <div className={style.globalTotal}>
                 <h3 className={style.totalTitle}>Итого:</h3>
-                <span className={style.totalValue}>Кол: {totalPositions} </span>
+                <span className={style.totalValue}>Шт: {totalPositions} </span>
                 <span className={style.totalValue}>{totalBonus > 0 && `Скидка: ${totalBonus} `}</span>
                 <span className={style.totalValue}>Сумма: {totalSum - totalBonus}</span>
             </div>

@@ -1,16 +1,15 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
+    "target": "ES2023",
     "module": "nodenext",
-    "moduleResolution": "nodenext",
     "rootDir": "../",
     "outDir": "./dist",
+    "moduleResolution": "nodenext",
     "strict": true,
     "esModuleInterop": true,
-    "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
     "resolveJsonModule": true,
-    "declaration": true,
     "paths": {
       "@warehouse/interfaces": ["../interfaces/index.ts"],
       "@warehouse/config": ["../config/index.ts"]

@@ -5,6 +5,12 @@
     "rootDir": "../",                                  /* Указать корневую папку внутри исходных файлов. */
     "outDir": "./dist",                                    /* Указать выходную папку для всех сгенерированных файлов. */
     "moduleResolution": "nodenext",                     /* Указать, как TypeScript ищет файл по заданному модульному идентификатору. */
+    "strict": true,                                      /* Включить все строгие параметры проверки типов. */
+    "esModuleInterop": true,                             /* Генерировать дополнительный JavaScript для упрощения поддержки импорта CommonJS-модулей. Это включает 'allowSyntheticDefaultImports' для совместимости типов. */
+    "forceConsistentCasingInFileNames": true,            /* Убедиться, что регистр символов в импортах правильный. */
+    "skipLibCheck": true,                                /* Пропустить проверку типов всех .d.ts файлов. */
+    "noImplicitAny": true,                            /* Включить отчеты об ошибках для выражений и объявлений с подразумеваемым типом 'any'. */
+    "alwaysStrict": true,                             /* Убедиться, что 'use strict' всегда генерируется. */
     "paths": {
         "@warehouse/interfaces": ["../interfaces/index.ts"],
         "@warehouse/interfaces/DTO": ["../interfaces/DTO/index.ts"],
@@ -14,13 +20,7 @@
         "@services": ["./src/services/index.ts"],
         "@routes": ["./src/routes/index.ts"],
         "@middlewares": ["./src/middlewares/index.ts"]
-    },                                      /* Указать набор записей, которые перенаправляют импорты на дополнительные места поиска. */
-    "esModuleInterop": true,                             /* Генерировать дополнительный JavaScript для упрощения поддержки импорта CommonJS-модулей. Это включает 'allowSyntheticDefaultImports' для совместимости типов. */
-    "forceConsistentCasingInFileNames": true,            /* Убедиться, что регистр символов в импортах правильный. */
-    "strict": true,                                      /* Включить все строгие параметры проверки типов. */
-    "noImplicitAny": true,                            /* Включить отчеты об ошибках для выражений и объявлений с подразумеваемым типом 'any'. */
-    "alwaysStrict": true,                             /* Убедиться, что 'use strict' всегда генерируется. */
-    "skipLibCheck": true                                 /* Пропустить проверку типов всех .d.ts файлов. */
+    }                                      /* Указать набор записей, которые перенаправляют импорты на дополнительные места поиска. */
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"],

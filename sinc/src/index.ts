@@ -1,6 +1,3 @@
-import dotenv from "dotenv";
-dotenv.config();
-
 import { readExcelRangeToJSon, writeExcel } from "./excel.js";
 import {
     IUser,
@@ -16,53 +13,13 @@ import {
     IDocOutgoing,
 } from "@warehouse/interfaces";
 import { ProductTypeRus, ProductTypeRusMap } from "@warehouse/config";
-import { create } from "node:domain";
-
-interface IJournal {
-    "№ заказа": string;
-    "№ отслеживания": string;
-    Поставщик: string;
-    Статус: string;
-    ДатаЗ: string;
-    Группа: string;
-    Артикул: string;
-    Бренд: string;
-    Наименование: string;
-    "Цена закупки": number;
-    Bonus: number;
-    Вознаграждение: number;
-    "Разница в оплате": number;
-    Логистика: number;
-    "Итоговая цена RUB": number;
-    "Продажа RUB": number;
-    ДатаП: string;
-    Клиент: string;
-    "Чистая прибыль RUB": number;
-    "% наценки": number;
-}
-interface IHeadJournal {
-    "№ заказа": string;
-    "№ отслеживания": string;
-    Поставщик: string;
-    "Статус доставки": string;
-    Перевозчик: string;
-    "№ отслеживания перевозчика": string;
-    "Дата заказа": string;
-    Курс: number;
-    "Вознаграждение UAH": number;
-    "Общий итог iHerb UAH": number;
-    "Сумма оплаты факт USD": number;
-    "Логистика RUB": number;
-    "Итого закупка RUB": number;
-    "Итого продажа RUB": number;
-    "Чистая прибыль RUB": number;
-    "% наценки": number;
-}
+import { fetchApi } from "./fetchApi.js";
+import { IHeadJournal } from "./interfaces/IHeadJournal.js";
+import { IJournal } from "./interfaces/IJournal.js";
 
 
 class sincExcel {
     private startTime = performance.now();
-    private server: string = `${process.env.HOST}:${process.env.PORT}`;
     private headJournal: IHeadJournal[] = [];
     private journal: IJournal[] = [];
     private clients: ICustomer[] = [];
@@ -102,41 +59,6 @@ class sincExcel {
         await this.getClient();
         console.log("✅ Импорт данных из Excel завершен");
     }
-    private async fetchApi(
-        url: string,
-        method: "POST" | "PATCH" | "GET" | "DELETE",
-        token: string,
-        body: Object
-    ) {
-        try {
-            const requestOptions: RequestInit = {
-                method,
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: token,
-                },
-            };
-
-            // Добавляем body только если он есть и метод != 'GET'
-            if (body && method !== "GET") {
-                requestOptions.body = JSON.stringify(body);
-            }
-            const response = await fetch(
-                `${this.server}/api/${url}`,
-                requestOptions
-            );
-
-            if (!response.ok) {
-                throw Error("❌ Ошибка выполнения запроса fetchApi");
-            }
-            const data = await response.json();
-
-            return data;
-        } catch (error) {
-            console.log(`❌ Ошибка выполнения запроса ${url}`);
-            console.log("Тело запроса:", body);
-        }
-    }
     private getDeltaTime() {
         const seconds = (performance.now() - this.startTime) / 1000;
         const h = Math.floor(seconds / 3600);
@@ -150,7 +72,7 @@ class sincExcel {
                 email: "flagman25@mail.ru",
                 password: "2816509017",
             };
-            const data = await this.fetchApi(
+            const data = await fetchApi(
                 "auth/login",
                 "POST",
                 this.token,
@@ -288,16 +210,683 @@ class sincExcel {
     }
 
     //-------------------------------------------------------------------
-/*    private async addSuppliers() {
-        console.log("Создание коллекции Supplier...");
-        await SupplierModel.deleteMany({});
-
+    /*    private async addSuppliers() {
+            console.log("Создание коллекции Supplier...");
+            await SupplierModel.deleteMany({});
+    
+            try {
+                const supplier: any[] = this.headJournal.map(
+                    (item) => item["Поставщик"]
+                );
+    
+                const uniqueSupplier: ISupplier[] = supplier.reduce((acc, item) => {
+                    if (!acc.some((supp: { name: string }) => supp.name === item)) {
+                        acc.push({
+                            name: item,
+                        });
+                    }
+                    return acc;
+                }, []);
+                await Promise.all(
+                    uniqueSupplier.map(
+                        async (item) =>
+                            await this.fetchApi(
+                                `supplier`,
+                                "POST",
+                                this.token,
+                                item
+                            )
+                    )
+                );
+                // 2. Получаем поставщиков
+                //------------------------------------------------------------------------------------
+                console.log("Получаем supplier");
+                const suppliers: ISupplier[] = await this.fetchApi(
+                    `supplier`,
+                    "GET",
+                    this.token,
+                    {}
+                );
+    
+                console.log("Делаем supplierMap");
+                this.supplierMap = new Map(
+                    suppliers.map((item) => {
+                        if (!item._id)
+                            throw Error(
+                                `При создании supplierMap есть несуществующий идентификатор элемента ${item.name}`
+                            );
+                        return [item.name, item._id];
+                    })
+                );
+            } catch (error) {
+                console.log(error);
+            }
+    
+            console.log("Создание коллекции Suppliers завершено");
+        }
+    */
+    /*    private async addCustomers() {
+            console.log("Создание коллекции Customer...");
+            await CustomerModel.deleteMany({});
+            //Загружаем данные клиентов
+            try {
+                const customer: ICustomer[] = this.clients.map((item) => ({
+                    name: item.name,
+                    address: item.address,
+                    phone: item.phone,
+                    gps: item.gps,
+                    percent: item.percent,
+                    accountManager: this.userId,
+                }));
+                for (const [index, item] of customer.entries()) {
+                    await this.fetchApi(`customer`, "POST", this.token, item);
+                    process.stdout.write(
+                        `\r 🔄️ Прогресс: ${index + 1}/${customer.length
+                        } (${Math.round(
+                            ((index + 1) / customer.length) * 100
+                        )}%)     `
+                    );
+                }
+    
+                //------------------------------------------------------------------------------------
+                console.log("Получаем customer");
+                const customerMap: ICustomer[] = await this.fetchApi(
+                    `customer`,
+                    "GET",
+                    this.token,
+                    {}
+                );
+    
+                console.log("Делаем customerMap");
+                this.customerMap = new Map(
+                    customerMap.map((item) => {
+                        if (!item._id)
+                            throw Error(
+                                `При создании customerMap есть несуществующий идентификатор элемента ${item.name}`
+                            );
+                        return [item.name, item._id];
+                    })
+                );
+    
+                // await Promise.all(customer.map(async (item) => await this.fetchApi(`customer`, 'POST', this.token, item)))
+            } catch (error) {
+                console.log(error);
+            }
+            console.log("Создание коллекции Customer завершено");
+        }
+        */
+    /*    private async addWarehouse() {
+            console.log("Создание коллекции Warehouse...");
+            await WarehouseModel.deleteMany({});
+            try {
+                const uniqueWarehouse: IWarehouse[] = Array.from(
+                    new Set(this.journal.map((item) => item["Группа"]))
+                )
+                    .map((group) => ({ name: group, userId: this.userId }))
+                    .filter((item) => item.name !== undefined);
+                uniqueWarehouse.push({ name: "Транзит", userId: this.userId });
+                await Promise.all(
+                    uniqueWarehouse.map(
+                        async (item) =>
+                            await this.fetchApi(
+                                `warehouse`,
+                                "POST",
+                                this.token,
+                                item
+                            )
+                    )
+                );
+                //------------------------------------------------------------------------------------
+                console.log("Получаем список складов");
+                const warehouse: IWarehouse[] = await this.fetchApi(
+                    `warehouse`,
+                    "GET",
+                    this.token,
+                    {}
+                );
+    
+                console.log("Делаем warehouseMap");
+                this.warehouseMap = new Map(
+                    warehouse.map((item) => {
+                        if (!item._id)
+                            throw Error(
+                                `При создании warehouseMap есть несуществующий идентификатор элемента ${item.name}`
+                            );
+                        return [item.name, item._id];
+                    })
+                );
+            } catch (error) {
+                console.log("Ошибка сервера", (error as Error).message);
+            }
+    
+            console.log("Создание коллекции Warehouse завершено");
+        }
+        */
+    /*    private async addCategory() {
+            console.log("Создание коллекции Category...");
+            await CategoryModel.deleteMany({});
+            //Создание root категории и Получение rootId
+            try {
+                const root = await this.fetchApi(`category`, "POST", this.token, {
+                    name: "Категории товаров",
+                });
+                const rootId = root._id;
+    
+                //Получение уникальных значений из journals, создание массива категорий и запись в базу.
+                const uniqueCategory: ICategory[] = Array.from(
+                    new Set(this.journal.map((item) => item["Бренд"]))
+                )
+                    .filter((item) => item)
+                    .map((item) => ({ name: item, parentCategory: rootId }));
+    
+                await Promise.all(
+                    uniqueCategory.map(async (item) => {
+                        const data = await this.fetchApi(
+                            `category`,
+                            "POST",
+                            this.token,
+                            item
+                        );
+                    })
+                );
+                console.log("Создание коллекции Category завершено");
+            } catch (error) {
+                console.log("Ошибка сервера", (error as Error).message);
+            }
+        }
+    */
+    /*    private async addProduct() {
+            await ProductModel.deleteMany({});
+            await PriceHistoryModel.deleteMany({});
+            try {
+                console.log("Начало addProduct");
+    
+                // 1. Получаем категории
+                //------------------------------------------------------------------------------------
+                const resCategory = await this.fetchApi(
+                    `category`,
+                    "GET",
+                    this.token,
+                    {}
+                );
+    
+                const categories: ICategory[] = resCategory;
+                this.categoryMap = new Map(
+                    categories.map((item) => {
+                        if (!item._id)
+                            throw Error(
+                                `При создании categoryMap есть несуществующий идентификатор элемента ${item.name}`
+                            );
+                        return [item.name, item._id];
+                    })
+                );
+    
+                // 2. Получаем поставщиков
+                //------------------------------------------------------------------------------------
+                const suppliers: ISupplier[] = await this.fetchApi(
+                    `supplier`,
+                    "GET",
+                    this.token,
+                    {}
+                );
+    
+                this.supplierMap = new Map(
+                    suppliers.map((item) => {
+                        if (!item._id)
+                            throw Error(
+                                `При создании supplierMap есть несуществующий идентификатор элемента ${item.name}`
+                            );
+                        return [item.name, item._id];
+                    })
+                );
+    
+                // 3. Формируем уникальные продукты
+                //------------------------------------------------------------------------------------
+                const seen = new Set();
+                const uniqueProducts: IProduct[] = [];
+                this.journal.forEach((journal) => {
+                    if (
+                        !journal["Бренд"] ||
+                        !journal["Артикул"] ||
+                        !journal["Наименование"] ||
+                        !journal["Поставщик"] ||
+                        !journal["Группа"]
+                    )
+                        throw new Error("Недостаточно данных в journal");
+    
+                    // console.log(`Группа: ${journal['Группа']} warehouse: ${this.warehouseMap.get(journal['Группа'])}`);
+    
+                    const categoryId = this.categoryMap.get(journal["Бренд"]);
+                    const supplierId = this.supplierMap.get(journal["Поставщик"]);
+                    const defaultWarehouseId = this.warehouseMap.get(
+                        journal["Группа"]
+                    );
+                    const productConfig =
+                        ProductTypeRusMap[journal["Группа"] as ProductTypeRus];
+    
+                    if (!productConfig)
+                        throw new Error(
+                            `Ошибка в productConfig (${journal["Группа"]})`
+                        );
+    
+                    const productType = productConfig.name;
+    
+                    if (!categoryId)
+                        throw new Error(
+                            `Ошибка в categoryId (${journal["Бренд"]})`
+                        );
+                    if (!supplierId)
+                        throw new Error(
+                            `Ошибка в supplierId (${journal["Поставщик"]})`
+                        );
+                    if (!defaultWarehouseId)
+                        throw new Error(
+                            `Ошибка в defaultWarehouseId (${journal["Группа"]})`
+                        );
+    
+                    //Проверка на уникальность только по артикулу и наименованию
+                    const key = `${journal["Артикул"]}-${journal["Наименование"]}`;
+    
+                    //Создание уникальной таблицы продуктов
+                    if (!seen.has(key)) {
+                        seen.add(key);
+                        uniqueProducts.push({
+                            article: journal["Артикул"].toString(),
+                            name: journal["Наименование"],
+                            // description: '',
+                            categoryId,
+                            unitOfMeasurement: "шт",
+                            price: 0,
+                            supplierId,
+                            createdBy: this.userId,
+                            lastUpdateBy: this.userId,
+                            isArchived: false,
+                            defaultWarehouseId: defaultWarehouseId || "",
+                            productType,
+                        });
+                    }
+                });
+                // 4. Создаем продукты с задержкой
+                console.log("Cоздание коллекции Product...");
+                const errorProducts = [];
+                const totalProduct = uniqueProducts.length;
+                let processed = 0;
+                for (const [index, product] of uniqueProducts.entries()) {
+                    try {
+                        const response = await this.fetchApi(
+                            `product`,
+                            "POST",
+                            this.token,
+                            product
+                        );
+    
+                        if (!response)
+                            throw Error(
+                                `Ошибка создания продукта ${product.article} ${product.name}`
+                            );
+    
+                        processed++;
+                        process.stdout.write(
+                            `\r 🔄️ Прогресс: ${processed}/${totalProduct} (${Math.round(
+                                (processed / totalProduct) * 100
+                            )}%)     `
+                        );
+                        // console.log(`✅ Продукт ${index + 1}/${uniqueProducts.length} создан`);
+                    } catch (error) {
+                        console.error(
+                            `❌ Ошибка при создании продукта ${index + 1}:`,
+                            (error as Error).message
+                        );
+                        errorProducts.push(product);
+                    }
+                }
+    
+                // 5. Записываем ошибки в Excel
+                if (errorProducts.length > 0) {
+                    console.log(
+                        `Записываем ${errorProducts.length} ошибок в Excel...`
+                    );
+                    await writeExcel(
+                        errorProducts,
+                        `${this.fileName}.xlsx`,
+                        performance.now().toString()
+                    );
+                    console.log("✅ Файл с ошибками сохранен");
+                } else {
+                    console.log("✅ Все продукты успешно созданы");
+                }
+    
+                //------------------------------------------------------------------------------------
+                console.log("Получаем product");
+                const products: IProduct[] = await this.fetchApi(
+                    `product`,
+                    "GET",
+                    this.token,
+                    {}
+                );
+    
+                console.log("Делаем productMap");
+                this.productMap = new Map(
+                    products.map((item) => {
+                        if (!item._id)
+                            throw Error(
+                                `При создании productMap есть несуществующий идентификатор элемента ${item.name}`
+                            );
+                        return [item.article, item._id];
+                    })
+                );
+    
+                return {
+                    total: uniqueProducts.length,
+                    success: uniqueProducts.length - errorProducts.length,
+                    errors: errorProducts.length,
+                    errorProducts,
+                };
+            } catch (error) {
+                console.error("❌ Критическая ошибка в addProduct:", error);
+                throw error; // Пробрасываем ошибку выше для обработки
+            }
+        }
+    */
+    /*    private async addDocIn() {
+            await DocNumModel.deleteMany({});
+            await BatchModel.deleteMany({});
+            await InventoryModel.deleteMany({});
+            await TransactionModel.deleteMany({});
+            await DocModel.deleteMany({});
+            await DocItemsModel.deleteMany({});
+    
+            console.log("Начало addDocIn");
+    
+            try {
+            } catch (error) {
+                console.log((error as Error).message);
+            }
+    
+            try {
+                for (const [index, item] of this.headJournal.entries()) {
+                    const supplierId: string | undefined = this.supplierMap.get(
+                        item["Поставщик"]
+                    );
+                    const warehouseId: string | undefined =
+                        this.warehouseMap.get("Транзит");
+                    const createDoc: IDocIncoming = {
+                        docNum: "",
+                        docDate: new Date(item["Дата заказа"]),
+                        orderNum: item["№ заказа"],
+                        vendorCode: item["№ отслеживания"],
+                        docType: "Incoming",
+                        exchangeRate: item["Курс"],
+                        bonusRef: -item["Вознаграждение UAH"],
+                        expenses: item["Логистика RUB"],
+                        itemCount: 1,
+                        summ: item["Общий итог iHerb UAH"],
+                        description: `Сумма оплаты: ${item["Сумма оплаты факт USD"]}`,
+                        docStatus: "Draft",
+                        supplierId: supplierId || "",
+                        warehouseId: warehouseId || "",
+                        createdAt: new Date(),
+                        updatedAt: new Date(),
+                        userId: this.userId,
+                    };
+                    // console.log('получаем массив orderItems по номеру заказа');
+                    type IDocItemNew = Omit<IDocItem, "docId" | "batchId">;
+                    const docItems: IDocItemNew[] = this.journal
+                        .filter(
+                            (journal) =>
+                                journal["№ заказа"].toString() ===
+                                item["№ заказа"].toString()
+                        )
+                        .map((item) => ({
+                            productId:
+                                this.productMap.get(item["Артикул"].toString()) ||
+                                "",
+                            quantity: 1,
+                            unitPrice: item["Цена закупки"],
+                            bonusStock: -item.Bonus,
+                        }));
+    
+                    //Суммируем orderDetails по quantity и bonusStock
+                    const map = new Map();
+                    docItems.forEach((item) => {
+                        const exist = map.get(item.productId);
+                        if (exist) {
+                            exist.quantity += item.quantity;
+                            exist.bonusStock += item.bonusStock;
+                        } else map.set(item.productId, { ...item });
+                    });
+    
+                    const createItems = Array.from(map.values());
+    
+                    const resOrder = await this.fetchApi(
+                        "doc",
+                        "POST",
+                        this.token,
+                        { doc: createDoc, items: createItems }
+                    );
+                    if (resOrder.message) console.log(resOrder.message);
+    
+                    process.stdout.write(
+                        `\r🔄️ Создание документа "Приход"] ${index} из ${this.headJournal.length
+                        } №${item["№ заказа"]}  (${Math.round(
+                            (index / this.headJournal.length) * 100
+                        )}%)     `
+                    );
+                }
+            } catch (error) {
+                await writeExcel(
+                    this.headJournal,
+                    `${this.fileName}.xlsx`,
+                    performance.now().toString()
+                );
+                console.log((error as Error).message);
+            }
+        }
+    */
+    //Создание расходных документов
+    /*    private async addDocOut() {
+            interface IDocItemExcel {
+                docDate: Date;
+                customerId: string;
+                productId: string;
+                quantity: number;
+                unitPrice: number;
+                bonusStock: number;
+                batchId: string | null;
+                docId: string | null;
+            }
+    
+            await this.DeleteAllOrderOut();
+    
+            //получаем массив из уникальных документов из journalHead
+    
+            //1. групируем по ДатаП, Клиент, Артикул
+            const docItems: IDocItemExcel[] = Object.values(
+                this.journal
+                    .filter((item) => {
+                        const { ДатаП, Клиент, Артикул } = item;
+                        return !!ДатаП && !!Клиент && !!Артикул;
+                    })
+                    .reduce((acc, item) => {
+                        const { ДатаП, Клиент, Артикул } = item;
+                        const customerId = this.customerMap.get(Клиент);
+                        const productId = this.productMap.get(Артикул);
+    
+                        if (!customerId) {
+                            console.error(`Не найден клиент: ${Клиент}`);
+                            return acc;
+                        }
+    
+                        if (!productId) {
+                            console.error(`Не найден товар: ${Артикул}`);
+                            return acc;
+                        }
+    
+                        const key = `${ДатаП}-${Клиент}-${Артикул}`;
+                        if (!acc[key])
+                            acc[key] = {
+                                docDate: new Date(ДатаП),
+                                customerId,
+                                productId,
+                                quantity: 0,
+                                unitPrice: item["Продажа RUB"],
+                                bonusStock: 0,
+                                batchId: null,
+                                docId: null,
+                            };
+                        acc[key].quantity += 1;
+                        acc[key].bonusStock += item["Bonus"] || 0;
+                        return acc;
+                    }, {} as Record<string, IDocItemExcel>)
+            );
+    
+            //2. Групипруем по ДатаП, Клиент для создания заказов на дату по клиенту
+    
+            interface ExcelDoc {
+                doc: IDocOutgoing;
+                items: IDocItem[];
+            }
+    
+            const excelDocs = Object.values(
+                docItems.reduce((acc, item) => {
+                    const key = `${item.docDate.toISOString()}-${item.customerId}`;
+                    if (!acc[key]) {
+                        acc[key] = {
+                            doc: {
+                                docDate: item.docDate,
+                                customerId: item.customerId,
+                                docType: "Outgoing",
+                                docStatus: "Draft",
+                                description: "",
+                                createdAt: new Date(),
+                                updatedAt: new Date(),
+                                userId: this.userId,
+                                bonusRef: 0,
+                                // expenses: 0,
+                                itemCount: 0,
+                                summ: 0,
+                                orderNum: "",
+                                docNum: "",
+                                warehouseId: this.warehouseMap.get("Транзит") || "",
+                            },
+                            items: [],
+                        };
+                    }
+                    acc[key].items.push({
+                        docId: "",
+                        productId: item.productId,
+                        quantity: item.quantity,
+                        bonusStock: 0,
+                        unitPrice: item.unitPrice,
+                    });
+    
+                    return acc;
+                }, {} as Record<string, ExcelDoc>)
+            );
+    
+            // console.log(orders);
+    
+            for (const [index, doc] of excelDocs.entries()) {
+                try {
+                    const saveOrder = await this.fetchApi(
+                        "doc",
+                        "POST",
+                        this.token,
+                        doc
+                    );
+                    process.stdout.write(
+                        `\r🔄️ Создание документа "Расход" ${index} из ${excelDocs.length
+                        } (${Math.round((index / excelDocs.length) * 100)}%)    `
+                    );
+                } catch (error) {
+                    await writeExcel(
+                        Array(doc),
+                        `${this.fileName}.xlsx`,
+                        "DocOut_Doc"
+                    );
+                    await writeExcel(
+                        Array(doc.items),
+                        `${this.fileName}.xlsx`,
+                        "DocOut_DocItems"
+                    );
+                    console.log(`Ошибка при сохранении заказа`, error);
+                }
+            }
+        }
+    */
+    /*    private async DeleteAllOrderOut() {
+            try {
+                // 1. Найти все расходные заказы
+                const docs = await DocModel.find({ docType: "Расход" });
+    
+                if (!docs.length) {
+                    console.log("Нет расходных заказов для удаления");
+                    return;
+                }
+    
+                // 2. Получить массив ID этих заказов
+                const docIds = docs.map((doc) => doc._id);
+    
+                // 3. Найти связанные позиции заказов
+                const docItems = await DocItemsModel.find({
+                    docId: { $in: docIds },
+                });
+    
+                // 4. Найти связанные транзакции
+                const transactions: ITransactionModel[] =
+                    await TransactionModel.find({
+                        docId: { $in: docIds },
+                        transactionType: "Outgoing",
+                    });
+    
+                // 5. Восстановить остатки по партиям
+                for (const transaction of transactions) {
+                    const { productId, batchId, warehouseId, changedQuantity } =
+                        transaction;
+    
+                    // Прибавляем обратно кол-во (т.к. это было списание)
+                    await InventoryModel.updateOne(
+                        { productId, batchId, warehouseId },
+                        { $inc: { quantityAvailable: Math.abs(changedQuantity) } }
+                    );
+                }
+    
+                // 6. Удалить связанные данные
+                await DocItemsModel.deleteMany({ orderId: { $in: docIds } });
+                await TransactionModel.deleteMany({ orderId: { $in: docIds } });
+    
+                // 7. Удалить сами заказы
+                await DocModel.deleteMany({ _id: { $in: docIds } });
+    
+                console.log(
+                    `Удалено ${docs.length} расходных заказов и восстановлены остатки`
+                );
+            } catch (error) {
+                console.error("Ошибка при удалении расходных заказов:", error);
+            }
+        }
+    */
+    /**
+     * Синхронизация поставщиков
+     */
+    private async syncSupplier() {
         try {
-            const supplier: any[] = this.headJournal.map(
+            console.log("Синхронизация поставщиков из Excel...");
+            const suppliers: ISupplier[] = await fetchApi(
+                "supplier",
+                "GET",
+                this.token,
+                {}
+            );
+            const existingNames = new Set(
+                suppliers.map((supplier) => supplier.name)
+            );
+
+            const supplierExcel: any[] = this.headJournal.map(
                 (item) => item["Поставщик"]
             );
 
-            const uniqueSupplier: ISupplier[] = supplier.reduce((acc, item) => {
+            const uniqueSupplier: ISupplier[] = supplierExcel.reduce((acc, item) => {
                 if (!acc.some((supp: { name: string }) => supp.name === item)) {
                     acc.push({
                         name: item,
@@ -305,651 +894,48 @@ class sincExcel {
                 }
                 return acc;
             }, []);
-            await Promise.all(
-                uniqueSupplier.map(
-                    async (item) =>
-                        await this.fetchApi(
-                            `supplier`,
-                            "POST",
-                            this.token,
-                            item
-                        )
-                )
-            );
-            // 2. Получаем поставщиков
-            //------------------------------------------------------------------------------------
-            console.log("Получаем supplier");
-            const suppliers: ISupplier[] = await this.fetchApi(
-                `supplier`,
-                "GET",
-                this.token,
-                {}
+
+            const newSuppliers = uniqueSupplier.filter(
+                (supplier) => !existingNames.has(supplier.name)
             );
 
-            console.log("Делаем supplierMap");
-            this.supplierMap = new Map(
-                suppliers.map((item) => {
-                    if (!item._id)
-                        throw Error(
-                            `При создании supplierMap есть несуществующий идентификатор элемента ${item.name}`
-                        );
-                    return [item.name, item._id];
-                })
-            );
-        } catch (error) {
-            console.log(error);
-        }
-
-        console.log("Создание коллекции Suppliers завершено");
-    }
-*/
-/*    private async addCustomers() {
-        console.log("Создание коллекции Customer...");
-        await CustomerModel.deleteMany({});
-        //Загружаем данные клиентов
-        try {
-            const customer: ICustomer[] = this.clients.map((item) => ({
-                name: item.name,
-                address: item.address,
-                phone: item.phone,
-                gps: item.gps,
-                percent: item.percent,
-                accountManager: this.userId,
-            }));
-            for (const [index, item] of customer.entries()) {
-                await this.fetchApi(`customer`, "POST", this.token, item);
-                process.stdout.write(
-                    `\r 🔄️ Прогресс: ${index + 1}/${customer.length
-                    } (${Math.round(
-                        ((index + 1) / customer.length) * 100
-                    )}%)     `
-                );
-            }
-
-            //------------------------------------------------------------------------------------
-            console.log("Получаем customer");
-            const customerMap: ICustomer[] = await this.fetchApi(
-                `customer`,
-                "GET",
-                this.token,
-                {}
-            );
-
-            console.log("Делаем customerMap");
-            this.customerMap = new Map(
-                customerMap.map((item) => {
-                    if (!item._id)
-                        throw Error(
-                            `При создании customerMap есть несуществующий идентификатор элемента ${item.name}`
-                        );
-                    return [item.name, item._id];
-                })
-            );
-
-            // await Promise.all(customer.map(async (item) => await this.fetchApi(`customer`, 'POST', this.token, item)))
-        } catch (error) {
-            console.log(error);
-        }
-        console.log("Создание коллекции Customer завершено");
-    }
-    */
-/*    private async addWarehouse() {
-        console.log("Создание коллекции Warehouse...");
-        await WarehouseModel.deleteMany({});
-        try {
-            const uniqueWarehouse: IWarehouse[] = Array.from(
-                new Set(this.journal.map((item) => item["Группа"]))
-            )
-                .map((group) => ({ name: group, userId: this.userId }))
-                .filter((item) => item.name !== undefined);
-            uniqueWarehouse.push({ name: "Транзит", userId: this.userId });
-            await Promise.all(
-                uniqueWarehouse.map(
-                    async (item) =>
-                        await this.fetchApi(
-                            `warehouse`,
-                            "POST",
-                            this.token,
-                            item
-                        )
-                )
-            );
-            //------------------------------------------------------------------------------------
-            console.log("Получаем список складов");
-            const warehouse: IWarehouse[] = await this.fetchApi(
-                `warehouse`,
-                "GET",
-                this.token,
-                {}
-            );
-
-            console.log("Делаем warehouseMap");
-            this.warehouseMap = new Map(
-                warehouse.map((item) => {
-                    if (!item._id)
-                        throw Error(
-                            `При создании warehouseMap есть несуществующий идентификатор элемента ${item.name}`
-                        );
-                    return [item.name, item._id];
-                })
-            );
-        } catch (error) {
-            console.log("Ошибка сервера", (error as Error).message);
-        }
-
-        console.log("Создание коллекции Warehouse завершено");
-    }
-    */
-/*    private async addCategory() {
-        console.log("Создание коллекции Category...");
-        await CategoryModel.deleteMany({});
-        //Создание root категории и Получение rootId
-        try {
-            const root = await this.fetchApi(`category`, "POST", this.token, {
-                name: "Категории товаров",
-            });
-            const rootId = root._id;
-
-            //Получение уникальных значений из journals, создание массива категорий и запись в базу.
-            const uniqueCategory: ICategory[] = Array.from(
-                new Set(this.journal.map((item) => item["Бренд"]))
-            )
-                .filter((item) => item)
-                .map((item) => ({ name: item, parentCategory: rootId }));
-
-            await Promise.all(
-                uniqueCategory.map(async (item) => {
-                    const data = await this.fetchApi(
-                        `category`,
-                        "POST",
-                        this.token,
-                        item
-                    );
-                })
-            );
-            console.log("Создание коллекции Category завершено");
-        } catch (error) {
-            console.log("Ошибка сервера", (error as Error).message);
-        }
-    }
-*/
-/*    private async addProduct() {
-        await ProductModel.deleteMany({});
-        await PriceHistoryModel.deleteMany({});
-        try {
-            console.log("Начало addProduct");
-
-            // 1. Получаем категории
-            //------------------------------------------------------------------------------------
-            const resCategory = await this.fetchApi(
-                `category`,
-                "GET",
-                this.token,
-                {}
-            );
-
-            const categories: ICategory[] = resCategory;
-            this.categoryMap = new Map(
-                categories.map((item) => {
-                    if (!item._id)
-                        throw Error(
-                            `При создании categoryMap есть несуществующий идентификатор элемента ${item.name}`
-                        );
-                    return [item.name, item._id];
-                })
-            );
-
-            // 2. Получаем поставщиков
-            //------------------------------------------------------------------------------------
-            const suppliers: ISupplier[] = await this.fetchApi(
-                `supplier`,
-                "GET",
-                this.token,
-                {}
-            );
-
-            this.supplierMap = new Map(
-                suppliers.map((item) => {
-                    if (!item._id)
-                        throw Error(
-                            `При создании supplierMap есть несуществующий идентификатор элемента ${item.name}`
-                        );
-                    return [item.name, item._id];
-                })
-            );
-
-            // 3. Формируем уникальные продукты
-            //------------------------------------------------------------------------------------
-            const seen = new Set();
-            const uniqueProducts: IProduct[] = [];
-            this.journal.forEach((journal) => {
-                if (
-                    !journal["Бренд"] ||
-                    !journal["Артикул"] ||
-                    !journal["Наименование"] ||
-                    !journal["Поставщик"] ||
-                    !journal["Группа"]
-                )
-                    throw new Error("Недостаточно данных в journal");
-
-                // console.log(`Группа: ${journal['Группа']} warehouse: ${this.warehouseMap.get(journal['Группа'])}`);
-
-                const categoryId = this.categoryMap.get(journal["Бренд"]);
-                const supplierId = this.supplierMap.get(journal["Поставщик"]);
-                const defaultWarehouseId = this.warehouseMap.get(
-                    journal["Группа"]
-                );
-                const productConfig =
-                    ProductTypeRusMap[journal["Группа"] as ProductTypeRus];
-
-                if (!productConfig)
-                    throw new Error(
-                        `Ошибка в productConfig (${journal["Группа"]})`
-                    );
-
-                const productType = productConfig.name;
-
-                if (!categoryId)
-                    throw new Error(
-                        `Ошибка в categoryId (${journal["Бренд"]})`
-                    );
-                if (!supplierId)
-                    throw new Error(
-                        `Ошибка в supplierId (${journal["Поставщик"]})`
-                    );
-                if (!defaultWarehouseId)
-                    throw new Error(
-                        `Ошибка в defaultWarehouseId (${journal["Группа"]})`
-                    );
-
-                //Проверка на уникальность только по артикулу и наименованию
-                const key = `${journal["Артикул"]}-${journal["Наименование"]}`;
-
-                //Создание уникальной таблицы продуктов
-                if (!seen.has(key)) {
-                    seen.add(key);
-                    uniqueProducts.push({
-                        article: journal["Артикул"].toString(),
-                        name: journal["Наименование"],
-                        // description: '',
-                        categoryId,
-                        unitOfMeasurement: "шт",
-                        price: 0,
-                        supplierId,
-                        createdBy: this.userId,
-                        lastUpdateBy: this.userId,
-                        isArchived: false,
-                        defaultWarehouseId: defaultWarehouseId || "",
-                        productType,
-                    });
-                }
-            });
-            // 4. Создаем продукты с задержкой
-            console.log("Cоздание коллекции Product...");
-            const errorProducts = [];
-            const totalProduct = uniqueProducts.length;
-            let processed = 0;
-            for (const [index, product] of uniqueProducts.entries()) {
-                try {
-                    const response = await this.fetchApi(
-                        `product`,
-                        "POST",
-                        this.token,
-                        product
-                    );
-
-                    if (!response)
-                        throw Error(
-                            `Ошибка создания продукта ${product.article} ${product.name}`
-                        );
-
-                    processed++;
-                    process.stdout.write(
-                        `\r 🔄️ Прогресс: ${processed}/${totalProduct} (${Math.round(
-                            (processed / totalProduct) * 100
-                        )}%)     `
-                    );
-                    // console.log(`✅ Продукт ${index + 1}/${uniqueProducts.length} создан`);
-                } catch (error) {
-                    console.error(
-                        `❌ Ошибка при создании продукта ${index + 1}:`,
-                        (error as Error).message
-                    );
-                    errorProducts.push(product);
-                }
-            }
-
-            // 5. Записываем ошибки в Excel
-            if (errorProducts.length > 0) {
+            for (const supplier of newSuppliers) {
+                await fetchApi("supplier", "POST", this.token, supplier);
                 console.log(
-                    `Записываем ${errorProducts.length} ошибок в Excel...`
+                    `✅ Поставщик ${supplier.name} добавлен в систему`
                 );
-                await writeExcel(
-                    errorProducts,
-                    `${this.fileName}.xlsx`,
-                    performance.now().toString()
-                );
-                console.log("✅ Файл с ошибками сохранен");
-            } else {
-                console.log("✅ Все продукты успешно созданы");
             }
-
-            //------------------------------------------------------------------------------------
-            console.log("Получаем product");
-            const products: IProduct[] = await this.fetchApi(
-                `product`,
+            const suppliersWithIds = await fetchApi(
+                "supplier",
                 "GET",
                 this.token,
                 {}
-            );
-
-            console.log("Делаем productMap");
-            this.productMap = new Map(
-                products.map((item) => {
-                    if (!item._id)
-                        throw Error(
-                            `При создании productMap есть несуществующий идентификатор элемента ${item.name}`
+            )
+            this.supplierMap = new Map(
+                suppliersWithIds.map((item: ISupplier) => {
+                    if (!item._id || !item.name) {
+                        throw new Error(
+                            `Некорректный поставщик: ${JSON.stringify(item)}`
                         );
-                    return [item.article, item._id];
+                    }
+                    return [item.name, item._id] as const;
                 })
             );
-
-            return {
-                total: uniqueProducts.length,
-                success: uniqueProducts.length - errorProducts.length,
-                errors: errorProducts.length,
-                errorProducts,
-            };
-        } catch (error) {
-            console.error("❌ Критическая ошибка в addProduct:", error);
-            throw error; // Пробрасываем ошибку выше для обработки
-        }
-    }
-*/
-/*    private async addDocIn() {
-        await DocNumModel.deleteMany({});
-        await BatchModel.deleteMany({});
-        await InventoryModel.deleteMany({});
-        await TransactionModel.deleteMany({});
-        await DocModel.deleteMany({});
-        await DocItemsModel.deleteMany({});
-
-        console.log("Начало addDocIn");
-
-        try {
-        } catch (error) {
-            console.log((error as Error).message);
-        }
-
-        try {
-            for (const [index, item] of this.headJournal.entries()) {
-                const supplierId: string | undefined = this.supplierMap.get(
-                    item["Поставщик"]
-                );
-                const warehouseId: string | undefined =
-                    this.warehouseMap.get("Транзит");
-                const createDoc: IDocIncoming = {
-                    docNum: "",
-                    docDate: new Date(item["Дата заказа"]),
-                    orderNum: item["№ заказа"],
-                    vendorCode: item["№ отслеживания"],
-                    docType: "Incoming",
-                    exchangeRate: item["Курс"],
-                    bonusRef: -item["Вознаграждение UAH"],
-                    expenses: item["Логистика RUB"],
-                    itemCount: 1,
-                    summ: item["Общий итог iHerb UAH"],
-                    description: `Сумма оплаты: ${item["Сумма оплаты факт USD"]}`,
-                    docStatus: "Draft",
-                    supplierId: supplierId || "",
-                    warehouseId: warehouseId || "",
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
-                    userId: this.userId,
-                };
-                // console.log('получаем массив orderItems по номеру заказа');
-                type IDocItemNew = Omit<IDocItem, "docId" | "batchId">;
-                const docItems: IDocItemNew[] = this.journal
-                    .filter(
-                        (journal) =>
-                            journal["№ заказа"].toString() ===
-                            item["№ заказа"].toString()
-                    )
-                    .map((item) => ({
-                        productId:
-                            this.productMap.get(item["Артикул"].toString()) ||
-                            "",
-                        quantity: 1,
-                        unitPrice: item["Цена закупки"],
-                        bonusStock: -item.Bonus,
-                    }));
-
-                //Суммируем orderDetails по quantity и bonusStock
-                const map = new Map();
-                docItems.forEach((item) => {
-                    const exist = map.get(item.productId);
-                    if (exist) {
-                        exist.quantity += item.quantity;
-                        exist.bonusStock += item.bonusStock;
-                    } else map.set(item.productId, { ...item });
-                });
-
-                const createItems = Array.from(map.values());
-
-                const resOrder = await this.fetchApi(
-                    "doc",
-                    "POST",
-                    this.token,
-                    { doc: createDoc, items: createItems }
-                );
-                if (resOrder.message) console.log(resOrder.message);
-
-                process.stdout.write(
-                    `\r🔄️ Создание документа "Приход"] ${index} из ${this.headJournal.length
-                    } №${item["№ заказа"]}  (${Math.round(
-                        (index / this.headJournal.length) * 100
-                    )}%)     `
-                );
-            }
-        } catch (error) {
-            await writeExcel(
-                this.headJournal,
-                `${this.fileName}.xlsx`,
-                performance.now().toString()
-            );
-            console.log((error as Error).message);
-        }
-    }
-*/
-    //Создание расходных документов
-/*    private async addDocOut() {
-        interface IDocItemExcel {
-            docDate: Date;
-            customerId: string;
-            productId: string;
-            quantity: number;
-            unitPrice: number;
-            bonusStock: number;
-            batchId: string | null;
-            docId: string | null;
-        }
-
-        await this.DeleteAllOrderOut();
-
-        //получаем массив из уникальных документов из journalHead
-
-        //1. групируем по ДатаП, Клиент, Артикул
-        const docItems: IDocItemExcel[] = Object.values(
-            this.journal
-                .filter((item) => {
-                    const { ДатаП, Клиент, Артикул } = item;
-                    return !!ДатаП && !!Клиент && !!Артикул;
-                })
-                .reduce((acc, item) => {
-                    const { ДатаП, Клиент, Артикул } = item;
-                    const customerId = this.customerMap.get(Клиент);
-                    const productId = this.productMap.get(Артикул);
-
-                    if (!customerId) {
-                        console.error(`Не найден клиент: ${Клиент}`);
-                        return acc;
-                    }
-
-                    if (!productId) {
-                        console.error(`Не найден товар: ${Артикул}`);
-                        return acc;
-                    }
-
-                    const key = `${ДатаП}-${Клиент}-${Артикул}`;
-                    if (!acc[key])
-                        acc[key] = {
-                            docDate: new Date(ДатаП),
-                            customerId,
-                            productId,
-                            quantity: 0,
-                            unitPrice: item["Продажа RUB"],
-                            bonusStock: 0,
-                            batchId: null,
-                            docId: null,
-                        };
-                    acc[key].quantity += 1;
-                    acc[key].bonusStock += item["Bonus"] || 0;
-                    return acc;
-                }, {} as Record<string, IDocItemExcel>)
-        );
-
-        //2. Групипруем по ДатаП, Клиент для создания заказов на дату по клиенту
-
-        interface ExcelDoc {
-            doc: IDocOutgoing;
-            items: IDocItem[];
-        }
-
-        const excelDocs = Object.values(
-            docItems.reduce((acc, item) => {
-                const key = `${item.docDate.toISOString()}-${item.customerId}`;
-                if (!acc[key]) {
-                    acc[key] = {
-                        doc: {
-                            docDate: item.docDate,
-                            customerId: item.customerId,
-                            docType: "Outgoing",
-                            docStatus: "Draft",
-                            description: "",
-                            createdAt: new Date(),
-                            updatedAt: new Date(),
-                            userId: this.userId,
-                            bonusRef: 0,
-                            // expenses: 0,
-                            itemCount: 0,
-                            summ: 0,
-                            orderNum: "",
-                            docNum: "",
-                            warehouseId: this.warehouseMap.get("Транзит") || "",
-                        },
-                        items: [],
-                    };
-                }
-                acc[key].items.push({
-                    docId: "",
-                    productId: item.productId,
-                    quantity: item.quantity,
-                    bonusStock: 0,
-                    unitPrice: item.unitPrice,
-                });
-
-                return acc;
-            }, {} as Record<string, ExcelDoc>)
-        );
-
-        // console.log(orders);
-
-        for (const [index, doc] of excelDocs.entries()) {
-            try {
-                const saveOrder = await this.fetchApi(
-                    "doc",
-                    "POST",
-                    this.token,
-                    doc
-                );
-                process.stdout.write(
-                    `\r🔄️ Создание документа "Расход" ${index} из ${excelDocs.length
-                    } (${Math.round((index / excelDocs.length) * 100)}%)    `
-                );
-            } catch (error) {
-                await writeExcel(
-                    Array(doc),
-                    `${this.fileName}.xlsx`,
-                    "DocOut_Doc"
-                );
-                await writeExcel(
-                    Array(doc.items),
-                    `${this.fileName}.xlsx`,
-                    "DocOut_DocItems"
-                );
-                console.log(`Ошибка при сохранении заказа`, error);
-            }
-        }
-    }
-*/    
-/*    private async DeleteAllOrderOut() {
-        try {
-            // 1. Найти все расходные заказы
-            const docs = await DocModel.find({ docType: "Расход" });
-
-            if (!docs.length) {
-                console.log("Нет расходных заказов для удаления");
-                return;
-            }
-
-            // 2. Получить массив ID этих заказов
-            const docIds = docs.map((doc) => doc._id);
-
-            // 3. Найти связанные позиции заказов
-            const docItems = await DocItemsModel.find({
-                docId: { $in: docIds },
-            });
-
-            // 4. Найти связанные транзакции
-            const transactions: ITransactionModel[] =
-                await TransactionModel.find({
-                    docId: { $in: docIds },
-                    transactionType: "Outgoing",
-                });
-
-            // 5. Восстановить остатки по партиям
-            for (const transaction of transactions) {
-                const { productId, batchId, warehouseId, changedQuantity } =
-                    transaction;
-
-                // Прибавляем обратно кол-во (т.к. это было списание)
-                await InventoryModel.updateOne(
-                    { productId, batchId, warehouseId },
-                    { $inc: { quantityAvailable: Math.abs(changedQuantity) } }
-                );
-            }
-
-            // 6. Удалить связанные данные
-            await DocItemsModel.deleteMany({ orderId: { $in: docIds } });
-            await TransactionModel.deleteMany({ orderId: { $in: docIds } });
-
-            // 7. Удалить сами заказы
-            await DocModel.deleteMany({ _id: { $in: docIds } });
 
             console.log(
-                `Удалено ${docs.length} расходных заказов и восстановлены остатки`
+                `Синхронизация поставщиков завершена. Добавлено ${newSuppliers.length} новых поставщиков`
             );
         } catch (error) {
-            console.error("Ошибка при удалении расходных заказов:", error);
+            console.error("Ошибка при синхронизации поставщиков:", error);
         }
     }
-*/
+
     private async syncCategory() {
         try {
             console.log("Синхронизация категорий из Excel...");
 
             // 1. Получаем все существующие категории
-            const existingCategories: ICategory[] = await this.fetchApi(
+            const existingCategories: ICategory[] = await fetchApi(
                 "category",
                 "GET",
                 this.token,
@@ -971,7 +957,7 @@ class sincExcel {
                 console.log(`✅ Корневая категория уже существует: ${rootId}`);
             } else {
                 console.log("Создание корневой категории...");
-                const rootResponse = await this.fetchApi(
+                const rootResponse = await fetchApi(
                     "category",
                     "POST",
                     this.token,
@@ -1021,7 +1007,7 @@ class sincExcel {
 
             for (const [index, category] of categoriesToCreate.entries()) {
                 try {
-                    await this.fetchApi(
+                    await fetchApi(
                         "category",
                         "POST",
                         this.token,
@@ -1069,17 +1055,17 @@ class sincExcel {
             throw error; // или обработайте по необходимости
         }
     }
-    private async compareAndCreateProducts() {
+    private async syncProducts() {
         try {
             console.log("Начало сравнения и создания продуктов...");
 
             // 1. Получаем справочники
             const [warehouses, categories, suppliers, productsFromDb] =
                 await Promise.all([
-                    this.fetchApi("warehouse", "GET", this.token, {}),
-                    this.fetchApi("category", "GET", this.token, {}),
-                    this.fetchApi("supplier", "GET", this.token, {}),
-                    this.fetchApi("product", "GET", this.token, {}),
+                    fetchApi("warehouse", "GET", this.token, {}),
+                    fetchApi("category", "GET", this.token, {}),
+                    fetchApi("supplier", "GET", this.token, {}),
+                    fetchApi("product", "GET", this.token, {}),
                 ]);
 
             // 2. Строим маппинги
@@ -1214,7 +1200,7 @@ class sincExcel {
 
             for (const [index, product] of productsToCreate.entries()) {
                 try {
-                    await this.fetchApi("product", "POST", this.token, product);
+                    await fetchApi("product", "POST", this.token, product);
 
                     processed++;
                     const progress = Math.round((processed / total) * 100);
@@ -1270,7 +1256,7 @@ class sincExcel {
         console.log("--- Запуск обновления ProductType ---");
 
         // 1. Получаем все продукты из базы
-        const products: IProduct[] = await this.fetchApi(
+        const products: IProduct[] = await fetchApi(
             "product",
             "GET",
             this.token,
@@ -1312,7 +1298,7 @@ class sincExcel {
             }
 
             try {
-                const response = await this.fetchApi(
+                const response = await fetchApi(
                     `product/${item._id}`,
                     "PATCH",
                     this.token,
@@ -1355,11 +1341,13 @@ class sincExcel {
         )
     }
 
+
     public Main = async () => {
         try {
             await this.init();
+            await this.syncSupplier();
             await this.syncCategory();
-            await this.compareAndCreateProducts();
+            await this.syncProducts();
             // await this.setProductType();
             // await this.addSuppliers()
             // await this.addCustomers()

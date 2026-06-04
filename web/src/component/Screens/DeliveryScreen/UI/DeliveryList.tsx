@@ -51,11 +51,44 @@ export const DeliveryList = () => {
     }
   };
 
-  /** Функция расчета процента выполнения */
+  /** Функция расчета процента выполнения по количеству точек */
   const calculateCompletionPercentage = (delivery: DeliveryDto) => {
     if (!delivery.deliveryItems.length) return 0;
     const completedItems = delivery.deliveryItems.filter(item => item.dTimeFact !== undefined).length;
     return (completedItems / delivery.deliveryItems.length) * 100;
+  };
+
+  /** Функция расчета выполнения по банкам */
+  const getCompletedBanks = (delivery: DeliveryDto) => {
+    const completedItems = delivery.deliveryItems.filter(item => item.dTimeFact !== undefined);
+    const totalBanks = completedItems.reduce((sum, item) => sum + (item.entityCount || 0), 0);
+    return totalBanks;
+  };
+
+  /** Функция расчета выполнения по сумме */
+  const getCompletedSum = (delivery: DeliveryDto) => {
+    const completedItems = delivery.deliveryItems.filter(item => item.dTimeFact !== undefined);
+    const totalSum = completedItems.reduce((sum, item) => sum + (item.summ || 0), 0);
+    return totalSum;
+  };
+
+  /** Функция для получения временного диапазона доставки */
+  const getDeliveryTimeRange = (delivery: DeliveryDto) => {
+    if (!delivery.deliveryItems.length) {
+      return 'Нет данных о времени';
+    }
+    
+    const startTime = new Date(delivery.deliveryDoc.startTime);
+    const startTimeStr = startTime.toLocaleTimeString().slice(0, 5);
+    
+    const latestItem = delivery.deliveryItems.reduce((latest, current) => 
+      current.dTimePlan > latest.dTimePlan ? current : latest
+    );
+    
+    const endTime = new Date(latestItem.dTimePlan);
+    const endTimeStr = endTime.toLocaleTimeString().slice(0, 5);
+    
+    return `${startTimeStr} - ${endTimeStr}`;
   };
 
   /** Компонент прогресс-бара для карточки */
@@ -123,6 +156,10 @@ export const DeliveryList = () => {
         {filteredDeliveries.map((delivery, idx) => {
           const completedCount = delivery.deliveryItems.filter(item => item.dTimeFact !== undefined).length;
           const totalCount = delivery.deliveryItems.length;
+          const completedBanks = getCompletedBanks(delivery);
+          const totalBanks = delivery.deliveryDoc.totalCountEntity;
+          const completedSum = getCompletedSum(delivery);
+          const totalSum = delivery.deliveryDoc.totalSum;
           
           return (
             <li key={idx}>
@@ -130,17 +167,17 @@ export const DeliveryList = () => {
                 <span className={style.CardDate}>
                   Доставка на : <br />
                   {new Date(delivery.deliveryDoc.date).toISOString().split('T')[0]} <br />
-                  {new Date(delivery.deliveryDoc.startTime).toLocaleTimeString().split(':')[0] + 
-                  ':' + new Date(delivery.deliveryDoc.startTime).toLocaleTimeString().split(':')[1]
-                  + ' - ' + new Date(delivery.deliveryItems.reduce((latest, current) => current.dTimePlan > latest.dTimePlan ? current : latest, delivery.deliveryItems[0]).dTimePlan).toLocaleTimeString().split(':')[0] +
-                  ':' + new Date(delivery.deliveryItems.reduce((latest, current) => current.dTimePlan > latest.dTimePlan ? current : latest, delivery.deliveryItems[0]).dTimePlan).toLocaleTimeString().split(':')[1]
-                  } 
+                  {getDeliveryTimeRange(delivery)}
                 </span>
                 <span className={style.CardCountDoc}>
                   Точек: {completedCount} / {totalCount}
                 </span>
-                <span className={style.CardCountEnt}>банок.: {delivery.deliveryDoc.totalCountEntity}</span>
-                <span className={style.CardSum}>Сумма: {delivery.deliveryDoc.totalSum}</span>
+                <span className={style.CardCountEnt}>
+                  Банок: {completedBanks} / {totalBanks}
+                </span>
+                <span className={style.CardSum}>
+                  Сумма: {completedSum} / {totalSum}
+                </span>
                 <span className={style.CardTools}>
                   <Icon
                     className={style.IconDel}

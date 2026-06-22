@@ -1,9 +1,9 @@
 // HeaderForm.tsx
 import styles from './HeaderForm.module.css';
 import { Field } from './Field';
-import type { DocAndItemsDto, DocIncomingDto, DocOrderOutDto, DocOutgoingDto, DocTransferDto } from '@warehouse/interfaces/DTO';
+import type { DocAndItemsDto, DocIncomingDto, DocOrderOutDto, DocTransferDto } from '@warehouse/interfaces/DTO';
 import { EntitySelectModal } from '../../../../SelectModals';
-import { DocStatusInMap, DocStatusOutMap, DocTypeMap, type DocStatusInName, type DocStatusOutName, type DocTypeName } from '@warehouse/config';
+import { DocStatusInMap, DocTypeMap, type DocStatusInName, type DocTypeName } from '@warehouse/config';
 import { TextField } from '../../../../../shared/TextFields';
 import { StatusIcon } from '../../StatusIcon';
 import type { IAddress, ICustomer } from '@warehouse/interfaces';
@@ -33,10 +33,10 @@ export const HeaderForm = ({
         setAddresses(response);
         const addressMain = response.find(addr => addr.main === true) || response[0];
         setSelectedAddress(addressMain);
-        if (doc.docType === 'OrderOut' || doc.docType === 'Outgoing') {
+        if (doc.docType === 'OrderOut') {
             setDocAndItems({
                 doc: {
-                    ...doc, 
+                    ...doc,
                     customerId: { _id: customer._id, name: customer.name } as any,
                     addressId: addressMain
                 },
@@ -47,7 +47,7 @@ export const HeaderForm = ({
 
     useEffect(() => {
         const fetchAddress = async () => {
-            if (doc.docType === 'OrderOut' || doc.docType === 'Outgoing') {
+            if (doc.docType === 'OrderOut') {
                 if (doc.customerId) {
                     const response: IAddress[] = await fetchApi(`address/${doc.customerId._id}`, 'GET');
                     setAddresses(response);
@@ -68,9 +68,6 @@ export const HeaderForm = ({
         switch (val) {
             case 'Incoming':
                 setDocAndItems({ doc: { ...doc, docType: 'Incoming' } as DocIncomingDto, items });
-                break;
-            case 'Outgoing':
-                setDocAndItems({ doc: { ...doc, docType: 'Outgoing' } as DocOutgoingDto, items });
                 break;
             case 'OrderOut':
                 setDocAndItems({ doc: { ...doc, docType: 'OrderOut' } as DocOrderOutDto, items });
@@ -141,31 +138,6 @@ export const HeaderForm = ({
                     </>
                 );
 
-            case 'Outgoing':
-                return (
-                    <>
-                        <Field
-                            label="Статус"
-                            value={
-                                isEditing ? doc.docStatus : DocStatusOutMap[doc.docStatus as DocStatusOutName].nameRus
-                            }
-                            editable={isEditing}
-                            onChange={(val) => setDocAndItems({ doc: { ...doc, docStatus: val as DocStatusOutName }, items })}
-                            options={Object.keys(DocStatusOutMap).map((key) => ({
-                                label: DocStatusOutMap[key as DocStatusOutName].name,
-                                value: key,
-                            }))}
-                        />
-                        <EntitySelectModal
-                            endpoint="customer"
-                            selectedItem={doc.customerId?._id ? doc.customerId : null}
-                            onSelect={(item) => setDocAndItems({ doc: { ...doc, customerId: { _id: item._id, name: item.name } as any }, items })}
-                            modalTitle="Выберите клиента"
-                            buttonText={doc.customerId?.name || 'Выберите клиента'}
-                        />
-                    </>
-                );
-
             case 'Incoming':
                 return (
                     <>
@@ -230,7 +202,7 @@ export const HeaderForm = ({
                         value={isEditing ? doc.docType : DocTypeMap[doc.docType].nameRus}
                         editable={isEditing}
                         onChange={(val) => handleChange(val as DocTypeName)}
-                        options={Object.keys(DocTypeMap).map((key) => ({
+                        options={Object.keys(DocTypeMap).filter((key) => key !== 'Outgoing').map((key) => ({
                             label: DocTypeMap[key as DocTypeName].nameRus,
                             value: key,
                         }))}

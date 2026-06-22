@@ -8,7 +8,7 @@ import {
   useRevalidator,
   useSearchParams,
 } from 'react-router-dom';
-import { DocStatusInMap, DocStatusOutMap, DocTypeMap, THEME, DocStatusOrderMap } from '@warehouse/config';
+import { DocStatusInMap, DocTypeMap, THEME, DocStatusOrderMap } from '@warehouse/config';
 import type { DocDto } from '@warehouse/interfaces/DTO';
 import { StatusIcon } from '../../StatusIcon';
 import { Button } from '../../../../../shared/Button';
@@ -60,7 +60,7 @@ export interface LoaderData {
         <div>
           {/* Фильтр по типу документа */}
           <div className={styles.navBar}>
-            {Object.keys(DocTypeMap).map((type) => (
+            {Object.keys(DocTypeMap).filter((type) => type !== 'Outgoing').map((type) => (
               <div
                 key={type}
                 className={styles.navItem + ' ' + (selectedDocType === type ? styles.active : '')}
@@ -99,29 +99,6 @@ export interface LoaderData {
               ))}
             </div>
           )}
-          {/* Фильтр по статусам расхода если docType === 'Outgoing' */}
-          {selectedDocType === 'Outgoing' && (
-            <div className={styles.navBar}>
-              {Object.keys(DocStatusOutMap).map((status) => (
-              <div
-                key={status}
-                className={styles.navItem + ' ' + (selectedStatus === status ? styles.active : '')}
-                onClick={() => updateFilters({ docStatus: selectedStatus === status ? null : status })}
-              >
-                <Icon
-                  size={24}
-                  key={status}
-                  name={DocStatusOutMap[status as keyof typeof DocStatusOutMap].icon}
-                  color={DocStatusOutMap[status as keyof typeof DocStatusOutMap].color}
-                  className={styles.navItem + ` ${selectedStatus === status ? styles.chipSelected : ''}`}
-                />
-                <span className={styles.label}>{DocStatusOutMap[status as keyof typeof DocStatusOutMap].nameRus}</span>
-              </div>
-              ))}
-
-            </div>
-          )}
-
           {/* Фильтр по статусам прихода если docType === 'Incoming' */}
           {selectedDocType === 'Incoming' && (
             <div className={styles.navBar}>
@@ -217,7 +194,7 @@ export default () => {
     if (search) {
       const query = search.toLowerCase();
       const customerMatch =
-        (item.docType === 'Outgoing' || item.docType === 'OrderOut') && item.customerId?.name.toLowerCase().includes(query);
+        item.docType === 'OrderOut' && item.customerId?.name.toLowerCase().includes(query);
       const supplierMatch =
         item.docType === 'Incoming' && item.supplierId?.name.toLowerCase().includes(query);
       if (!customerMatch && !supplierMatch) return false;
@@ -254,10 +231,10 @@ export default () => {
         <span
           className={styles.subtitle}
           style={{
-            color: item.docType === 'Outgoing' ? '#008000' : '#ff0000',
+            color: DocTypeMap[item.docType as keyof typeof DocTypeMap]?.color ?? '#333',
           }}
         >
-          {DocTypeMap[item.docType].nameRus}
+          {DocTypeMap[item.docType as keyof typeof DocTypeMap]?.nameRus ?? item.docType}
         </span>
         <span className={styles.subtitle}>
           Дата: {new Date(item.docDate).toLocaleDateString()}
@@ -269,7 +246,7 @@ export default () => {
           <span className={styles.subtitle}>Поставщик: {item.supplierId?.name}</span>
         </div>
       )}
-      {(item.docType === 'Outgoing' || item.docType === 'OrderOut') && (
+      {item.docType === 'OrderOut' && (
         <div className={styles.content}>
           <span className={styles.subtitle}>Клиент: <strong>{item.customerId?.name}</strong></span>
           <div>

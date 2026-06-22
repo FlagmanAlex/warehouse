@@ -6,7 +6,6 @@ import type { DocDto, DocIncomingDto, DocItemDto, DocOrderInDto, DocOrderOutDto,
 
 // DTO -> Domain
 export const dtoToDoc = (dto: DocDto): IDoc => {
-  console.log('dtoToDoc', dto);
   const base = {
     _id: dto._id,
     orderNum: dto.orderNum,
@@ -87,4 +86,5 @@ export const dtoItemToDocItem = (dto: DocItemDto): IDocItem => ({
   unitPrice: dto.unitPrice,
   description: dto.description,
   bonusStock: dto.bonusStock,
+  expirationDate: dto.expirationDate ? new Date(dto.expirationDate) : undefined,
 });

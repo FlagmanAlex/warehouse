@@ -112,6 +112,7 @@ const DocForm = () => {
                 <EditableItem
                   key={item._id}
                   docItem={item}
+                  docType={formData.doc.docType}
                   onUpdate={(updated) =>
                     setFormData(prev => ({
                       ...prev,

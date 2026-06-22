@@ -134,6 +134,76 @@ export class StatusService {
         newStatusName: DocStatusName,
         userId: string
     ) {
+        const from = doc.docStatus as DocStatusInName;
+        const to = newStatusName as DocStatusInName;
+
+        // * → Delivered: создаём партии, инвентарь, транзакции
+        if (to === 'Delivered') {
+            const items = await DocItemsModel.find({ docId: doc._id });
+            const warehouseId = doc.warehouseId.toString();
+
+            for (const item of items) {
+                const batch = await BatchModel.create({
+                    productId: item.productId,
+                    supplierId: doc.supplierId ?? undefined,
+                    purchasePrice: item.unitPrice,
+                    expirationDate: item.expirationDate ?? new Date('2099-12-31'),
+                    warehouseId: doc.warehouseId,
+                    quantityReceived: item.quantity,
+                    receiptDate: new Date(),
+                });
+
+                await InventoryService.create(
+                    batch._id.toString(),
+                    warehouseId,
+                    item.quantity
+                );
+
+                await TransactionModel.create({
+                    transactionType: 'Приход',
+                    docId: doc._id,
+                    productId: item.productId,
+                    warehouseId: doc.warehouseId,
+                    batchId: batch._id,
+                    userId,
+                    previousQuantity: 0,
+                    changedQuantity: item.quantity,
+                    transactionDate: new Date(),
+                });
+
+                await DocItemsModel.updateOne(
+                    { _id: item._id },
+                    { batchId: batch._id }
+                );
+            }
+        }
+
+        // * → Canceled (was Delivered): откатываем приход
+        if (to === 'Canceled' && from === 'Delivered') {
+            const transactions = await TransactionModel.find({
+                docId: doc._id,
+                transactionType: 'Приход',
+            });
+
+            for (const tx of transactions) {
+                await InventoryModel.updateOne(
+                    { batchId: tx.batchId, warehouseId: tx.warehouseId },
+                    { $inc: { quantityAvailable: -tx.changedQuantity } }
+                );
+            }
+
+            const batchIds = transactions.map((tx) => tx.batchId).filter(Boolean);
+            if (batchIds.length > 0) {
+                await BatchModel.deleteMany({ _id: { $in: batchIds } });
+                await InventoryModel.deleteMany({ batchId: { $in: batchIds } });
+            }
+
+            await TransactionModel.deleteMany({
+                docId: doc._id,
+                transactionType: 'Приход',
+            });
+        }
+
         doc.docStatus = newStatusName;
     }
 

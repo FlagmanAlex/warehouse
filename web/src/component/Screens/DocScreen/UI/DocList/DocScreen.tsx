@@ -131,7 +131,7 @@ export interface LoaderData {
           </div>
 
           {/* Кнопка создания */}
-          {(selectedDocType === 'OrderOut' || selectedDocType === 'OrderIn') && (
+          {(selectedDocType === 'OrderOut' || selectedDocType === 'OrderIn' || selectedDocType === 'Incoming') && (
             <Button
               // className={styles.addButton}
               bgColor={THEME.button.add}

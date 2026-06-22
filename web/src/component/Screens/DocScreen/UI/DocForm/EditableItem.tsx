@@ -6,15 +6,19 @@ import { Icon } from "../../../../../shared/Icon";
 
 interface EditableItemProps {
   docItem: DocItemDto;
+  docType: string;
   onUpdate: (item: DocItemDto) => void;
   onDelete: (item: DocItemDto) => void;
 }
 
-const EditableItem = ({ docItem, onUpdate, onDelete }: EditableItemProps) => {
+const EditableItem = ({ docItem, docType, onUpdate, onDelete }: EditableItemProps) => {
   const [quantity, setQuantity] = useState(docItem.quantity.toString());
   const [price, setPrice] = useState<string>(docItem.unitPrice.toString());
   const [bonusStock, setBonusStock] = useState<string>(
     docItem.bonusStock?.toString() || ''
+  );
+  const [expirationDate, setExpirationDate] = useState<string>(
+    docItem.expirationDate || ''
   );
 
   useEffect(() => {
@@ -23,9 +27,10 @@ const EditableItem = ({ docItem, onUpdate, onDelete }: EditableItemProps) => {
       quantity: parseFloat(quantity) || 0,
       unitPrice: price ? parseFloat(price) : 0,
       bonusStock: bonusStock ? parseFloat(bonusStock) : 0,
+      expirationDate: expirationDate || undefined,
     };
     onUpdate(updatedItem);
-  }, [quantity, price, bonusStock]);
+  }, [quantity, price, bonusStock, expirationDate]);
 
   const handleNumberChange = (value: string, setter: React.Dispatch<React.SetStateAction<string>>) => {
     // Разрешаем только цифры, точку и минус (для отрицательных)
@@ -79,6 +84,15 @@ const EditableItem = ({ docItem, onUpdate, onDelete }: EditableItemProps) => {
           {isNaN(total) ? '—' : total.toLocaleString()} ₽
         </div>
       </div>
+      {docType === 'Incoming' && (
+        <input
+          type="date"
+          className={styles.editInput}
+          value={expirationDate}
+          onChange={(e) => setExpirationDate(e.target.value)}
+          placeholder="Срок годности"
+        />
+      )}
     </div>
   );
 };

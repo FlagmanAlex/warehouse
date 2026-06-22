@@ -3,7 +3,7 @@ import styles from './HeaderForm.module.css';
 import { Field } from './Field';
 import type { DocAndItemsDto, DocIncomingDto, DocOrderOutDto, DocTransferDto } from '@warehouse/interfaces/DTO';
 import { EntitySelectModal } from '../../../../SelectModals';
-import { DocStatusInMap, DocTypeMap, type DocStatusInName, type DocTypeName } from '@warehouse/config';
+import { DocTypeMap, type DocTypeName } from '@warehouse/config';
 import { TextField } from '../../../../../shared/TextFields';
 import { StatusIcon } from '../../StatusIcon';
 import type { IAddress, ICustomer } from '@warehouse/interfaces';
@@ -141,19 +141,30 @@ export const HeaderForm = ({
             case 'Incoming':
                 return (
                     <>
-                        <Field
-                            label="Статус"
-                            value={
-                                isEditing ? doc.docStatus : DocStatusInMap[doc.docStatus as DocStatusInName].nameRus
+                        <EntitySelectModal
+                            endpoint="supplier"
+                            selectedItem={(doc as DocIncomingDto).supplierId?._id ? (doc as DocIncomingDto).supplierId as any : null}
+                            onSelect={(item) =>
+                                setDocAndItems({
+                                    doc: { ...doc, supplierId: { _id: item._id, name: item.name } } as DocIncomingDto,
+                                    items,
+                                })
                             }
-                            editable={isEditing}
-                            onChange={(val) => setDocAndItems({ doc: { ...doc, docStatus: val as DocStatusInName }, items })}
-                            options={Object.keys(DocStatusInMap).map((key) => ({
-                                label: DocStatusInMap[key as DocStatusInName].name,
-                                value: key,
-                            }))}
+                            modalTitle="Выберите поставщика"
+                            buttonText={(doc as DocIncomingDto).supplierId?.name || 'Выберите поставщика'}
                         />
-                        <Field label="Поставщик" value={doc.supplierId?.name} editable={false} />
+                        <EntitySelectModal
+                            endpoint="warehouse"
+                            selectedItem={(doc as DocIncomingDto).warehouseId?._id ? (doc as DocIncomingDto).warehouseId as any : null}
+                            onSelect={(item) =>
+                                setDocAndItems({
+                                    doc: { ...doc, warehouseId: { _id: item._id, name: item.name } } as DocIncomingDto,
+                                    items,
+                                })
+                            }
+                            modalTitle="Выберите склад"
+                            buttonText={(doc as DocIncomingDto).warehouseId?.name || 'Выберите склад'}
+                        />
                     </>
                 );
 

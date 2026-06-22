@@ -8,8 +8,9 @@ interface CategoryIdDto extends ICategory {}
 interface ProductIdDto extends Omit<IProduct, 'categoryId'> {
     categoryId: CategoryIdDto
 }
-export interface DocItemDto extends Omit<IDocItem, 'productId'> {
+export interface DocItemDto extends Omit<IDocItem, 'productId' | 'expirationDate'> {
     productId: ProductIdDto
+    expirationDate?: string
 }
 
 export interface DocOrderInDto extends Omit<IDocOrderIn, 'supplierId' | 'userId' | 'createdAt' | 'updatedAt' | 'docType' | 'warehouseId'> {

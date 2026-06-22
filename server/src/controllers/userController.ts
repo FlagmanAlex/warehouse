@@ -8,7 +8,8 @@ import { UserModel } from '@models';
 import { IUser } from '@warehouse/interfaces';
 import { ResponseUserDto } from '@warehouse/interfaces/DTO';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) throw new Error('JWT_SECRET не задан в переменных окружения');
 
 interface AuthRequest extends Request {
   body: {
@@ -33,7 +34,8 @@ export const userController = {
   // Регистрация нового пользователя
   async register(req: CreateUserRequest, res: Response) {
     try {
-      const { username, email, password, role = 'user' } = req.body;
+      const { username, email, password } = req.body;
+      const role = 'user';
 
       // Валидация
       if (!username || !email || !password) {

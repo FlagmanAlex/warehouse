@@ -1,10 +1,10 @@
 import express from 'express';
 import { DocItemsController } from '@controllers';
 
-export const docItemssRouter = express.Router();
+export const docItemsRouter = express.Router();
 
 // Добавление элемента в заказ
-docItemssRouter.post('/', DocItemsController.addItem);
+docItemsRouter.post('/', DocItemsController.addItem);
 
 // Удаление элемента из заказа
-docItemssRouter.delete('/:id', DocItemsController.removeItem);
+docItemsRouter.delete('/:id', DocItemsController.removeItem);

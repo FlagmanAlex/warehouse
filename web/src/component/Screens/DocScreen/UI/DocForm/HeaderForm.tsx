@@ -1,7 +1,7 @@
 // HeaderForm.tsx
 import styles from './HeaderForm.module.css';
 import { Field } from './Field';
-import type { DocAndItemsDto, DocIncomingDto, DocOrderOutDto, DocTransferDto } from '@warehouse/interfaces/DTO';
+import type { DocAndItemsDto, DocIncomingDto, DocOrderInDto, DocOrderOutDto, DocTransferDto } from '@warehouse/interfaces/DTO';
 import { EntitySelectModal } from '../../../../SelectModals';
 import { DocTypeMap, type DocTypeName } from '@warehouse/config';
 import { TextField } from '../../../../../shared/TextFields';
@@ -69,6 +69,9 @@ export const HeaderForm = ({
             case 'Incoming':
                 setDocAndItems({ doc: { ...doc, docType: 'Incoming' } as DocIncomingDto, items });
                 break;
+            case 'OrderIn':
+                setDocAndItems({ doc: { ...doc, docType: 'OrderIn' } as DocOrderInDto, items });
+                break;
             case 'OrderOut':
                 setDocAndItems({ doc: { ...doc, docType: 'OrderOut' } as DocOrderOutDto, items });
                 break;
@@ -135,6 +138,40 @@ export const HeaderForm = ({
                                 </option>
                             ))}
                         </select>
+                    </>
+                );
+
+            case 'OrderIn':
+                return (
+                    <>
+                        <Field
+                            label="Приоритет"
+                            value={isEditing ? doc.priority : doc.priority}
+                            editable={isEditing}
+                            onChange={(val) =>
+                                setDocAndItems({
+                                    doc: { ...doc, priority: val as 'Low' | 'Medium' | 'High' },
+                                    items,
+                                })
+                            }
+                            options={[
+                                { label: 'Низкий', value: 'Low' },
+                                { label: 'Средний', value: 'Medium' },
+                                { label: 'Высокий', value: 'High' },
+                            ]}
+                        />
+                        <EntitySelectModal
+                            endpoint="supplier"
+                            selectedItem={(doc as DocOrderInDto).supplierId?._id ? (doc as DocOrderInDto).supplierId as any : null}
+                            onSelect={(item) =>
+                                setDocAndItems({
+                                    doc: { ...doc, supplierId: { _id: item._id, name: item.name } } as DocOrderInDto,
+                                    items,
+                                })
+                            }
+                            modalTitle="Выберите поставщика"
+                            buttonText={(doc as DocOrderInDto).supplierId?.name || 'Выберите поставщика'}
+                        />
                     </>
                 );
 

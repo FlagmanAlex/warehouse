@@ -1,7 +1,7 @@
 // controllers/DocController.ts
 import { Request, Response } from 'express';
 import { DocModel, DocItemsModel, DocNumModel, IDocModel } from '@models';
-import { DocItemService, StatusService } from '@services';
+import { DocItemService, StatusService, DocService } from '@services';
 import { IDoc, IDocItem } from '@warehouse/interfaces';
 import { DocStatusName } from '@warehouse/config';
 
@@ -11,8 +11,6 @@ export class DocController {
     // === Создание документа (только черновик) ===
     static async createDoc(req: Request<{}, {}, { doc: IDoc, items: any[] }>, res: Response) {
         const { doc, items } = req.body;
-        console.log("doc", doc);
-
 
         const cleanItems = items.map((item) => {
             const { _id, ...rest } = item;
@@ -51,7 +49,7 @@ export class DocController {
             // Создание позиций
             if (cleanItems.length > 0) {
                 const newItems = cleanItems.map((item) => ({ ...item, docId: newDoc._id }));
-                await newItems.forEach((item) => DocItemService.create(item));
+                await Promise.all(newItems.map((item) => DocItemService.create(item)));
                 res.status(201).json({ doc: newDoc, items: newItems });
             } else {
                 res.status(201).json({ doc: newDoc, items: [] });
@@ -60,8 +58,6 @@ export class DocController {
 
         } catch (error: any) {
             console.error('Ошибка при создании документа:', error);
-            console.log(doc, items);
-
             res.status(500).json({ error: error.message });
         }
     }
@@ -97,7 +93,7 @@ export class DocController {
                  * Можно использовать Promise.all, но в данном случае лучше использовать
                  * forEach, чтобы обрабатывать каждую позицию в цикле.
                  */
-                itemsWithDocId.forEach((item) => { DocItemService.create(item) });
+                await Promise.all(itemsWithDocId.map((item) => DocItemService.create(item)));
                 // console.log('Позиции добавлены в базу:', itemsWithDocId);
 
 
@@ -219,93 +215,7 @@ export class DocController {
     static async getDocsByStatus(req: Request, res: Response) {
         try {
             const { status } = req.params;
-
-            // Найдём все документы с заданным статусом и типом OrderOut (если нужно)
-            const docs = await DocModel.find({
-                docStatus: status,
-                docType: 'OrderOut' // раскомментируйте, если нужно фильтровать по типу
-            })
-                .populate('customerId') // только имя клиента
-                .lean(); // для производительности
-                
-                if (!docs.length) {
-                    return res.json([]);
-                }
-                
-                // Получаем все docId
-                const docIds = docs.map(doc => doc._id);
-                
-                // Получаем все DocItems для этих документов
-                const docItems = await DocItemsModel.find({ docId: { $in: docIds } })
-                .populate({
-                    path: 'productId',
-                    populate: {
-                        path: 'categoryId',
-                    }
-                })
-                .lean();
-
-            // Маппинг: docId -> массив позиций
-            const itemsByDocId = docItems.reduce((acc, item) => {
-                if (!acc[item.docId.toString()]) {
-                    acc[item.docId.toString()] = [];
-                }
-                acc[item.docId.toString()].push(item);
-                return acc;
-            }, {} as Record<string, typeof docItems>);
-
-            // Группируем документы по customerId
-            const groupedByCustomer = docs.reduce((acc, doc) => {
-                const customerId = doc.customerId?._id?.toString() || 'unknown';
-                const customerName = (doc.customerId as any)?.name || 'Не указан';
-
-                if (!acc[customerId]) {
-                    acc[customerId] = {
-                        customerId,
-                        customerName,
-                        docs: [],
-                        totalPositions: 0,
-                        totalBonus: 0,
-                        totalSum: 0,
-                    };
-                }
-
-                // Получаем позиции для этого документа
-                const items = itemsByDocId[doc._id.toString()] || [];
-
-                // Считаем сумму и количество для документа
-                let docTotalSum = 0;
-                let docTotalBonus = 0;
-                let docTotalQty = 0;
-                for (const item of items) {
-                    const qty = item.quantity || 0;
-                    const bonus = item.bonusStock || 0;
-                    const price = item.unitPrice || 0;
-                    docTotalSum += qty * price;
-                    docTotalBonus += qty * bonus;
-                    docTotalQty += qty;
-                }
-
-                // Добавляем документ в группу
-                acc[customerId].docs.push({
-                    ...doc,
-                    items, // добавляем позиции
-                    docTotalQty,
-                    docTotalBonus,
-                    docTotalSum,
-                });
-
-                // Обновляем итоги по клиенту
-                acc[customerId].totalPositions += docTotalQty;
-                acc[customerId].totalBonus += docTotalBonus;
-                acc[customerId].totalSum += docTotalSum;
-
-                return acc;
-            }, {} as Record<string, any>);
-
-            // Преобразуем объект в массив
-            const result = Object.values(groupedByCustomer);
-
+            const result = await DocService.getByStatus(status);
             res.json(result);
         } catch (error: any) {
             console.error('Ошибка при получении документов по статусу:', error);

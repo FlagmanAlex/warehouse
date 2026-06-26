@@ -1,27 +1,16 @@
 import express from 'express';
 import { productController } from '@controllers';
-import { body } from 'express-validator';
-import { adminMiddleware, authMiddleware } from '@middlewares';
+import { adminMiddleware } from '@middlewares';
+import { productValidators, handleValidationErrors } from '@middlewares';
 
 export const productRouter = express.Router();
 
-// Создание товара
-productRouter.post('/', productController.createProduct);
-
-// Получение списка товаров (с фильтрами и пагинацией)
-productRouter.get('/', productController.getProducts);
-
-// Получение товара по ID
-productRouter.get('/:id', productController.getProductById);
-
-// Обновление товара
-productRouter.patch('/:id', productController.updateProduct);
-
-// Архивирование товара
-productRouter.patch('/:id/archive', adminMiddleware, productController.archiveProduct);
-
-// Поиск товаров по названию
+// Статические маршруты — до параметрических
 productRouter.get('/search', productController.searchProducts);
-
-// Получение товаров поставщика
 productRouter.get('/supplier/:supplierId', productController.getSupplierProducts);
+
+productRouter.get('/', productController.getProducts);
+productRouter.post('/', productValidators, handleValidationErrors, productController.createProduct);
+productRouter.get('/:id', productController.getProductById);
+productRouter.patch('/:id/archive', adminMiddleware, productController.archiveProduct);
+productRouter.patch('/:id', productController.updateProduct);

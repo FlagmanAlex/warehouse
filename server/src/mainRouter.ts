@@ -9,7 +9,7 @@ import {
     customerRouter, 
     inventoryRouter, 
     docRouter, 
-    docItemssRouter, 
+    docItemsRouter, 
     priceHistoryRouter, 
     supplierRouter, 
     transactionRouter,
@@ -30,7 +30,7 @@ mainRouter.use('/batch', authMiddleware, batchRouter);
 mainRouter.use('/customer', authMiddleware, customerRouter);
 mainRouter.use('/inventory', authMiddleware, inventoryRouter);
 mainRouter.use('/doc', authMiddleware, docRouter);
-mainRouter.use('/doc-items', authMiddleware, docItemssRouter);
+mainRouter.use('/doc-items', authMiddleware, docItemsRouter);
 mainRouter.use('/price-history', authMiddleware, priceHistoryRouter);
 mainRouter.use('/supplier', authMiddleware, supplierRouter);
 mainRouter.use('/transaction', authMiddleware, transactionRouter);

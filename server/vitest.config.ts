@@ -1,7 +1,9 @@
 // vitest.config.ts
 import { defineConfig } from "vitest/config";
+import { resolve } from "path";
 
-// https://vitejs.dev/config/
+const r = (p: string) => resolve(__dirname, p);
+
 export default defineConfig({
     test: {
         include: ["**/*.{test,spec}.{ts,tsx}"],
@@ -17,12 +19,16 @@ export default defineConfig({
     },
     resolve: {
         alias: {
-            "@models": "./src/models",
-            "@services": "./src/services",
-            "@utils": "./src/utils",
-            "@interfaces": "../interfaces",
-            "@controllers": "./src/controllers",
-            "@routes": "./src/routes",
+            "@models": r("./src/models"),
+            "@services": r("./src/services"),
+            "@utils": r("./src/utils"),
+            "@interfaces": r("../interfaces"),
+            "@controllers": r("./src/controllers"),
+            "@routes": r("./src/routes"),
+            "@middlewares": r("./src/middlewares"),
+            "@warehouse/config": r("../config"),
+            "@warehouse/interfaces": r("../interfaces"),
+            "@warehouse/interfaces/DTO": r("../interfaces/DTO"),
         },
     }
 });

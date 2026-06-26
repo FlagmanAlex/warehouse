@@ -1,12 +1,11 @@
 // src/api/mappers/docMappers.ts
 
-import type { IDoc, IDocIncoming, IDocItem, IDocOrderOut, IDocOutgoing, IDocTransfer } from "@warehouse/interfaces";
+import type { IDoc, IDocIncoming, IDocItem, IDocOrderIn, IDocOrderOut, IDocOutgoing, IDocTransfer } from "@warehouse/interfaces";
 import type { DocDto, DocIncomingDto, DocItemDto, DocOrderInDto, DocOrderOutDto, DocOutgoingDto, DocTransferDto } from "@warehouse/interfaces/DTO";
 
 
 // DTO -> Domain
 export const dtoToDoc = (dto: DocDto): IDoc => {
-  console.log('dtoToDoc', dto);
   const base = {
     _id: dto._id,
     orderNum: dto.orderNum,
@@ -26,10 +25,10 @@ export const dtoToDoc = (dto: DocDto): IDoc => {
       const orderDto = dto as DocOrderInDto;
       return {
         ...base,
-        customerId: orderDto.supplierId?._id || '',
+        supplierId: orderDto.supplierId?._id || '',
         priority: orderDto.priority,
         expenses: orderDto.expenses,
-      } as IDocOrderOut;
+      } as IDocOrderIn;
     }
     case 'OrderOut': {
       const orderDto = dto as DocOrderOutDto;
@@ -87,4 +86,5 @@ export const dtoItemToDocItem = (dto: DocItemDto): IDocItem => ({
   unitPrice: dto.unitPrice,
   description: dto.description,
   bonusStock: dto.bonusStock,
+  expirationDate: dto.expirationDate ? new Date(dto.expirationDate) : undefined,
 });

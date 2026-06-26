@@ -126,8 +126,6 @@ export class StatusService {
         newStatusName: DocStatusName,
         userId: string
     ) {
-        console.log("handleOutgoingStatusChange", doc, newStatusName, userId);
-        // Логика обработки изменения статуса для исходящих документов
         doc.docStatus = newStatusName;
     }
 
@@ -136,8 +134,76 @@ export class StatusService {
         newStatusName: DocStatusName,
         userId: string
     ) {
-        console.log("handleIncomingStatusChange", doc, newStatusName, userId);
-        // Логика обработки изменения статуса для входящих документов
+        const from = doc.docStatus as DocStatusInName;
+        const to = newStatusName as DocStatusInName;
+
+        // * → Delivered: создаём партии, инвентарь, транзакции
+        if (to === 'Delivered') {
+            const items = await DocItemsModel.find({ docId: doc._id });
+            const warehouseId = doc.warehouseId.toString();
+
+            for (const item of items) {
+                const batch = await BatchModel.create({
+                    productId: item.productId,
+                    supplierId: doc.supplierId ?? undefined,
+                    purchasePrice: item.unitPrice,
+                    expirationDate: item.expirationDate ?? new Date('2099-12-31'),
+                    warehouseId: doc.warehouseId,
+                    quantityReceived: item.quantity,
+                    receiptDate: new Date(),
+                });
+
+                await InventoryService.create(
+                    batch._id.toString(),
+                    warehouseId,
+                    item.quantity
+                );
+
+                await TransactionModel.create({
+                    transactionType: 'Приход',
+                    docId: doc._id,
+                    productId: item.productId,
+                    warehouseId: doc.warehouseId,
+                    batchId: batch._id,
+                    userId,
+                    previousQuantity: 0,
+                    changedQuantity: item.quantity,
+                    transactionDate: new Date(),
+                });
+
+                await DocItemsModel.updateOne(
+                    { _id: item._id },
+                    { batchId: batch._id }
+                );
+            }
+        }
+
+        // * → Canceled (was Delivered): откатываем приход
+        if (to === 'Canceled' && from === 'Delivered') {
+            const transactions = await TransactionModel.find({
+                docId: doc._id,
+                transactionType: 'Приход',
+            });
+
+            for (const tx of transactions) {
+                await InventoryModel.updateOne(
+                    { batchId: tx.batchId, warehouseId: tx.warehouseId },
+                    { $inc: { quantityAvailable: -tx.changedQuantity } }
+                );
+            }
+
+            const batchIds = transactions.map((tx) => tx.batchId).filter(Boolean);
+            if (batchIds.length > 0) {
+                await BatchModel.deleteMany({ _id: { $in: batchIds } });
+                await InventoryModel.deleteMany({ batchId: { $in: batchIds } });
+            }
+
+            await TransactionModel.deleteMany({
+                docId: doc._id,
+                transactionType: 'Приход',
+            });
+        }
+
         doc.docStatus = newStatusName;
     }
 
@@ -146,8 +212,6 @@ export class StatusService {
         newStatusName: DocStatusName,
         userId: string
     ) {
-        console.log("handleTransferStatusChange", doc, newStatusName, userId);
-        // Логика обработки изменения статуса для переводов документов
         doc.docStatus = newStatusName;
     }
 
@@ -156,8 +220,35 @@ export class StatusService {
         newStatusName: DocStatusName,
         userId: string
     ) {
-        console.log("handleOrderOutStatusChange", doc, newStatusName, userId);
-        // Логика обработки изменения статуса для исходящих заказов
+        const from = doc.docStatus as DocStatusOrderName;
+        const to = newStatusName as DocStatusOrderName;
+
+        // Draft/Canceled → InProgress: резервируем товар
+        if (to === 'InProgress' && (from === 'Draft' || from === 'Canceled')) {
+            await this.reserveOrderItems(doc);
+        }
+
+        // * → Completed: списываем с резерва
+        if (to === 'Completed') {
+            if (from === 'Draft') {
+                // Прямой переход без резервирования — резервируем и сразу списываем
+                await this.reserveOrderItems(doc);
+                await this.writeOffOrderItems(doc, userId);
+            } else if (from === 'InProgress' || from === 'InDelivery') {
+                await this.writeOffOrderItems(doc, userId);
+            }
+        }
+
+        // InProgress/InDelivery → Draft/Canceled: снимаем резерв
+        if ((to === 'Draft' || to === 'Canceled') && (from === 'InProgress' || from === 'InDelivery')) {
+            await this.releaseOrderItems(doc);
+        }
+
+        // Completed → Draft/Canceled: откатываем списание
+        if (from === 'Completed' && (to === 'Draft' || to === 'Canceled')) {
+            await this.reverseOrderItems(doc, userId);
+        }
+
         doc.docStatus = newStatusName;
     }
 
@@ -166,9 +257,147 @@ export class StatusService {
         newStatusName: DocStatusName,
         userId: string
     ) {
-        console.log("handleOrderInStatusChange", doc, newStatusName, userId);
-        // Логика обработки изменения статуса для входящих заказов
         doc.docStatus = newStatusName;
+    }
+
+    // === Резервирование товаров (Draft → InProgress) ===
+    private static async reserveOrderItems(doc: IDocModel): Promise<void> {
+        const items = await DocItemsModel.find({ docId: doc._id });
+        const warehouseId = doc.warehouseId.toString();
+
+        for (const item of items) {
+            const productId = item.productId.toString();
+            const quantity = item.quantity;
+
+            const inventories = await InventoryModel.find({
+                productId,
+                warehouseId,
+                quantityAvailable: { $gt: 0 },
+            }).populate('batchId');
+
+            // FIFO: сначала партии с ближайшим сроком годности
+            (inventories as any[]).sort((a, b) => {
+                const expA = new Date((a.batchId as any)?.expirationDate || 0).getTime();
+                const expB = new Date((b.batchId as any)?.expirationDate || 0).getTime();
+                return expA - expB;
+            });
+
+            const totalAvailable = inventories.reduce((sum, inv) => sum + inv.quantityAvailable, 0);
+            if (totalAvailable < quantity) {
+                throw new Error(
+                    `Недостаточно товара (productId: ${productId}) для резервирования: нужно ${quantity}, доступно ${totalAvailable}`
+                );
+            }
+
+            let remaining = quantity;
+            for (const inv of inventories) {
+                if (remaining <= 0) break;
+                const take = Math.min(inv.quantityAvailable, remaining);
+                inv.quantityAvailable -= take;
+                inv.quantityReserved += take;
+                await inv.save();
+                remaining -= take;
+            }
+        }
+    }
+
+    // === Списание с резерва (InProgress/InDelivery → Completed) ===
+    private static async writeOffOrderItems(doc: IDocModel, userId: string): Promise<void> {
+        const items = await DocItemsModel.find({ docId: doc._id });
+        const warehouseId = doc.warehouseId.toString();
+
+        for (const item of items) {
+            const productId = item.productId.toString();
+            const quantity = item.quantity;
+
+            const inventories = await InventoryModel.find({
+                productId,
+                warehouseId,
+                quantityReserved: { $gt: 0 },
+            }).populate('batchId');
+
+            // FIFO
+            (inventories as any[]).sort((a, b) => {
+                const expA = new Date((a.batchId as any)?.expirationDate || 0).getTime();
+                const expB = new Date((b.batchId as any)?.expirationDate || 0).getTime();
+                return expA - expB;
+            });
+
+            let remaining = quantity;
+            for (const inv of inventories) {
+                if (remaining <= 0) break;
+                const take = Math.min(inv.quantityReserved, remaining);
+                const previousQuantity = inv.quantityReserved;
+
+                inv.quantityReserved -= take;
+                await inv.save();
+
+                await TransactionModel.create({
+                    transactionType: 'Расход',
+                    docId: doc._id,
+                    productId: item.productId,
+                    warehouseId: doc.warehouseId,
+                    batchId: (inv.batchId as any)?._id ?? inv.batchId,
+                    userId,
+                    previousQuantity,
+                    changedQuantity: -take,
+                    transactionDate: new Date(),
+                });
+
+                remaining -= take;
+            }
+        }
+    }
+
+    // === Снятие резерва (→ Draft/Canceled из InProgress/InDelivery) ===
+    private static async releaseOrderItems(doc: IDocModel): Promise<void> {
+        const items = await DocItemsModel.find({ docId: doc._id });
+        const warehouseId = doc.warehouseId.toString();
+
+        for (const item of items) {
+            const productId = item.productId.toString();
+            const quantity = item.quantity;
+
+            const inventories = await InventoryModel.find({
+                productId,
+                warehouseId,
+                quantityReserved: { $gt: 0 },
+            }).populate('batchId');
+
+            // FIFO — снимаем в том же порядке, в котором резервировали
+            (inventories as any[]).sort((a, b) => {
+                const expA = new Date((a.batchId as any)?.expirationDate || 0).getTime();
+                const expB = new Date((b.batchId as any)?.expirationDate || 0).getTime();
+                return expA - expB;
+            });
+
+            let remaining = quantity;
+            for (const inv of inventories) {
+                if (remaining <= 0) break;
+                const take = Math.min(inv.quantityReserved, remaining);
+                inv.quantityReserved -= take;
+                inv.quantityAvailable += take;
+                await inv.save();
+                remaining -= take;
+            }
+        }
+    }
+
+    // === Откат списания (Completed → Draft/Canceled) ===
+    private static async reverseOrderItems(doc: IDocModel, userId: string): Promise<void> {
+        const transactions = await TransactionModel.find({
+            docId: doc._id,
+            transactionType: 'Расход',
+        });
+
+        for (const tx of transactions) {
+            await InventoryModel.updateOne(
+                { batchId: tx.batchId, warehouseId: tx.warehouseId },
+                { $inc: { quantityAvailable: Math.abs(tx.changedQuantity) } }
+            );
+        }
+
+        await TransactionModel.deleteMany({ docId: doc._id, transactionType: 'Расход' });
     }
     static async completeDocIn(docId: string): Promise<IDocModel> {
         const doc: IDocModel | null = await DocModel.findById(docId);
@@ -410,7 +639,7 @@ export class StatusService {
     ): Promise<number> {
         const reservedDocs = await DocModel.find({
             docType: "Outgoing",
-            status: "Reserved",
+            docStatus: "Reserved",
             warehouseId,
         });
 

@@ -1,40 +1,34 @@
-import { TransactionModel } from "@models";
+import { ITransactionModel, TransactionModel } from "@models";
+
+interface CreateTransactionParams {
+    transactionType: 'Приход' | 'Расход' | 'Перемещение' | 'Списание';
+    docId: string;
+    productId: string;
+    warehouseId: string;
+    batchId?: string | null;
+    userId: string;
+    previousQuantity: number;
+    changedQuantity: number;
+}
 
 export class TransactionService {
-    /********************************************
-     * Создать запись транзакции
-     * @param userId - идентификатор пользователя
-     * @param productId - идентификатор продукта
-     * @param quantity - количество
-     ********************************************/
-    static async createOutgoing(userId: string, productId: string, quantity: number) {
+    static async create(params: CreateTransactionParams): Promise<ITransactionModel> {
         const transaction = await TransactionModel.create({
-            userId,
-            productId,
-            quantity,
-            transactionType: 'Outgoing'
+            ...params,
+            transactionDate: new Date(),
         });
-        console.log( 'Создание транзакции расхода', transaction );
+        return transaction;
     }
 
-    /********************************************
-     * Удалить запись транзакции
-     * @param transactionId - идентификатор транзакции
-     ********************************************/
-    static async delete(transactionId: string) {
-        // Логика удаления транзакции
-        console.log( 'Удаление транзакции', transactionId );
-        
+    static async reverseByDocId(docId: string, type: 'Расход' | 'Приход' = 'Расход'): Promise<void> {
+        await TransactionModel.deleteMany({ docId, transactionType: type });
     }
 
-    /********************************************
-     * Получить все транзакции для пользователя
-     * @param userId - идентификатор пользователя
-     * @returns массив транзакций
-     ********************************************/
-    static async getAllForUser(userId: string) {
-        // Логика получения транзакций для пользователя
-        console.log( 'Получение транзакций для пользователя', userId );
-        return [];
+    static async getAllForUser(userId: string): Promise<ITransactionModel[]> {
+        return TransactionModel.find({ userId }).sort({ transactionDate: -1 });
+    }
+
+    static async delete(transactionId: string): Promise<void> {
+        await TransactionModel.findByIdAndDelete(transactionId);
     }
 }

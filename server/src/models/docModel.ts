@@ -38,16 +38,16 @@ const docSchema = new Schema<IDocModel>({
     updatedAt: { type: Date, default: Date.now },
     
     // ✅ Исправлено: обычные функции вместо стрелочных
-    customerId: { 
-        type: Schema.Types.ObjectId, 
-        ref: 'Customer', 
-        required: function() { return this.docType === 'Incoming' } 
+    customerId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Customer',
+        required: function() { return this.docType === 'OrderOut' }
     },
-    
-    supplierId: { 
-        type: Schema.Types.ObjectId, 
-        ref: 'Supplier', 
-        required: function() { return this.docType === 'Outgoing' } 
+
+    supplierId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Supplier',
+        required: function() { return this.docType === 'Incoming' || this.docType === 'OrderIn' }
     },
     
     toWarehouseId: { 

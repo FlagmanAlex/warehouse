@@ -33,6 +33,18 @@ export class DocItemsController {
                 }
             }
 
+            // Для Incoming: просто сохраняем позицию с expirationDate — инвентарь обновляется только при Delivered
+            if (doc.docType === 'Incoming') {
+                const docItem = await DocItemsModel.create({
+                    docId: requestDocItem.docId,
+                    productId: requestDocItem.productId,
+                    quantity: requestDocItem.quantity,
+                    unitPrice: requestDocItem.unitPrice,
+                    expirationDate: requestDocItem.expirationDate,
+                });
+                return res.status(201).json(docItem);
+            }
+
             // Добавляем позицию в таблицу заказов (orderDetails)
             const docItem = await DocItemsModel.create({
                 docId: requestDocItem.docId,
@@ -46,7 +58,7 @@ export class DocItemsController {
             const previousQuantity = await this.getCurrentInventory(requestDocItem.batchId!, doc.warehouseId!);
 
             // Обновляем остатки
-            const quantityChange = requestDocItem.quantity 
+            const quantityChange = requestDocItem.quantity;
             const inventoryUpdateResult = await InventoryModel.updateOne(
                 { batchId: requestDocItem.batchId, warehouseId: doc.warehouseId },
                 { $inc: { quantityAvailable: quantityChange } },
@@ -54,25 +66,23 @@ export class DocItemsController {
             );
 
             if (inventoryUpdateResult.modifiedCount === 0 && inventoryUpdateResult.upsertedCount === 0) {
-                // Если обновление не удалось, откатываем создание позиции
                 await DocItemsModel.deleteOne({ _id: docItem._id });
                 throw new Error('Не удалось обновить остатки на складе');
             }
 
             // Логируем транзакцию
             const transaction = await TransactionModel.create({
-                transactionType:  'Incoming',
+                transactionType: 'Приход',
                 productId: requestDocItem.productId,
                 batchId: requestDocItem.batchId,
                 warehouseId: doc.warehouseId,
-                quantityChange,
+                changedQuantity: quantityChange,
                 previousQuantity,
                 userId: req.userId,
                 docId: requestDocItem.docId
             });
 
             if (!transaction) {
-                // Если создание транзакции не удалось, откатываем обновление остатков и создание позиции
                 await InventoryModel.updateOne(
                     { batchId: requestDocItem.batchId, warehouseId: doc.warehouseId },
                     { $inc: { quantityAvailable: -quantityChange } }

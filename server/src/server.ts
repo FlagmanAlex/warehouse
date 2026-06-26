@@ -2,6 +2,7 @@ import dotenv from 'dotenv'
 import mongoose from 'mongoose'
 import express, { NextFunction, Request, Response } from 'express'
 import cors from 'cors'
+import helmet from 'helmet'
 import morgan from 'morgan'
 import { mainRouter } from './mainRouter.js'
 
@@ -27,7 +28,9 @@ mongoose.connect(BD_TOKEN, { dbName: BD_NAME })
 
 const app = express()
 
-app.use(cors())
+const allowedOrigins = (process.env.CORS_ORIGINS || 'http://localhost:5173,http://localhost:3001').split(',');
+app.use(cors({ origin: allowedOrigins }));
+app.use(helmet());
 app.use(express.json())
 app.use(morgan('dev')); // Логирование HTTP-запросов
 

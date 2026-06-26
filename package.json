@@ -21,7 +21,7 @@
     "web:build": "npm run build --workspace web",
     "import": "cd server && npm run import",
     "sinc": "npm run sinc --workspace sinc",
-    "sinc:build" : "npm run build --workspace sinc",
+    "sinc:build": "npm run build --workspace sinc",
     "restruct": "cd server && npm run restruct",
     "test:server": "npm run test --workspace server",
     "test:web": "npm run test --workspace web",
@@ -38,5 +38,8 @@
   "bugs": {
     "url": "https://github.com/FlagmanAlex/warehouse/issues"
   },
-  "homepage": "https://github.com/FlagmanAlex/warehouse#readme"
+  "homepage": "https://github.com/FlagmanAlex/warehouse#readme",
+  "allowScripts": {
+    "esbuild@0.28.1": true
+  }
 }

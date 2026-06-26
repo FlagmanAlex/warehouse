@@ -9,7 +9,6 @@
     "web": "expo start --web"
   },
   "dependencies": {
-    "@warehouse/interfaces": "*",
     "@react-native-async-storage/async-storage": "2.1.2",
     "@react-native-picker/picker": "2.11.0",
     "@react-navigation/bottom-tabs": "^7.3.14",
@@ -18,10 +17,12 @@
     "@react-navigation/native-stack": "^7.3.17",
     "@react-navigation/stack": "^7.3.3",
     "@reduxjs/toolkit": "^2.8.2",
-    "expo": "~53.0.11",
+    "@warehouse/interfaces": "*",
+    "exceljs": "3.4.0",
+    "expo": "^56.0.12",
     "expo-status-bar": "~2.2.3",
     "react": "19.0.0",
-    "react-native": "0.79.3",
+    "react-native": "^0.86.0",
     "react-native-element-dropdown": "^2.12.4",
     "react-native-modal-datetime-picker": "^18.0.0",
     "react-native-paper": "^5.14.5",

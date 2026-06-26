@@ -28,17 +28,20 @@ export const docAction = async ({ request }: { request: Request }) => {
     return { error: (error as Error).message || 'Неизвестная ошибка' };
   }
 
-  if (!docData.customerId) {
+  if (docData.docType === 'OrderOut' && !docData.customerId?._id) {
     return { error: 'Выберите клиента' };
+  }
+  if ((docData.docType === 'OrderIn' || docData.docType === 'Incoming') && !docData.supplierId?._id) {
+    return { error: 'Выберите поставщика' };
+  }
+  if (docData.docType === 'Incoming' && !docData.warehouseId?._id) {
+    return { error: 'Выберите склад' };
   }
 
   const docFormData: DocFormData = {
     doc: { ...docData, docDate: formatDate(new Date(docData.docDate))},
     items: itemsData,
   };
-
-  console.log(docFormData);
-  
 
   try {
 
@@ -48,8 +51,6 @@ export const docAction = async ({ request }: { request: Request }) => {
     }
     const domainDoc = dtoToDoc(docFormData.doc);
     const domainItems = docFormData.items.map(dtoItemToDocItem);
-
-    console.log("domainDoc", domainDoc);
     
     switch (_method) {
       case 'PATCH':

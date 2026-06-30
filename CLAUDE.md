@@ -173,8 +173,9 @@ CORS_ORIGINS=http://localhost:5173,http://192.168.50.100:5173
 
 ```bash
 # Сервер
-npm run dev --workspace=server   # или: cd server && npm run dev
+npm run server    # dev
 
 # Web
-npm run dev --workspace=web      # или: npm run web (из корня)
+npm run web       # dev
+npm run web:build # build
 ```

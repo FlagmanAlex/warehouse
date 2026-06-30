@@ -6,14 +6,14 @@
   "type": "module",
   "scripts": {
     "build": "tsc -b && tsc-alias",
-    "start" : "node dist/sinc/src/index.js",
+    "start": "node dist/sinc/src/index.js",
     "sinc": "npm run build && npm run start"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "exceljs": "^4.4.0"
+    "exceljs": "^3.4.0"
   },
   "devDependencies": {
     "@types/node": "^25.0.3",

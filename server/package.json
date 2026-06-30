@@ -34,7 +34,7 @@
   "dependencies": {
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
-    "exceljs": "^4.4.0",
+    "exceljs": "^3.4.0",
     "express": "^5.1.0",
     "express-rate-limit": "^8.5.2",
     "express-validator": "^7.2.1",
